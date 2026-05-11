@@ -16,6 +16,7 @@ from app.routes.signals import router as signals_router
 from app.routes.gpt import router as gpt_router
 from app.routes.workspace import router as workspace_router
 from app.routes.update import router as update_router
+from app.routes.seasonality import router as seasonality_router
 
 app = FastAPI(title="Ktaliman Trading API")
 
@@ -35,3 +36,4 @@ app.include_router(signals_router, prefix="/api")
 app.include_router(gpt_router, prefix="/api")
 app.include_router(workspace_router)
 app.include_router(update_router)
+app.include_router(seasonality_router, prefix="/api")

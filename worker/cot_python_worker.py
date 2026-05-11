@@ -103,8 +103,6 @@ ASSET_MAP = {
 
 NORMALIZED_ASSET_MAP = {normalize_market_name(k): v for k, v in ASSET_MAP.items()}
 
-def lookup_asset(market_name: str):
-    return NORMALIZED_ASSET_MAP.get(normalize_market_name(market_name))
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
@@ -121,21 +119,21 @@ def to_float(value):
     except Exception:
         return 0.0
 
-def normalize_market_name(name: str) -> str:
-    return ' '.join(str(name).upper().replace('"', '').replace(' - ', ' - ').split())
 
-def lookup_asset(market_name: str):
-    m = normalize_market_name(market_name)
+def lookup_asset(market: str):
+    market = str(market).strip().strip('"')
 
-    if 'ICE FUTURES EUROPE' in m:
+    if 'ICE FUTURES EUROPE' in market.upper():
         return None
 
+    normalized = normalize_market_name(market)
     for key, asset in ASSET_MAP.items():
-        if normalize_market_name(key) == m:
+        if normalize_market_name(key) == normalized:
             return asset
 
     return None
-    
+
+
 def parse_report_date(value):
     raw = str(value).strip()
     for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%Y%m%d'):
@@ -155,16 +153,21 @@ def pct_of_oi(net_value, open_interest):
         return None
 
 
-def classify_flow_state(percentile):
-    if pd.isna(percentile):
+def classify_flow_state(index_value):
+    """
+    Classify flow state based on COT Index (Min-Max, 0-100 scale).
+    Matches Excel thresholds typically used for COT analysis.
+    """
+    if pd.isna(index_value) or index_value is None:
         return None
-    if percentile >= 90:
+    v = float(index_value)
+    if v >= 90:
         return 'Long Extreme'
-    if percentile <= 10:
+    if v <= 10:
         return 'Short Extreme'
-    if percentile >= 65:
+    if v >= 65:
         return 'Accumulation'
-    if percentile <= 35:
+    if v <= 35:
         return 'Distribution'
     return 'Neutral'
 
@@ -228,11 +231,6 @@ def init_db():
             UNIQUE(report_date, symbol, source_type)
         );
         '''))
-
-
-def lookup_asset(market):
-    market = str(market).strip().strip('"')
-    return ASSET_MAP.get(market)
 
 
 def parse_tff_row(row):
@@ -301,7 +299,6 @@ def parse_tff_row(row):
         'managed_money_short': None,
         'managed_money_net': None,
         'managed_money_pct_oi': None,
-
     }
 
 
@@ -367,6 +364,7 @@ def parse_disagg_row(row):
         'managed_money_pct_oi': pct_of_oi(managed_net, oi),
     }
 
+
 def parse_cftc_text(raw_text, source_type):
     rows = []
     unmatched = set()
@@ -428,48 +426,84 @@ def download_zip_and_parse(url, source_type, year):
     return df
 
 
-def compute_percentiles(df, column_name, percentile_name):
-    valid = df[column_name].notna()
-    df.loc[valid, percentile_name] = (
-        df.loc[valid]
-        .groupby('symbol')[column_name]
-        .rolling(window=156, min_periods=20)
-        .rank(pct=True)
-        .reset_index(level=0, drop=True) * 100
-    ).round(2)
+# ─────────────────────────────────────────────────────────────────────────────
+# COT INDEX — Min-Max normalization, rolling 156 weeks (≈ 3 years)
+#
+# Replicates the Excel formula exactly:
+#   =IFERROR(
+#     (current - MIN(last 156 rows)) /
+#     (MAX(last 156 rows) - MIN(last 156 rows)),
+#     NA()
+#   )
+#
+# Result: 0–100 scale (0 = 3y low, 100 = 3y high)
+# ─────────────────────────────────────────────────────────────────────────────
+def compute_cot_index(series: pd.Series, window: int = 156, min_periods: int = 20) -> pd.Series:
+    """
+    Rolling Min-Max COT Index — matches Excel OFFSET-based formula.
+    Returns values in 0-100 range. Returns NaN when range == 0 or insufficient data.
+    """
+    rolling = series.rolling(window=window, min_periods=min_periods)
+    rolling_min = rolling.min()
+    rolling_max = rolling.max()
+    rolling_range = rolling_max - rolling_min
+
+    # Avoid division by zero (flat series → NaN, not 0)
+    index = (series - rolling_min) / rolling_range.replace(0.0, float('nan'))
+    return (index * 100).round(2)
+
+
+def compute_percentiles(df: pd.DataFrame, column_name: str, index_col_name: str) -> pd.DataFrame:
+    """
+    Compute rolling COT Index (Min-Max) per symbol, sorted by date.
+    The result column name is kept as *_percentile_3y for backward compatibility
+    with all existing API routes and frontend logic.
+    """
+    valid_mask = df[column_name].notna()
+
+    results = (
+        df.loc[valid_mask]
+        .groupby('symbol', group_keys=False)[column_name]
+        .transform(lambda s: compute_cot_index(s))
+    )
+
+    df.loc[valid_mask, index_col_name] = results
     return df
 
 
-def compute_metrics(df):
+def compute_metrics(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
 
-    log('Computing rolling percentiles and flow state...')
+    log('Computing rolling COT Index (Min-Max, 156w) and flow state...')
     df = df.copy()
     df['report_date'] = pd.to_datetime(df['report_date'])
-    df = df.sort_values(['symbol', 'report_date']).reset_index(drop=True)
+    # Must be sorted per symbol by date for rolling to work correctly
+    df = df.sort_values(['symbol', 'source_type', 'report_date']).reset_index(drop=True)
 
     percentile_pairs = [
-        ('dealer_intermediary_net', 'dealer_intermediary_percentile_3y'),
-        ('asset_manager_net', 'asset_manager_percentile_3y'),
-        ('leveraged_funds_net', 'leveraged_funds_percentile_3y'),
-        ('producer_merchant_net', 'producer_merchant_percentile_3y'),
-        ('swap_dealers_net', 'swap_dealers_percentile_3y'),
-        ('managed_money_net', 'managed_money_percentile_3y'),
+        ('dealer_intermediary_net',  'dealer_intermediary_percentile_3y'),
+        ('asset_manager_net',        'asset_manager_percentile_3y'),
+        ('leveraged_funds_net',      'leveraged_funds_percentile_3y'),
+        ('producer_merchant_net',    'producer_merchant_percentile_3y'),
+        ('swap_dealers_net',         'swap_dealers_percentile_3y'),
+        ('managed_money_net',        'managed_money_percentile_3y'),
     ]
 
-    for net_col, pct_col in percentile_pairs:
+    for net_col, idx_col in percentile_pairs:
         if net_col in df.columns:
-            df = compute_percentiles(df, net_col, pct_col)
+            df[idx_col] = float('nan')
+            df = compute_percentiles(df, net_col, idx_col)
 
-    df['flow_driver_percentile'] = df.apply(
+    # Primary flow driver: leveraged funds (TFF) or managed money (DISAGG)
+    df['flow_driver_index'] = df.apply(
         lambda row: row['leveraged_funds_percentile_3y']
         if row.get('source_type') == 'TFF'
         else row['managed_money_percentile_3y'],
-        axis=1
+        axis=1,
     )
 
-    df['flow_state'] = df['flow_driver_percentile'].apply(classify_flow_state)
+    df['flow_state'] = df['flow_driver_index'].apply(classify_flow_state)
     df['report_date'] = df['report_date'].dt.date
     return df
 
@@ -483,79 +517,97 @@ def load_existing_history():
         return pd.DataFrame()
 
 
-def upsert_to_db(df):
+def upsert_to_db(df: pd.DataFrame):
     if df.empty:
         log('No rows to upsert.')
         return
 
-    df = df.drop_duplicates(subset=['report_date', 'symbol', "source_type"], keep='last').copy()
+    df = df.drop_duplicates(subset=['report_date', 'symbol', 'source_type'], keep='last').copy()
     log(f'Upserting {len(df)} records to database...')
 
     sql = text('''
     INSERT INTO cot_analytics (
         report_date, symbol, name, sector, source_type, open_interest,
-        dealer_intermediary_long, dealer_intermediary_short, dealer_intermediary_net, dealer_intermediary_pct_oi, dealer_intermediary_percentile_3y,
-        asset_manager_long, asset_manager_short, asset_manager_net, asset_manager_pct_oi, asset_manager_percentile_3y,
-        leveraged_funds_long, leveraged_funds_short, leveraged_funds_net, leveraged_funds_pct_oi, leveraged_funds_percentile_3y,
-        producer_merchant_long, producer_merchant_short, producer_merchant_net, producer_merchant_pct_oi, producer_merchant_percentile_3y,
-        swap_dealers_long, swap_dealers_short, swap_dealers_net, swap_dealers_pct_oi, swap_dealers_percentile_3y,
-        managed_money_long, managed_money_short, managed_money_net, managed_money_pct_oi, managed_money_percentile_3y,
+        dealer_intermediary_long, dealer_intermediary_short, dealer_intermediary_net,
+            dealer_intermediary_pct_oi, dealer_intermediary_percentile_3y,
+        asset_manager_long, asset_manager_short, asset_manager_net,
+            asset_manager_pct_oi, asset_manager_percentile_3y,
+        leveraged_funds_long, leveraged_funds_short, leveraged_funds_net,
+            leveraged_funds_pct_oi, leveraged_funds_percentile_3y,
+        producer_merchant_long, producer_merchant_short, producer_merchant_net,
+            producer_merchant_pct_oi, producer_merchant_percentile_3y,
+        swap_dealers_long, swap_dealers_short, swap_dealers_net,
+            swap_dealers_pct_oi, swap_dealers_percentile_3y,
+        managed_money_long, managed_money_short, managed_money_net,
+            managed_money_pct_oi, managed_money_percentile_3y,
         flow_state
     ) VALUES (
         :report_date, :symbol, :name, :sector, :source_type, :open_interest,
-        :dealer_intermediary_long, :dealer_intermediary_short, :dealer_intermediary_net, :dealer_intermediary_pct_oi, :dealer_intermediary_percentile_3y,
-        :asset_manager_long, :asset_manager_short, :asset_manager_net, :asset_manager_pct_oi, :asset_manager_percentile_3y,
-        :leveraged_funds_long, :leveraged_funds_short, :leveraged_funds_net, :leveraged_funds_pct_oi, :leveraged_funds_percentile_3y,
-        :producer_merchant_long, :producer_merchant_short, :producer_merchant_net, :producer_merchant_pct_oi, :producer_merchant_percentile_3y,
-        :swap_dealers_long, :swap_dealers_short, :swap_dealers_net, :swap_dealers_pct_oi, :swap_dealers_percentile_3y,
-        :managed_money_long, :managed_money_short, :managed_money_net, :managed_money_pct_oi, :managed_money_percentile_3y,
+        :dealer_intermediary_long, :dealer_intermediary_short, :dealer_intermediary_net,
+            :dealer_intermediary_pct_oi, :dealer_intermediary_percentile_3y,
+        :asset_manager_long, :asset_manager_short, :asset_manager_net,
+            :asset_manager_pct_oi, :asset_manager_percentile_3y,
+        :leveraged_funds_long, :leveraged_funds_short, :leveraged_funds_net,
+            :leveraged_funds_pct_oi, :leveraged_funds_percentile_3y,
+        :producer_merchant_long, :producer_merchant_short, :producer_merchant_net,
+            :producer_merchant_pct_oi, :producer_merchant_percentile_3y,
+        :swap_dealers_long, :swap_dealers_short, :swap_dealers_net,
+            :swap_dealers_pct_oi, :swap_dealers_percentile_3y,
+        :managed_money_long, :managed_money_short, :managed_money_net,
+            :managed_money_pct_oi, :managed_money_percentile_3y,
         :flow_state
     )
     ON CONFLICT (report_date, symbol, source_type) DO UPDATE SET
-        name = EXCLUDED.name,
-        sector = EXCLUDED.sector,
-        source_type = EXCLUDED.source_type,
-        open_interest = EXCLUDED.open_interest,
-        dealer_intermediary_long = EXCLUDED.dealer_intermediary_long,
-        dealer_intermediary_short = EXCLUDED.dealer_intermediary_short,
-        dealer_intermediary_net = EXCLUDED.dealer_intermediary_net,
-        dealer_intermediary_pct_oi = EXCLUDED.dealer_intermediary_pct_oi,
+        name                            = EXCLUDED.name,
+        sector                          = EXCLUDED.sector,
+        open_interest                   = EXCLUDED.open_interest,
+        dealer_intermediary_long        = EXCLUDED.dealer_intermediary_long,
+        dealer_intermediary_short       = EXCLUDED.dealer_intermediary_short,
+        dealer_intermediary_net         = EXCLUDED.dealer_intermediary_net,
+        dealer_intermediary_pct_oi      = EXCLUDED.dealer_intermediary_pct_oi,
         dealer_intermediary_percentile_3y = EXCLUDED.dealer_intermediary_percentile_3y,
-        asset_manager_long = EXCLUDED.asset_manager_long,
-        asset_manager_short = EXCLUDED.asset_manager_short,
-        asset_manager_net = EXCLUDED.asset_manager_net,
-        asset_manager_pct_oi = EXCLUDED.asset_manager_pct_oi,
-        asset_manager_percentile_3y = EXCLUDED.asset_manager_percentile_3y,
-        leveraged_funds_long = EXCLUDED.leveraged_funds_long,
-        leveraged_funds_short = EXCLUDED.leveraged_funds_short,
-        leveraged_funds_net = EXCLUDED.leveraged_funds_net,
-        leveraged_funds_pct_oi = EXCLUDED.leveraged_funds_pct_oi,
-        leveraged_funds_percentile_3y = EXCLUDED.leveraged_funds_percentile_3y,
-        producer_merchant_long = EXCLUDED.producer_merchant_long,
-        producer_merchant_short = EXCLUDED.producer_merchant_short,
-        producer_merchant_net = EXCLUDED.producer_merchant_net,
-        producer_merchant_pct_oi = EXCLUDED.producer_merchant_pct_oi,
+        asset_manager_long              = EXCLUDED.asset_manager_long,
+        asset_manager_short             = EXCLUDED.asset_manager_short,
+        asset_manager_net               = EXCLUDED.asset_manager_net,
+        asset_manager_pct_oi            = EXCLUDED.asset_manager_pct_oi,
+        asset_manager_percentile_3y     = EXCLUDED.asset_manager_percentile_3y,
+        leveraged_funds_long            = EXCLUDED.leveraged_funds_long,
+        leveraged_funds_short           = EXCLUDED.leveraged_funds_short,
+        leveraged_funds_net             = EXCLUDED.leveraged_funds_net,
+        leveraged_funds_pct_oi          = EXCLUDED.leveraged_funds_pct_oi,
+        leveraged_funds_percentile_3y   = EXCLUDED.leveraged_funds_percentile_3y,
+        producer_merchant_long          = EXCLUDED.producer_merchant_long,
+        producer_merchant_short         = EXCLUDED.producer_merchant_short,
+        producer_merchant_net           = EXCLUDED.producer_merchant_net,
+        producer_merchant_pct_oi        = EXCLUDED.producer_merchant_pct_oi,
         producer_merchant_percentile_3y = EXCLUDED.producer_merchant_percentile_3y,
-        swap_dealers_long = EXCLUDED.swap_dealers_long,
-        swap_dealers_short = EXCLUDED.swap_dealers_short,
-        swap_dealers_net = EXCLUDED.swap_dealers_net,
-        swap_dealers_pct_oi = EXCLUDED.swap_dealers_pct_oi,
-        swap_dealers_percentile_3y = EXCLUDED.swap_dealers_percentile_3y,
-        managed_money_long = EXCLUDED.managed_money_long,
-        managed_money_short = EXCLUDED.managed_money_short,
-        managed_money_net = EXCLUDED.managed_money_net,
-        managed_money_pct_oi = EXCLUDED.managed_money_pct_oi,
-        managed_money_percentile_3y = EXCLUDED.managed_money_percentile_3y,
-        flow_state = EXCLUDED.flow_state
+        swap_dealers_long               = EXCLUDED.swap_dealers_long,
+        swap_dealers_short              = EXCLUDED.swap_dealers_short,
+        swap_dealers_net                = EXCLUDED.swap_dealers_net,
+        swap_dealers_pct_oi             = EXCLUDED.swap_dealers_pct_oi,
+        swap_dealers_percentile_3y      = EXCLUDED.swap_dealers_percentile_3y,
+        managed_money_long              = EXCLUDED.managed_money_long,
+        managed_money_short             = EXCLUDED.managed_money_short,
+        managed_money_net               = EXCLUDED.managed_money_net,
+        managed_money_pct_oi            = EXCLUDED.managed_money_pct_oi,
+        managed_money_percentile_3y     = EXCLUDED.managed_money_percentile_3y,
+        flow_state                      = EXCLUDED.flow_state
     ''')
 
     def clean(v):
-        return None if pd.isna(v) else v
+        if v is None:
+            return None
+        try:
+            if pd.isna(v):
+                return None
+        except Exception:
+            pass
+        return v
 
     with engine.begin() as conn:
         for _, row in df.iterrows():
             payload = {k: clean(v) for k, v in row.to_dict().items()}
-            payload.pop('flow_driver_percentile', None)
+            payload.pop('flow_driver_index', None)
             payload.pop('id', None)
             conn.execute(sql, payload)
 
@@ -583,7 +635,7 @@ def bootstrap_history(start_year=2020, end_year=2026):
         return
 
     combined = pd.concat(frames, ignore_index=True)
-    combined = combined.drop_duplicates(subset=['report_date', 'symbol', "source_type"], keep='last')
+    combined = combined.drop_duplicates(subset=['report_date', 'symbol', 'source_type'], keep='last')
     log(f'Historical combined rows before metrics: {len(combined)}')
 
     final_df = compute_metrics(combined)
@@ -608,15 +660,15 @@ def run_weekly_update():
     else:
         combined = pd.concat([existing_df, weekly_df], ignore_index=True)
 
-    combined = combined.drop_duplicates(subset=['report_date', 'symbol', "source_type"], keep='last')
+    combined = combined.drop_duplicates(subset=['report_date', 'symbol', 'source_type'], keep='last')
     log(f'Combined rows for metric recomputation: {len(combined)}')
 
     final_df = compute_metrics(combined)
 
     latest_dates = pd.to_datetime(weekly_df['report_date']).dt.date.unique().tolist()
-    final_df = final_df[final_df['report_date'].isin(latest_dates)].copy()
+    final_df_new = final_df[final_df['report_date'].isin(latest_dates)].copy()
 
-    upsert_to_db(final_df)
+    upsert_to_db(final_df_new)
     log('=== WEEKLY UPDATE COMPLETE ===')
 
 

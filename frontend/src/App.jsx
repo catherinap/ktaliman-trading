@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import LanguageSettings from "./components/LanguageSettings";
+import AIAnalysisPanel from "./components/AIAnalysisPanel";
 
 
 const NAV_ITEMS = [
@@ -909,24 +910,6 @@ function seasonalBiasTone(value) {
   return 'text-amber-300'
 }
 
-function buildSeasonalityProfile(asset, index = 0, t) {
-  const base = Number(asset?.funds_percentile_3y)
-  const safeBase = Number.isNaN(base) ? 50 : base
-  const monthIndex = new Date().getMonth()
-  const values = SEASONAL_MONTHS.map((_, i) => {
-    const wave = Math.sin((i + index + 1) * 0.9) * 14
-    const offset = Math.cos((i - monthIndex) * 0.7) * 8
-    const drift = (safeBase - 50) * 0.22
-    const value = Math.max(5, Math.min(95, 50 + wave + offset + drift))
-    return Number(value.toFixed(1))
-  })
-  const current = values[monthIndex]
-  const best = Math.max(...values)
-  const worst = Math.min(...values)
-  const avg = values.reduce((sum, x) => sum + x, 0) / values.length
-  return { asset: asset.name, symbol: asset.symbol, sector: asset.sector, flow: asset.flow_state || 'Neutral', regime: regimeLabel(asset.funds_percentile_3y, t), values, current, best, worst, average: Number(avg.toFixed(1)), bias: seasonalBiasLabel(current, t) }
-}
-
 function buildSeasonalityNarrative(rows, t) {
   const valid = rows.filter((x) => x.current != null && !Number.isNaN(x.current))
   if (!valid.length) return { breadth: null, strongest: null, weakest: null, summary: 'No seasonality narrative is available yet.', interpretation: 'There is not enough seasonal data to interpret the current calendar window.', tradingRelevance: 'Trading relevance is unavailable without seasonality data.', whatToWatch: 'Wait for more seasonal inputs.' }
@@ -1361,10 +1344,10 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected }) {
   )
 }
 
-function MacroView({ assets }) {
-	const { t } = useTranslation();
+function MacroView({ assets, aiLanguage }) {
+  const { t } = useTranslation();
 
-	const sleeveData = useMemo(() => Object.entries(MACRO_SLEEVES).map(([key, config]) => {
+  const sleeveData = useMemo(() => Object.entries(MACRO_SLEEVES).map(([key, config]) => {
   const members = findAssetsExact(assets, config.members)
   const score = averagePercentile(members)
   return {
@@ -1505,6 +1488,20 @@ function MacroView({ assets }) {
               </div>
             ))}
           </div>
+		  <AIAnalysisPanel
+          type="macro"
+          data={{
+            growth_score: growthScore,
+            inflation_score: inflationScore,
+            policy_score: policyScore,
+            composite: macroComposite,
+            growth_assets: sleeveData.find((x) => x.key === "growth")?.members || [],
+            inflation_assets: sleeveData.find((x) => x.key === "inflation")?.members || [],
+            policy_assets: sleeveData.find((x) => x.key === "policy")?.members || [],
+          }}
+          aiLanguage={aiLanguage}
+          title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
+        />
         </Panel>
       </div>
 
@@ -1786,14 +1783,14 @@ function CorrelationView({ assets }) {
     </div>
   )
 }
-function SeasonalityView({ assets }) {
+function SeasonalityView({ assets, seasonalityData = [] }) {
   const { t } = useTranslation();
   const rows = useMemo(() => {
-    return (assets || [])
-      .filter((a) => a?.name)
-      .map((asset, index) => buildSeasonalityProfile(asset, index, t))
-      .sort((a, b) => b.current - a.current)
-  }, [assets])
+    if (!seasonalityData || seasonalityData.length === 0) return []
+    return [...seasonalityData].sort((a, b) => b.current - a.current)
+  }, [seasonalityData, t])
+ 
+  const hasData = rows.length > 0
 
   const monthIndex = new Date().getMonth()
   const currentMonth = SEASONAL_MONTHS[monthIndex]
@@ -1844,6 +1841,21 @@ function SeasonalityView({ assets }) {
     return `${strongest.asset} currently has the strongest seasonal tailwind, while ${weakest.asset} is in the weakest current calendar window. Read the sparkline as a simple month-to-month shape: rising sections mean the seasonal backdrop is improving, and falling sections mean it is cooling.`
   }, [strongest, weakest])
 
+  if (!hasData) {
+    return (
+      <Panel title={t("panels.seasonality")}>
+        <div className="space-y-3 text-sm text-zinc-500">
+          <div>
+            {t("seasonality.noData", "Seasonality data is not available yet.")}
+          </div>
+          <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-600">
+            {t("seasonality.noDataHint", "Run the worker to populate historical COT data. Seasonality requires at least 3 months of history per asset.")}
+          </div>
+        </div>
+      </Panel>
+    )
+  }
+ 
   return (
     <div className="space-y-4">
       <Panel title={t("panels.seasonality")} right={<span className="text-amber-400">calendar context</span>}>
@@ -2184,7 +2196,7 @@ function Summary({ assets, setActive, setSelected }) {
  )
 }
 
-function Explorer({ assets, selected, setSelected }) {
+function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData = [] }) {
   const { t } = useTranslation();
 
   const asset = assets.find((a) => a.symbol === selected) || assets[0];
@@ -2274,14 +2286,13 @@ function Explorer({ assets, selected, setSelected }) {
   }, [asset]);
 
   const sparkProfile = useMemo(() => {
-    if (!asset) return [];
-    const result = buildSeasonalityProfile(
-      asset,
-      assets.findIndex((x) => x.symbol === asset.symbol),
-      t
-    );
-    return Array.isArray(result?.values) ? result.values : [];
-  }, [asset, assets, t]);
+    if (!asset) return []
+    const real = seasonalityData.find((s) => s.symbol === asset.symbol)
+    if (real && Array.isArray(real.values) && real.values.length === 12) {
+      return real.values
+    }
+    return []   // порожній масив → MiniSparkline покаже порожній блок
+  }, [asset, seasonalityData, t])
 
   if (!asset || !profile) {
     return (
@@ -2395,17 +2406,26 @@ function Explorer({ assets, selected, setSelected }) {
                 <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
                   Seasonal Curve
                 </div>
-                <div className="mt-3">
-                  <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
-                </div>
-                <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-zinc-500">
-                  <span>Jan</span>
-                  <span>{SEASONAL_MONTHS[new Date().getMonth()]}</span>
-                  <span>Dec</span>
-                </div>
-                <div className="mt-4 text-sm leading-7 text-zinc-300">
-                  This mini curve adds calendar context. If seasonal direction and COT bias are aligned, the setup becomes easier to trust.
-                </div>
+                {sparkProfile.length === 12 ? (
+                  <>
+                    <div className="mt-3">
+                      <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-zinc-500">
+                      <span>Jan</span>
+                      <span>{SEASONAL_MONTHS[new Date().getMonth()]}</span>
+                      <span>Dec</span>
+                    </div>
+                    <div className="mt-4 text-sm leading-7 text-zinc-300">
+                      Based on average monthly COT positioning over the last 5 years.
+                      If seasonal direction and COT bias are aligned, the setup becomes easier to trust.
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-3 text-sm text-zinc-600">
+                    n/a — seasonal data not yet available for this asset.
+                  </div>
+                )}
               </div>
             </div>
           </Panel>
@@ -2486,18 +2506,20 @@ function Explorer({ assets, selected, setSelected }) {
               )}
             </div>
           </Panel>
+
+          <AIAnalysisPanel
+            type="asset"
+            data={asset}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI-Аналіз активу" : "AI Asset Analysis"}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function SignalsView({ assets, setActive, setSelected }) {
-  const seasonalityRows = useMemo(() => {
-    return assets
-      .filter((a) => a?.name)
-      .map((asset, index) => buildSeasonalityProfile(asset, index))
-  }, [assets])
+function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityData = [] }) {
 
   const macroSleeves = useMemo(() => {
     return Object.entries(MACRO_SLEEVES).map(([key, config]) => {
@@ -2517,9 +2539,9 @@ function SignalsView({ assets, setActive, setSelected }) {
     { funds_percentile_3y: policyScore },
   ])
 
-  const engine = useMemo(
-    () => buildSignalEngine(assets, seasonalityRows, macroComposite),
-    [assets, seasonalityRows, macroComposite]
+    const engine = useMemo(
+    () => buildSignalEngine(assets, seasonalityData, macroComposite),
+    [assets, seasonalityData, macroComposite]
   )
 
   const [stateFilter, setStateFilter] = useState('all')
@@ -2856,6 +2878,13 @@ function SignalsView({ assets, setActive, setSelected }) {
               </div>
             </div>
           </Panel>
+
+          <AIAnalysisPanel
+            type="signals"
+            data={{ signals: engine.signals.slice(0, 6) }}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
+          />
         </div>
       </div>
     </div>
@@ -2912,7 +2941,8 @@ export default function App() {
   const [status, setStatus] = useState(null)
   const [heatmap, setHeatmap] = useState({})
   const [assets, setAssets] = useState([])
-  const [signals, setSignals] = useState([])
+    const [signals, setSignals] = useState([])
+  const [seasonalityData, setSeasonalityData] = useState([])
   const [workspaceData, setWorkspaceData] = useState({ macro_regime: null, releases: [], calendar: [], news: [] })
   const [updateState, setUpdateState] = useState({ status: 'idle', started_at: null, finished_at: null, return_code: null, log: '', error: '' })
   const [updateBusy, setUpdateBusy] = useState(false)
@@ -2997,28 +3027,31 @@ export default function App() {
     setLoading(true)
     setError('')
 
-    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes] = await Promise.all([
+    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes] = await Promise.all([
       fetch('/api/system/status'),
       fetch('/api/heatmap'),
       fetch('/api/assets'),
       fetch('/api/signals'),
       fetch('/api/workspace'),
+      fetch('/api/seasonality'),
     ])
-
+ 
     if (!statusRes.ok || !heatmapRes.ok || !assetsRes.ok || !signalsRes.ok || !workspaceRes.ok) {
       throw new Error('Failed to load API data')
     }
-
-    const statusJson = await statusRes.json()
-    const heatmapJson = await heatmapRes.json()
-    const assetsJson = await assetsRes.json()
-    const signalsJson = await signalsRes.json()
-    const workspaceJson = await workspaceRes.json()
-
+ 
+    const statusJson      = await statusRes.json()
+    const heatmapJson     = await heatmapRes.json()
+    const assetsJson      = await assetsRes.json()
+    const signalsJson     = await signalsRes.json()
+    const workspaceJson   = await workspaceRes.json()
+    const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
+ 
     setStatus(statusJson)
     setHeatmap(heatmapJson.sectors || {})
     setAssets(assetsJson.items || [])
     setSignals(signalsJson.items || [])
+    setSeasonalityData(seasonalityJson.items || [])
     setWorkspaceData({
       macro_regime: workspaceJson.macro_regime || null,
       releases: workspaceJson.releases || [],
@@ -3081,11 +3114,11 @@ export default function App() {
 
   const view = { 
     workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} />, 
-    macro: <MacroView assets={assets} />, 
+    macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} />, 
 	summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />, 
-	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} />, 
-	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} />, 
-	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} />, 
+	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
+	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 
+	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />, 
 	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} />, 
 	settings: (
   <SettingsView
