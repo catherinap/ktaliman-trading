@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { key: "correlation", labelKey: "nav.correlation", icon: LineChart },
   { key: "seasonality", labelKey: "nav.seasonality", icon: Calendar },
   { key: "signals", labelKey: "nav.signals", icon: Zap },
+  { key: "history", labelKey: "nav.history", icon: BarChart2 },
   { key: "update", labelKey: "nav.update", icon: Database },
   { key: "settings", labelKey: "nav.settings", icon: Settings },
 ]
@@ -497,7 +498,7 @@ function rankSignals(signals) {
 }
 
 function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null) {
-  const seasonalityMap = new Map(seasonalityRows.map((row) => [row.asset, row]))
+  const seasonalityMap = new Map(seasonalityRows.map((row) => [row.name || row.asset, row]))
 
   const enriched = assets
     .filter((asset) => asset?.name)
@@ -607,29 +608,35 @@ function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null) 
 }
 
 const MACRO_SLEEVES = {
- growth: {
-  title: "Growth",
-  members: [
-    ["SP 500", "S&P 500", "S and P 500", "E-Mini S&P 500", "Emini S&P 500", "ES", "SPX"],
-    ["Nasdaq", "NASDAQ", "Nasdaq 100", "E-Mini Nasdaq", "NQ"],
-    ["Dow Jones", "DJIA", "Mini-Dow", "E-Mini Dow", "YM"],
-  ],
-  description: "Growth positioning tracks index-futures risk appetite.",
-},
- inflation: {
-  title: "Inflation",
-  members: [
-    ["Gold", "GC"],
-    ["Silver", "SI"],
-    ["Copper", "COPPER", "COPPER GRADE #1","COPPER #1", "HG"],
-    ["WTI Crude", "WTI", "Crude Oil", "Light Sweet Crude Oil", "CL"],
-  ],
-  description: "Inflation sleeve tracks metals and energy proxies.",
-},
+  growth: {
+    title: "Growth",
+    members: [
+      ["SP 500", "S&P 500", "S and P 500", "E-Mini S&P 500", "Emini S&P 500", "ES", "SPX"],
+      ["Nasdaq", "NASDAQ", "Nasdaq 100", "E-Mini Nasdaq", "NQ"],
+      ["Dow Jones", "DJIA", "Mini-Dow", "E-Mini Dow", "YM"],
+    ],
+    description: "Growth positioning tracks index-futures risk appetite.",
+  },
+  inflation: {
+    title: "Inflation",
+    members: [
+      ["Gold", "GC", "XAU"],
+      ["Silver", "SI", "XAG"],
+      ["Copper", "COPPER", "COPPER GRADE #1", "COPPER #1", "HG"],
+      ["WTI Crude", "WTI", "Crude Oil", "Light Sweet Crude Oil", "CL"],
+    ],
+    description: "Inflation sleeve tracks metals and energy proxies.",
+  },
   policy: {
-    title: 'Policy',
-    members: ['USD', 'EUR', 'JPY', 'GBP', 'CHF'],
-    description: 'Policy sleeve tracks major reserve and policy-sensitive FX positioning.',
+    title: "Policy",
+    members: [
+      ["USD", "US Dollar Index", "U.S. Dollar Index"],
+      ["EUR", "Euro"],
+      ["JPY", "Japanese Yen"],
+      ["GBP", "British Pound"],
+      ["CHF", "Swiss Franc"],
+    ],
+    description: "Policy sleeve tracks major reserve and policy-sensitive FX positioning.",
   },
 }
 
@@ -919,7 +926,7 @@ function buildSeasonalityNarrative(rows, t) {
   const strongest = [...valid].sort((a, b) => b.current - a.current)[0]
   const weakest = [...valid].sort((a, b) => a.current - b.current)[0]
   const summary = `The current seasonal map shows ${bullishCount} supportive windows and ${bearishCount} weak windows across the tracked universe, with breadth at ${formatPercentile(breadth)}.`
-  const interpretation = `${strongest.asset} currently has the strongest seasonal tailwind at ${formatPercentile(strongest.current)}, while ${weakest.asset} shows the weakest seasonal window at ${formatPercentile(weakest.current)}.`
+  const interpretation = `${strongest.name || strongest.asset} currently has the strongest seasonal tailwind at ${formatPercentile(strongest.current)}, while ${weakest.name || weakest.asset} shows the weakest seasonal window at ${formatPercentile(weakest.current)}.`
   const tradingRelevance = breadth >= 20 ? 'Seasonal breadth is supportive. Calendar tendencies can act as a useful confirmation layer for long-biased trade selection.' : breadth <= -20 ? 'Seasonal breadth is weak. This argues for more caution and selective exposure rather than broad participation.' : 'Seasonal breadth is mixed. Seasonality should be treated as a secondary filter rather than a primary trade driver.'
   const whatToWatch = 'Watch whether the strongest seasonal windows remain aligned with live positioning and price structure, and whether currently weak seasonal assets begin to improve into the next calendar turn.'
   return { breadth: Number(breadth.toFixed(1)), strongest, weakest, summary, interpretation, tradingRelevance, whatToWatch }
@@ -1181,165 +1188,644 @@ function ImpactBadge({ impact }) {
   return <span className={cls('text-xs uppercase tracking-[0.2em]', tone)}>{impact}</span>
 }
 
-function Workspace({ heatmap, workspaceData, setActive, setSelected }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// НОВИЙ Workspace component для App.jsx
+//
+// ЩО ТРЕБА ЗРОБИТИ:
+// 1. Додати імпорт AIAnalysisPanel на початку App.jsx (якщо ще не додано):
+//    import AIAnalysisPanel from "./components/AIAnalysisPanel";
+//
+// 2. Знайти в App.jsx функцію Workspace і замінити її ПОВНІСТЮ на код нижче
+//    (від "function Workspace(" до закриваючої "}" включно)
+//
+// 3. У const view = { ... } знайти:
+//    workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} />,
+//    Замінити на:
+//    workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} />,
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en" }) {
   const { t } = useTranslation();
-  const macro = workspaceData?.macro_regime
-  const [macroFeedLoading, setMacroFeedLoading] = useState(false)
-  const releases = workspaceData?.releases || []
+  const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
-  const news = workspaceData?.news || []
+  const news     = workspaceData?.news     || []
+
+  // ── Top active signals ───────────────────────────────────────────────────
+  const topSignals = useMemo(() => {
+    if (!assets.length) return []
+    const engine = buildSignalEngine(assets, [], null)
+    return engine.signals
+      .filter((s) => s.state === "active")
+      .slice(0, 5)
+  }, [assets])
+
+  // ── Macro sleeve scores (same logic as MacroView) ────────────────────────
+  const sleeveScores = useMemo(() => {
+    const result = {}
+    Object.entries(MACRO_SLEEVES).forEach(([key, config]) => {
+      const members = findAssetsExact(assets, config.members)
+      result[key] = averagePercentile(members)
+    })
+    return result
+  }, [assets])
+
+  const macroComposite = averagePercentile([
+    { funds_percentile_3y: sleeveScores.growth },
+    { funds_percentile_3y: sleeveScores.inflation },
+    { funds_percentile_3y: sleeveScores.policy },
+  ])
+
+  // ── Alert feed ───────────────────────────────────────────────────────────
+  const alertFeed = useMemo(() => {
+    if (!assets.length) return []
+    const engine = buildSignalEngine(assets, [], null)
+    return engine.alerts.slice(0, 5)
+  }, [assets])
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[2.15fr_1fr]">
-      <div className="space-y-4">
-        <Panel title={t("panels.macroRegime")} right={<span className="text-amber-400">{macro?.title || 'COT live composite'}</span>}>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div>
-              <div className="mb-3 text-[11px] uppercase tracking-[0.24em] text-emerald-400">Growth</div>
-              <div className="text-sm leading-7 text-zinc-200">{macro?.growth || 'No growth commentary available.'}</div>
-            </div>
-            <div>
-              <div className="mb-3 text-[11px] uppercase tracking-[0.24em] text-amber-400">Inflation</div>
-              <div className="text-sm leading-7 text-zinc-200">{macro?.inflation || 'No inflation commentary available.'}</div>
-            </div>
-            <div>
-              <div className="mb-3 text-[11px] uppercase tracking-[0.24em] text-sky-400">Policy</div>
-              <div className="text-sm leading-7 text-zinc-200">{macro?.policy || 'No policy commentary available.'}</div>
-            </div>
-          </div>
-          <div className="mt-5 border-t border-zinc-900 pt-4 text-sm leading-7 text-zinc-300">
-            <span className="text-zinc-500">Verdict: </span>
-            {macro?.verdict || 'No composite verdict available.'}
-          </div>
-        </Panel>
+    <div className="space-y-4">
 
-        <Panel title={t("panels.cotFlowHeatmap")} right={<span className="text-emerald-400">live data</span>}>
-          <div className="space-y-5">
-            {Object.entries(heatmap || {}).map(([sector, items]) => (
-              <div key={sector}>
-                <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{sector}</div>
-                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                  {items.map((a) => (
-                    <button
-                      key={a.symbol}
-                      onClick={() => {
-                        setSelected(a.symbol)
-                        setActive('explorer')
-                      }}
-                      className="border border-zinc-900 bg-[#080808] p-3 text-left hover:border-zinc-700"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-zinc-100">{a.name}</div>
-                        <div className={cls('text-sm font-semibold', flowColor(a.funds_percentile_3y))}>
-                          {formatPercentile(a.funds_percentile_3y)}
-                        </div>
+      {/* ── Row 1: AI Briefing + Macro Snapshot ─────────────────────────── */}
+      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+
+        {/* AI Weekly Briefing */}
+        <AIAnalysisPanel
+          type="macro"
+          data={{
+            growth_score:    sleeveScores.growth,
+            inflation_score: sleeveScores.inflation,
+            policy_score:    sleeveScores.policy,
+            composite:       macroComposite,
+            growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+            inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+            policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+          }}
+          aiLanguage={aiLanguage}
+          title={aiLanguage === "uk" ? "AI — Weekly Briefing" : "AI — Weekly Briefing"}
+        />
+
+        {/* Macro Snapshot */}
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              {t("panels.macroRegime")}
+            </span>
+            <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
+              {macroLabel(macroComposite, t)}
+            </span>
+          </div>
+          <div className="p-4">
+            {/* Three sleeves */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { key: "growth",    label: "Growth",    color: "text-emerald-400" },
+                { key: "inflation", label: "Inflation", color: "text-amber-400" },
+                { key: "policy",    label: "Policy",    color: "text-sky-400" },
+              ].map(({ key, label, color }) => {
+                const score = sleeveScores[key]
+                return (
+                  <div key={key} className="border border-zinc-900 bg-[#080808] p-3">
+                    <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>
+                      {label}
+                    </div>
+                    <div className={cls("mt-2 text-xl font-semibold", macroTone(score))}>
+                      {score != null ? formatPercentile(score) : "n/a"}
+                    </div>
+                    <div className="mt-1 text-[11px] text-zinc-600">
+                      {macroLabel(score, t)}
+                    </div>
+                    {/* Mini bar */}
+                    <div className="mt-2 h-1 overflow-hidden bg-zinc-900">
+                      <div
+                        className={cls("h-full", macroTone(score).replace("text-", "bg-"))}
+                        style={{ width: `${Math.max(4, score ?? 0)}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Composite + Verdict */}
+            <div className="mt-3 border border-zinc-900 bg-zinc-950 p-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="uppercase tracking-[0.2em] text-zinc-500">Composite</span>
+                <span className={cls("font-semibold", macroTone(macroComposite))}>
+                  {macroComposite != null ? formatPercentile(macroComposite) : "n/a"}
+                </span>
+              </div>
+              <div className="mt-2 text-sm leading-6 text-zinc-400">
+                {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* ── Row 2: Top Signals + Alert Feed ─────────────────────────────── */}
+      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+
+        {/* Top Active Signals */}
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              {aiLanguage === "uk" ? "Топ активні сигнали" : "Top Active Signals"}
+            </span>
+            <button
+              onClick={() => setActive("signals")}
+              className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:text-zinc-300 transition"
+            >
+              {aiLanguage === "uk" ? "Всі сигнали →" : "All signals →"}
+            </button>
+          </div>
+
+          <div className="divide-y divide-zinc-900">
+            {topSignals.length === 0 ? (
+              <div className="px-4 py-5 text-sm text-zinc-600">
+                {aiLanguage === "uk"
+                  ? "Активних сигналів немає. Перейди у вкладку Signals для повного списку."
+                  : "No active signals right now. Check the Signals tab for all candidates."}
+              </div>
+            ) : topSignals.map((signal) => (
+              <button
+                key={signal.id}
+                onClick={() => { setSelected(signal.symbol); setActive("explorer") }}
+                className="w-full px-4 py-3 text-left hover:bg-zinc-900/40 transition"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {/* Direction dot */}
+                    <div className={cls(
+                      "h-2 w-2 shrink-0 rounded-full",
+                      signal.direction === "long"  ? "bg-emerald-400" :
+                      signal.direction === "short" ? "bg-rose-400"    : "bg-zinc-600"
+                    )} />
+                    <div>
+                      <div className="text-sm text-zinc-100">{signal.asset}</div>
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-600">
+                        {signal.symbol} · {signal.sector}
                       </div>
-                      <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{a.symbol}</div>
-                      <div className={cls('mt-3 text-xs uppercase tracking-[0.2em]', flowColor(a.funds_percentile_3y))}>
-                        {a.flow_state || 'Neutral'}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                      <div className={cls("text-xs uppercase tracking-[0.18em]", directionTone(signal.direction))}>
+                        {directionLabel(signal.direction)}
                       </div>
-                    </button>
-                  ))}
+                      <div className="text-[11px] text-zinc-600">
+                        COT {formatPercentile(signal.percentile)}
+                      </div>
+                    </div>
+                    <div className="border border-zinc-800 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+                      {formatPercentile(signal.priorityScore)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quality bar */}
+                <div className="mt-2 h-0.5 overflow-hidden bg-zinc-900">
+                  <div
+                    className={cls(
+                      "h-full",
+                      signal.direction === "long"  ? "bg-emerald-500/60" :
+                      signal.direction === "short" ? "bg-rose-500/60"    : "bg-zinc-600"
+                    )}
+                    style={{ width: `${Math.max(4, signal.entryQualityScore)}%` }}
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Alert Feed */}
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              {aiLanguage === "uk" ? "Алерти" : "Alert Feed"}
+            </span>
+          </div>
+          <div className="divide-y divide-zinc-900">
+            {alertFeed.length === 0 ? (
+              <div className="px-4 py-5 text-sm text-zinc-600">
+                {aiLanguage === "uk" ? "Алертів немає." : "No alerts right now."}
+              </div>
+            ) : alertFeed.map((alert) => (
+              <div key={alert.id} className="px-4 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm text-zinc-200">{alert.title}</div>
+                  <span className={cls(
+                    "shrink-0 border px-2 py-0.5 text-[10px] uppercase tracking-[0.2em]",
+                    alertImpactTone(alert.impact)
+                  )}>
+                    {alert.impact}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs leading-5 text-zinc-500">{alert.text}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* ── Row 3: COT Heatmap ───────────────────────────────────────────── */}
+      <section className="border border-zinc-900 bg-[#0a0a0a]">
+        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            {t("panels.cotFlowHeatmap")}
+          </span>
+          <span className="text-[11px] uppercase tracking-[0.22em] text-emerald-400">live data</span>
+        </div>
+        <div className="p-4 space-y-5">
+          {Object.entries(heatmap || {}).map(([sector, items]) => (
+            <div key={sector}>
+              <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{sector}</div>
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                {items.map((a) => (
+                  <button
+                    key={a.symbol}
+                    onClick={() => { setSelected(a.symbol); setActive("explorer") }}
+                    className="border border-zinc-900 bg-[#080808] p-3 text-left hover:border-zinc-700 transition"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-zinc-100">{a.name}</div>
+                      <div className={cls("text-sm font-semibold", flowColor(a.funds_percentile_3y))}>
+                        {formatPercentile(a.funds_percentile_3y)}
+                      </div>
+                    </div>
+                    <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{a.symbol}</div>
+                    <div className="mt-2 h-1 overflow-hidden bg-zinc-900">
+                      <div
+                        className={cls("h-full", flowColor(a.funds_percentile_3y).replace("text-", "bg-"))}
+                        style={{ width: `${Math.max(4, a.funds_percentile_3y ?? 0)}%` }}
+                      />
+                    </div>
+                    <div className={cls("mt-2 text-[11px] uppercase tracking-[0.2em]", flowColor(a.funds_percentile_3y))}>
+                      {a.flow_state || "Neutral"}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Row 4: Calendar + News ───────────────────────────────────────── */}
+      <div className="grid gap-4 xl:grid-cols-2">
+
+        {/* Economic Calendar */}
+        <section className="border border-zinc-800 bg-black/40">
+          <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+            {t("panels.economicCalendar")}
+          </div>
+          <div className="divide-y divide-zinc-900">
+            {calendar.length === 0 ? (
+              <div className="px-5 py-5 text-sm text-zinc-500">
+                {aiLanguage === "uk" ? "Даних календаря немає." : "No calendar events available."}
+              </div>
+            ) : calendar.map((event) => (
+              <div key={event.id} className="grid grid-cols-[72px_72px_1fr_56px] gap-3 px-5 py-4 text-sm">
+                <div className="text-zinc-200">{formatClockTime(event.datetime)}</div>
+                <div className="text-zinc-500">{event.currency || event.country || ""}</div>
+                <div className="text-zinc-100">
+                  <div>{event.title || "TBD"}</div>
+                  <div className="mt-1 text-xs text-zinc-500">
+                    {event.actual    != null ? `Actual: ${event.actual}`       : "Actual: n/a"}
+                    {" · "}
+                    {event.forecast  != null ? `Forecast: ${event.forecast}`   : "Forecast: n/a"}
+                    {" · "}
+                    {event.previous  != null ? `Previous: ${event.previous}`   : "Previous: n/a"}
+                  </div>
+                </div>
+                <div className={cls("text-right uppercase", importanceTone(event.importance))}>
+                  {event.importance || "n/a"}
                 </div>
               </div>
             ))}
           </div>
-        </Panel>
-      </div>
+        </section>
 
-      <div className="space-y-4">
-        <>
-          <section className="rounded-none border border-zinc-800 bg-black/40">
-  <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-    Economic Calendar
-  </div>
-
-  <div className="divide-y divide-zinc-900">
-    {macroFeedLoading && calendar.length === 0 ? (
-      <div className="px-5 py-5 text-sm text-zinc-500">Loading calendar...</div>
-    ) : calendar.length === 0 ? (
-      <div className="px-5 py-5 text-sm text-zinc-500">No calendar events available.</div>
-    ) : (
-      calendar.map((event) => {
-        const label = event.title || "TBD"
-        const place = event.currency || event.country || ""
-        const actual = event.actual ?? null
-        const forecast = event.forecast ?? null
-        const previous = event.previous ?? null
-
-        return (
-          <div key={event.id} className="grid grid-cols-[72px_72px_1fr_56px] gap-3 px-5 py-4 text-sm">
-            <div className="text-zinc-200">{formatClockTime(event.datetime)}</div>
-            <div className="text-zinc-500">{place}</div>
-
-            <div className="text-zinc-100">
-              <div>{label}</div>
-              <div className="mt-1 text-xs text-zinc-500">
-                {actual !== null ? `Actual: ${actual}` : "Actual: n/a"}
-                {" · "}
-                {forecast !== null ? `Forecast: ${forecast}` : "Forecast: n/a"}
-                {" · "}
-                {previous !== null ? `Previous: ${previous}` : "Previous: n/a"}
-              </div>
-            </div>
-
-            <div className={cls("text-right uppercase", importanceTone(event.importance))}>
-              {event.importance || "n/a"}
-            </div>
+        {/* Market News */}
+        <section className="border border-zinc-800 bg-black/40">
+          <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+            {t("panels.marketNews")}
           </div>
-        )
-      })
-    )}
-  </div>
-</section>
-
-<section className="mt-5 rounded-none border border-zinc-800 bg-black/40">
-  <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-    Market News
-  </div>
-
-  <div className="divide-y divide-zinc-900">
-    {macroFeedLoading && news.length === 0 ? (
-      <div className="px-5 py-5 text-sm text-zinc-500">Loading news...</div>
-    ) : news.length === 0 ? (
-      <div className="px-5 py-5 text-sm text-zinc-500">No market news available.</div>
-    ) : (
-      news.slice(0, 8).map((item) => {
-        const url = item.url && item.url !== "#" ? item.url : null
-        const title = item.title || "Untitled article"
-        const summary = item.summary || "Open article for full details."
-        const category = item.category || "market"
-        const source = item.source || "source"
-
-        return (
-          <a
-            key={item.id}
-            href={url || undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block px-5 py-4 transition-colors hover:bg-zinc-950/70"
-            onClick={(e) => {
-              if (!url) e.preventDefault()
-            }}
-          >
-            <div className="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em]">
-              <span className={categoryTone(category)}>{category}</span>
-              <span className="text-zinc-500">{source}</span>
-            </div>
-
-            <div className="text-sm leading-6 text-zinc-100">{title}</div>
-
-            <div className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">
-              {summary}
-            </div>
-          </a>
-        )
-      })
-    )}
-  </div>
-</section>
-        </>
+          <div className="divide-y divide-zinc-900">
+            {news.length === 0 ? (
+              <div className="px-5 py-5 text-sm text-zinc-500">
+                {aiLanguage === "uk" ? "Новин немає." : "No market news available."}
+              </div>
+            ) : news.slice(0, 6).map((item) => {
+              const url   = item.url && item.url !== "#" ? item.url : null
+              return (
+                <a
+                  key={item.id}
+                  href={url || undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block px-5 py-4 transition-colors hover:bg-zinc-950/70"
+                  onClick={(e) => { if (!url) e.preventDefault() }}
+                >
+                  <div className="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em]">
+                    <span className={categoryTone(item.category)}>{item.category}</span>
+                    <span className="text-zinc-500">{item.source}</span>
+                  </div>
+                  <div className="text-sm leading-6 text-zinc-100">{item.title || "Untitled"}</div>
+                  <div className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">
+                    {item.summary || ""}
+                  </div>
+                </a>
+              )
+            })}
+          </div>
+        </section>
       </div>
+    </div>
+  )
+}
+
+function HistoricalDataView({ assets }) {
+  const { t } = useTranslation()
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [selectedSymbol, setSelectedSymbol] = useState(assets[0]?.symbol || "")
+  const [data, setData]         = useState(null)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState("")
+  const [yearFilter, setYearFilter] = useState("all")
+
+  // ── Fetch when symbol changes ──────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!selectedSymbol) return
+    setLoading(true)
+    setError("")
+    setData(null)
+
+    fetch(`/api/history/${selectedSymbol}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
+      .then((json) => setData(json))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [selectedSymbol])
+
+  // ── Sorted assets for selector ─────────────────────────────────────────────
+  const sortedAssets = useMemo(() =>
+    [...assets].sort((a, b) => {
+      const sa = normalizeSector(a.sector || "")
+      const sb = normalizeSector(b.sector || "")
+      if (sa !== sb) return sa.localeCompare(sb)
+      return (a.symbol || "").localeCompare(b.symbol || "")
+    }),
+  [assets])
+
+  // ── Year filter options ────────────────────────────────────────────────────
+  const availableYears = useMemo(() => {
+    if (!data?.items) return []
+    const years = [...new Set(data.items.map((r) => r.date.slice(0, 4)))].sort().reverse()
+    return years
+  }, [data])
+
+  const filteredRows = useMemo(() => {
+    if (!data?.items) return []
+    if (yearFilter === "all") return data.items
+    return data.items.filter((r) => r.date.startsWith(yearFilter))
+  }, [data, yearFilter])
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const fmtN = (v) => {
+    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">—</span>
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v)
+  }
+
+  const fmtPct = (v) => {
+    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">—</span>
+    return `${Number(v).toFixed(1)}%`
+  }
+
+  const fmtIdx = (v) => {
+    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">n/a</span>
+    const n = Number(v)
+    const tone = n >= 65 ? "text-emerald-400" : n <= 35 ? "text-rose-400" : "text-zinc-300"
+    return <span className={tone}>{n.toFixed(1)}</span>
+  }
+
+  const fmtChange = (v) => {
+    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">—</span>
+    const n = Number(v)
+    const tone = n > 0 ? "text-emerald-400" : n < 0 ? "text-rose-400" : "text-zinc-500"
+    return <span className={tone}>{n > 0 ? "+" : ""}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n)}</span>
+  }
+
+  // ── Source label ───────────────────────────────────────────────────────────
+  const amLabel = data?.source_type === "DISAGG" ? "Producer / Merchant" : "Asset Manager"
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  return (
+    <div className="space-y-4">
+
+      {/* Header bar */}
+      <section className="border border-zinc-900 bg-[#0a0a0a]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-900 px-4 py-3">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            Historical COT Data
+          </span>
+          {data && (
+            <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-600">
+              {data.total_rows} weeks · {data.name} · {normalizeSector(data.sector)}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 p-4">
+          {/* Asset selector */}
+          <div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Asset</div>
+            <select
+              value={selectedSymbol}
+              onChange={(e) => { setSelectedSymbol(e.target.value); setYearFilter("all") }}
+              className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[180px]"
+            >
+              {sortedAssets.map((a) => (
+                <option key={a.symbol} value={a.symbol}>
+                  {a.name} ({a.symbol})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Year filter */}
+          <div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Year</div>
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
+            >
+              <option value="all">All years</option>
+              {availableYears.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Row count */}
+          {filteredRows.length > 0 && (
+            <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+              {filteredRows.length} rows shown
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Loading / Error */}
+      {loading && (
+        <section className="border border-zinc-900 bg-[#0a0a0a] p-6">
+          <div className="space-y-2">
+            {[100, 88, 75, 60].map((w, i) => (
+              <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {error && (
+        <section className="border border-rose-900/50 bg-rose-950/20 p-4 text-sm text-rose-400">
+          Error: {error}
+        </section>
+      )}
+
+      {/* Table */}
+      {!loading && !error && filteredRows.length > 0 && (
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[1600px] w-full border-collapse text-sm">
+
+              {/* Column group headers */}
+              <thead className="sticky top-0 z-10 bg-[#0a0a0a]">
+                <tr className="border-b border-zinc-800 text-[10px] uppercase tracking-[0.22em]">
+                  <th rowSpan={2} className="sticky left-0 z-20 bg-[#0a0a0a] px-3 py-3 text-left font-medium text-zinc-500 min-w-[100px]">
+                    Date
+                  </th>
+                  {/* Open Interest */}
+                  <th colSpan={2} className="px-3 py-2 text-center font-medium text-zinc-500 border-l border-zinc-800">
+                    Open Interest
+                  </th>
+                  {/* Funds */}
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">
+                    Funds / Non-Commercials
+                  </th>
+                  {/* AM */}
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">
+                    {amLabel}
+                  </th>
+                  {/* Dealer */}
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">
+                    Dealer / Banks
+                  </th>
+                </tr>
+
+                <tr className="border-b border-zinc-900 text-[10px] uppercase tracking-[0.18em] text-zinc-600">
+                  {/* OI */}
+                  <th className="px-3 py-2 text-right font-medium border-l border-zinc-800">OI</th>
+                  <th className="px-3 py-2 text-right font-medium">Chg</th>
+                  {/* Funds */}
+                  <th className="px-3 py-2 text-right font-medium border-l border-zinc-800 text-emerald-900">Long</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">Short</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">% L</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">% S</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">Net</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">Net Chg</th>
+                  <th className="px-3 py-2 text-right font-medium text-emerald-900">Index</th>
+                  {/* AM */}
+                  <th className="px-3 py-2 text-right font-medium border-l border-zinc-800 text-amber-900">Long</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">Short</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">% L</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">% S</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">Net</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">Net Chg</th>
+                  <th className="px-3 py-2 text-right font-medium text-amber-900">Index</th>
+                  {/* Dealer */}
+                  <th className="px-3 py-2 text-right font-medium border-l border-zinc-800 text-sky-900">Long</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">Short</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">% L</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">% S</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">Net</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">Net Chg</th>
+                  <th className="px-3 py-2 text-right font-medium text-sky-900">Index</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredRows.map((row, idx) => (
+                  <tr
+                    key={row.date}
+                    className={cls(
+                      "border-b border-zinc-900/60 hover:bg-zinc-900/30 transition",
+                      idx === 0 && "bg-zinc-900/20"   // highlight latest row
+                    )}
+                  >
+                    {/* Date */}
+                    <td className={cls(
+                      "sticky left-0 z-10 bg-[#0a0a0a] px-3 py-2 text-zinc-300 tabular-nums whitespace-nowrap",
+                      idx === 0 && "text-amber-300 font-medium"
+                    )}>
+                      {row.date}
+                    </td>
+
+                    {/* Open Interest */}
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.open_interest)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtChange(row.oi_change)}</td>
+
+                    {/* Funds */}
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.funds_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.funds_short)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.funds_pct_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.funds_pct_short)}</td>
+                    <td className={cls("px-3 py-2 text-right tabular-nums font-medium",
+                      row.funds_net > 0 ? "text-emerald-400" : row.funds_net < 0 ? "text-rose-400" : "text-zinc-400"
+                    )}>{fmtN(row.funds_net)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtChange(row.funds_net_change)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtIdx(row.funds_index)}</td>
+
+                    {/* AM */}
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.am_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.am_short)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.am_pct_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.am_pct_short)}</td>
+                    <td className={cls("px-3 py-2 text-right tabular-nums font-medium",
+                      row.am_net > 0 ? "text-emerald-400" : row.am_net < 0 ? "text-rose-400" : "text-zinc-400"
+                    )}>{fmtN(row.am_net)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtChange(row.am_net_change)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtIdx(row.am_index)}</td>
+
+                    {/* Dealer */}
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.dealer_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.dealer_short)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.dealer_pct_long)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{fmtPct(row.dealer_pct_short)}</td>
+                    <td className={cls("px-3 py-2 text-right tabular-nums font-medium",
+                      row.dealer_net > 0 ? "text-emerald-400" : row.dealer_net < 0 ? "text-rose-400" : "text-zinc-400"
+                    )}>{fmtN(row.dealer_net)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtChange(row.dealer_net_change)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtIdx(row.dealer_index)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {!loading && !error && filteredRows.length === 0 && selectedSymbol && (
+        <section className="border border-zinc-900 bg-[#0a0a0a] p-6 text-sm text-zinc-600">
+          No historical data available for {selectedSymbol}.
+        </section>
+      )}
     </div>
   )
 }
@@ -1899,11 +2385,11 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
                 ))}
               </div>
               <div className="mt-3 space-y-2">
-                {rows.slice(0, 18).map((row) => (
+                {rows.map((row) => (
                   <div key={row.symbol} className="grid grid-cols-[180px_repeat(12,minmax(0,1fr))] gap-2">
                     <div className="flex items-center border border-zinc-900 bg-zinc-950 px-3 py-2">
                       <div>
-                        <div className="text-sm text-zinc-100">{row.asset}</div>
+                        <div className="text-sm text-zinc-100">{row.name}</div>
                         <div className="text-xs text-zinc-500">{normalizeSector(row.sector)}</div>
                       </div>
                     </div>
@@ -1933,10 +2419,10 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
                 <div key={row.symbol} className="border border-zinc-900 bg-[#080808] p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-base text-zinc-100">{row.asset}</div>
+                      <div className="text-base text-zinc-100">{row.name}</div>
                       <div className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-500">{normalizeSector(row.sector)}</div>
                     </div>
-                    <div className={cls('text-sm', seasonalBiasTone(row.current))}>{row.bias}</div>
+                    <div className={cls('text-sm', seasonalBiasTone(row.current))}>{seasonalBiasLabel(row.current)}</div>
                   </div>
                   <div className="mt-4 h-2 overflow-hidden bg-zinc-900">
                     <div
@@ -1969,8 +2455,8 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
               <div key={`${row.symbol}-spark`} className="border border-zinc-900 bg-zinc-950 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-sm text-zinc-100">{row.asset}</div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-zinc-500">{row.bias}</div>
+                    <div className="text-sm text-zinc-100">{row.name}</div>
+                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-zinc-500">{seasonalBiasLabel(row.current)}</div>
                   </div>
                   <div className="text-sm text-zinc-400">{formatPercentile(row.current)}</div>
                 </div>
@@ -2019,12 +2505,12 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="border border-zinc-900 bg-[#080808] p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Strongest Tailwind</div>
-          <div className="mt-2 text-lg text-zinc-100">{strongest?.asset || 'n/a'}</div>
+          <div className="mt-2 text-lg text-zinc-100">{strongest?.name || 'n/a'}</div>
           <div className="mt-1 text-sm text-zinc-500">Current month score: {formatPercentile(strongest?.current)}</div>
         </div>
         <div className="border border-zinc-900 bg-[#080808] p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Weakest Window</div>
-          <div className="mt-2 text-lg text-zinc-100">{weakest?.asset || 'n/a'}</div>
+          <div className="mt-2 text-lg text-zinc-100">{weakest?.name || 'n/a'}</div>
           <div className="mt-1 text-sm text-zinc-500">Current month score: {formatPercentile(weakest?.current)}</div>
         </div>
         <div className="border border-zinc-900 bg-[#080808] p-4">
@@ -3113,9 +3599,10 @@ export default function App() {
 }, []);
 
   const view = { 
-    workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} />, 
-    macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} />, 
-	summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />, 
+  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} />, 
+  macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} />, 
+	summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />,
+  history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
 	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />, 

@@ -133,21 +133,22 @@ def get_workspace():
     by_symbol = {row["symbol"]: row for row in rows}
     by_name = {row["name"]: row for row in rows}
 
-    usd = by_symbol.get("US") or by_name.get("US Dollar")
-    gold = by_symbol.get("Gold")
-    wti = by_symbol.get("WTI") or by_name.get("WTI Crude")
-    natgas = by_symbol.get("Natural") or by_name.get("Nat Gas")
-    euro = by_symbol.get("Euro")
-    jpy = by_symbol.get("Japanese") or by_name.get("JPY")
-    spx = by_symbol.get("SP") or by_name.get("SP 500")
-    nasdaq = by_symbol.get("Nasdaq")
-    djia = by_symbol.get("DJIA") or by_name.get("Dow Jones")
-    cocoa = by_symbol.get("Cocoa")
-    coffee = by_symbol.get("Coffee")
+    usd    = by_symbol.get("USD")    or by_name.get("US Dollar Index")
+    gold   = by_symbol.get("XAU")    or by_name.get("Gold")
+    silver = by_symbol.get("XAG")    or by_name.get("Silver")
+    copper = by_symbol.get("COPPER") or by_name.get("Copper")
+    wti    = by_symbol.get("WTI")    or by_name.get("Crude Oil")
+    euro   = by_symbol.get("EUR")    or by_name.get("Euro")
+    jpy    = by_symbol.get("JPY")    or by_name.get("Japanese Yen")
+    gbp    = by_symbol.get("GBP")    or by_name.get("British Pound")
+    chf    = by_symbol.get("CHF")    or by_name.get("Swiss Franc")
+    spx    = by_symbol.get("SPX")    or by_name.get("SP 500")
+    nasdaq = by_symbol.get("NDX")    or by_name.get("Nasdaq")
+    djia   = by_symbol.get("DJIA")   or by_name.get("Dow Jones")
 
-    growth_assets = [x for x in [spx, nasdaq, djia, cocoa, coffee] if x]
-    inflation_assets = [x for x in [gold, wti, natgas] if x]
-    policy_assets = [x for x in [usd, euro, jpy] if x]
+    growth_assets    = [x for x in [spx, nasdaq, djia] if x]
+    inflation_assets = [x for x in [gold, silver, copper, wti] if x]
+    policy_assets    = [x for x in [usd, euro, jpy, gbp, chf] if x]
 
     def avg_percentile(items):
         vals = [
