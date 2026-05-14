@@ -1554,7 +1554,15 @@ function HistoricalDataView({ assets }) {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState("")
   const [yearFilter, setYearFilter] = useState("all")
+  const [chartRange, setChartRange] = useState("3Y") // 1Y | 2Y | 3Y | All
 
+  // ── Import recharts dynamically ────────────────────────────────────────────
+  const [recharts, setRecharts] = useState(null)
+  React.useEffect(() => {
+    import("recharts").then(setRecharts).catch(() => setRecharts(null))
+  }, [])
+
+  // ── Fetch ──────────────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (!selectedSymbol) return
     setLoading(true)
@@ -1562,11 +1570,12 @@ function HistoricalDataView({ assets }) {
     setData(null)
     fetch(`/api/history/${selectedSymbol}`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
-      .then((json) => setData(json))
-      .catch((err) => setError(err.message))
+      .then(setData)
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }, [selectedSymbol])
 
+  // ── Sorted assets ──────────────────────────────────────────────────────────
   const sortedAssets = useMemo(() =>
     [...assets].sort((a, b) => {
       const sa = normalizeSector(a.sector || "")
@@ -1575,59 +1584,71 @@ function HistoricalDataView({ assets }) {
       return (a.symbol || "").localeCompare(b.symbol || "")
     }), [assets])
 
+  // ── Year options for table filter ──────────────────────────────────────────
   const availableYears = useMemo(() => {
     if (!data?.items) return []
     return [...new Set(data.items.map((r) => r.date.slice(0, 4)))].sort().reverse()
   }, [data])
 
+  // ── Chart data — sorted ASC, filtered by range ────────────────────────────
+  const chartData = useMemo(() => {
+    if (!data?.items) return []
+    const sorted = [...data.items].sort((a, b) => a.date.localeCompare(b.date))
+
+    const now = new Date()
+    const cutoff = new Date(now)
+    if      (chartRange === "1Y") cutoff.setFullYear(now.getFullYear() - 1)
+    else if (chartRange === "2Y") cutoff.setFullYear(now.getFullYear() - 2)
+    else if (chartRange === "3Y") cutoff.setFullYear(now.getFullYear() - 3)
+    else                          cutoff.setFullYear(2000) // All
+
+    return sorted
+      .filter((r) => new Date(r.date) >= cutoff)
+      .map((r) => ({
+        date:        r.date,
+        // Net positions (in contracts, thousands for readability)
+        fundsNet:    r.funds_net   != null ? Math.round(r.funds_net   / 1000) : null,
+        amNet:       r.am_net      != null ? Math.round(r.am_net      / 1000) : null,
+        dealerNet:   r.dealer_net  != null ? Math.round(r.dealer_net  / 1000) : null,
+        // COT Index 0-100
+        fundsIdx:    r.funds_index  != null ? Number(r.funds_index.toFixed(1))  : null,
+        amIdx:       r.am_index     != null ? Number(r.am_index.toFixed(1))     : null,
+        dealerIdx:   r.dealer_index != null ? Number(r.dealer_index.toFixed(1)) : null,
+        // Open Interest (thousands)
+        oi:          r.open_interest != null ? Math.round(r.open_interest / 1000) : null,
+      }))
+  }, [data, chartRange])
+
+  // ── Table rows — sorted DESC, filtered by year ────────────────────────────
   const filteredRows = useMemo(() => {
     if (!data?.items) return []
     if (yearFilter === "all") return data.items
     return data.items.filter((r) => r.date.startsWith(yearFilter))
   }, [data, yearFilter])
 
-  // ── Rolling 8-week avg for sharp change detection ─────────────────────────
-  // Computed once per data load, mapped by date
+  // ── Sharp move detection (for table highlighting) ─────────────────────────
   const sharpMap = useMemo(() => {
     if (!data?.items) return {}
     const all = data.items
     const map = {}
     all.forEach((row, i) => {
-      const window8 = all.slice(i, i + 8).map((r) => Math.abs(r.funds_net_change || 0)).filter((v) => v > 0)
-      const avg = window8.length ? window8.reduce((s, v) => s + v, 0) / window8.length : 0
+      const w8 = (col) => {
+        const vals = all.slice(i, i + 8).map((r) => Math.abs(r[col] || 0)).filter(Boolean)
+        return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0
+      }
       const prev = all[i + 1] || null
-      const fundsChangeAbs = Math.abs(row.funds_net_change || 0)
-      const amChangeAbs    = Math.abs(row.am_net_change    || 0)
-      const dealerChangeAbs = Math.abs(row.dealer_net_change || 0)
-
-      const window8am = all.slice(i, i + 8).map((r) => Math.abs(r.am_net_change    || 0)).filter((v) => v > 0)
-      const window8d  = all.slice(i, i + 8).map((r) => Math.abs(r.dealer_net_change|| 0)).filter((v) => v > 0)
-      const avgAm = window8am.length ? window8am.reduce((s, v) => s + v, 0) / window8am.length : 0
-      const avgD  = window8d.length  ? window8d.reduce((s, v)  => s + v, 0) / window8d.length  : 0
-
+      const avg  = w8("funds_net_change")
+      const avgA = w8("am_net_change")
+      const avgD = w8("dealer_net_change")
       map[row.date] = {
-        // Sharp move: > 2× rolling avg AND > 1000 contracts
-        sharpFunds:  avg  > 0 && fundsChangeAbs  > avg  * 2 && fundsChangeAbs  > 1000,
-        sharpAm:     avgAm > 0 && amChangeAbs    > avgAm * 2 && amChangeAbs    > 1000,
-        sharpDealer: avgD  > 0 && dealerChangeAbs > avgD * 2 && dealerChangeAbs > 1000,
-        // Net flip: sign changed week over week
-        fundsFlip:  prev && row.funds_net  != null && prev.funds_net  != null
-          && row.funds_net  !== 0 && prev.funds_net  !== 0
-          && Math.sign(row.funds_net)  !== Math.sign(prev.funds_net)  && Math.abs(row.funds_net)  > 500,
-        amFlip:     prev && row.am_net     != null && prev.am_net     != null
-          && row.am_net     !== 0 && prev.am_net     !== 0
-          && Math.sign(row.am_net)     !== Math.sign(prev.am_net)     && Math.abs(row.am_net)     > 500,
-        dealerFlip: prev && row.dealer_net != null && prev.dealer_net != null
-          && row.dealer_net !== 0 && prev.dealer_net !== 0
-          && Math.sign(row.dealer_net) !== Math.sign(prev.dealer_net) && Math.abs(row.dealer_net) > 500,
-        // OI spike: change > 3% of total OI
-        oiSpike: row.open_interest > 0
-          && Math.abs(row.oi_change || 0) / row.open_interest * 100 > 3,
-        // Divergence: funds and am/producer in opposite directions
-        divergence: row.funds_net != null && row.am_net != null
-          && row.funds_net !== 0 && row.am_net !== 0
-          && Math.sign(row.funds_net) !== Math.sign(row.am_net)
-          && Math.abs(row.funds_net) > 1000 && Math.abs(row.am_net) > 1000,
+        sharpFunds:   avg  > 0 && Math.abs(row.funds_net_change  || 0) > avg  * 2 && Math.abs(row.funds_net_change  || 0) > 1000,
+        sharpAm:      avgA > 0 && Math.abs(row.am_net_change     || 0) > avgA * 2 && Math.abs(row.am_net_change     || 0) > 1000,
+        sharpDealer:  avgD > 0 && Math.abs(row.dealer_net_change || 0) > avgD * 2 && Math.abs(row.dealer_net_change || 0) > 1000,
+        fundsFlip:    prev && row.funds_net  != null && prev.funds_net  != null && row.funds_net  !== 0 && prev.funds_net  !== 0 && Math.sign(row.funds_net)  !== Math.sign(prev.funds_net)  && Math.abs(row.funds_net)  > 500,
+        amFlip:       prev && row.am_net     != null && prev.am_net     != null && row.am_net     !== 0 && prev.am_net     !== 0 && Math.sign(row.am_net)     !== Math.sign(prev.am_net)     && Math.abs(row.am_net)     > 500,
+        dealerFlip:   prev && row.dealer_net != null && prev.dealer_net != null && row.dealer_net !== 0 && prev.dealer_net !== 0 && Math.sign(row.dealer_net) !== Math.sign(prev.dealer_net) && Math.abs(row.dealer_net) > 500,
+        oiSpike:      row.open_interest > 0 && Math.abs(row.oi_change || 0) / row.open_interest * 100 > 3,
+        divergence:   row.funds_net != null && row.am_net != null && row.funds_net !== 0 && row.am_net !== 0 && Math.sign(row.funds_net) !== Math.sign(row.am_net) && Math.abs(row.funds_net) > 1000 && Math.abs(row.am_net) > 1000,
       }
     })
     return map
@@ -1639,74 +1660,220 @@ function HistoricalDataView({ assets }) {
     const [y, m, d] = iso.split("-")
     return `${d}-${m}-${y}`
   }
-
   const fmtN = (v) => {
-    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">—</span>
+    if (v == null) return <span className="text-zinc-700">—</span>
     return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v)
   }
-
   const fmtPct = (v) => {
-    if (v == null || Number.isNaN(v)) return <span className="text-zinc-700">—</span>
+    if (v == null) return <span className="text-zinc-700">—</span>
     return `${Number(v).toFixed(1)}%`
   }
-
-  // Net value — green/red text only
   const fmtNet = (v) => {
     if (v == null) return <span className="text-zinc-700">—</span>
     const tone = Number(v) > 0 ? "text-emerald-400" : Number(v) < 0 ? "text-rose-400" : "text-zinc-500"
     return <span className={cls("font-medium", tone)}>{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v)}</span>
   }
-
-  // Net change — with optional sharp/flip highlighting
   const fmtNetChange = (v, isSharp, isFlip) => {
     if (v == null) return <span className="text-zinc-700">—</span>
     const n = Number(v)
     let tone = n > 0 ? "text-emerald-400" : n < 0 ? "text-rose-400" : "text-zinc-500"
     if (isFlip)  tone = "text-violet-300 font-bold"
     if (isSharp) tone = "text-amber-300 font-bold"
-    const prefix = n > 0 ? "+" : ""
-    return <span className={tone}>{prefix}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n)}</span>
+    return <span className={tone}>{n > 0 ? "+" : ""}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n)}</span>
   }
-
-  // OI change
   const fmtOiChange = (v, isSpike) => {
     if (v == null) return <span className="text-zinc-700">—</span>
     const n = Number(v)
     let tone = n > 0 ? "text-emerald-400" : n < 0 ? "text-rose-400" : "text-zinc-500"
     if (isSpike) tone = "text-sky-300 font-bold"
-    const prefix = n > 0 ? "+" : ""
-    return <span className={tone}>{prefix}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n)}</span>
+    return <span className={tone}>{n > 0 ? "+" : ""}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n)}</span>
   }
-
-  // Index — cell bg + text
   const idxCell = (v) => {
     if (v == null) return { bg: "", el: <span className="text-zinc-700">n/a</span> }
     const n = Number(v)
-    let bg = ""
-    let textCls = "text-zinc-400"
+    let bg = "", textCls = "text-zinc-400"
     if      (n >= 90) { bg = "bg-rose-900/50";    textCls = "text-rose-200 font-bold" }
     else if (n <= 10) { bg = "bg-emerald-900/50"; textCls = "text-emerald-200 font-bold" }
     else if (n >= 65) { bg = "bg-emerald-950/40"; textCls = "text-emerald-400" }
     else if (n <= 35) { bg = "bg-rose-950/40";    textCls = "text-rose-400" }
     return { bg, el: <span className={textCls}>{n.toFixed(1)}</span> }
   }
-
-  // Net change cell bg
-  const changeBg = (isSharp, isFlip) => {
-    if (isFlip)  return "bg-violet-900/35"
-    if (isSharp) return "bg-amber-900/30"
-    return ""
-  }
-
-  // OI change cell bg
-  const oiBg = (isSpike) => isSpike ? "bg-sky-900/30" : ""
+  const changeBg = (isSharp, isFlip) => isFlip ? "bg-violet-900/35" : isSharp ? "bg-amber-900/30" : ""
+  const oiBg     = (isSpike) => isSpike ? "bg-sky-900/30" : ""
 
   const amLabel = data?.source_type === "DISAGG" ? "Producer / Merchant" : "Asset Manager"
 
+  // ── Chart tooltip formatter ────────────────────────────────────────────────
+  const ChartTooltip = ({ active, payload, label, unit = "" }) => {
+    if (!active || !payload?.length) return null
+    return (
+      <div className="border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs">
+        <div className="mb-1 text-zinc-500">{label}</div>
+        {payload.map((p) => p.value != null && (
+          <div key={p.dataKey} className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+            <span className="text-zinc-400">{p.name}:</span>
+            <span className="text-zinc-100 font-medium">{p.value}{unit}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // ── Render charts (only if recharts loaded + data available) ──────────────
+  const renderCharts = () => {
+    if (!recharts || !chartData.length) return null
+    const {
+      ResponsiveContainer, LineChart, BarChart, Bar,
+      Line, XAxis, YAxis, CartesianGrid, Tooltip,
+      ReferenceLine, Legend,
+    } = recharts
+
+    // Show every Nth label to avoid crowding
+    const step = chartData.length > 100 ? 12 : chartData.length > 50 ? 6 : 3
+    const xTickFormatter = (val, idx) => {
+      if (idx % step !== 0) return ""
+      const d = new Date(val)
+      return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(2)}`
+    }
+
+    return (
+      <div className="space-y-4">
+
+        {/* Range selector */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-900">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Chart Range</span>
+          <div className="flex gap-1">
+            {["1Y","2Y","3Y","All"].map((r) => (
+              <button
+                key={r}
+                onClick={() => setChartRange(r)}
+                className={cls(
+                  "border px-3 py-1 text-[11px] uppercase tracking-[0.2em] transition",
+                  chartRange === r
+                    ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
+                    : "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Chart 1: Net Position ────────────────────────────────────── */}
+        <div className="px-4 pb-2">
+          <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            Net Position — Thousands of Contracts
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={xTickFormatter}
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={{ stroke: "#27272a" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => `${v}k`}
+                width={40}
+              />
+              <ReferenceLine y={0} stroke="#3f3f46" strokeDasharray="4 2" />
+              <Tooltip content={<ChartTooltip unit="k" />} />
+              <Legend
+                wrapperStyle={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.15em", color: "#71717a" }}
+              />
+              <Line type="monotone" dataKey="fundsNet"  name="Funds"  stroke="#34d399" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="amNet"     name={amLabel === "Asset Manager" ? "AM" : "Producer"} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="dealerNet" name="Dealer" stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* ── Chart 2: COT Index ───────────────────────────────────────── */}
+        <div className="border-t border-zinc-900 px-4 pb-2 pt-4">
+          <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            COT Index — Min-Max 156w (0 = 3y Low, 100 = 3y High)
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={xTickFormatter}
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={{ stroke: "#27272a" }}
+                tickLine={false}
+              />
+              <YAxis
+                domain={[0, 100]}
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={32}
+              />
+              {/* Threshold lines */}
+              <ReferenceLine y={90} stroke="#fb7185" strokeDasharray="4 2" strokeOpacity={0.6}
+                label={{ value: "90", fill: "#fb7185", fontSize: 9, position: "right" }} />
+              <ReferenceLine y={65} stroke="#34d399" strokeDasharray="3 3" strokeOpacity={0.4}
+                label={{ value: "65", fill: "#34d399", fontSize: 9, position: "right" }} />
+              <ReferenceLine y={35} stroke="#fb7185" strokeDasharray="3 3" strokeOpacity={0.4}
+                label={{ value: "35", fill: "#fb7185", fontSize: 9, position: "right" }} />
+              <ReferenceLine y={10} stroke="#34d399" strokeDasharray="4 2" strokeOpacity={0.6}
+                label={{ value: "10", fill: "#34d399", fontSize: 9, position: "right" }} />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.15em", color: "#71717a" }}
+              />
+              <Line type="monotone" dataKey="fundsIdx"  name="Funds Index"  stroke="#34d399" strokeWidth={2} dot={false} connectNulls />
+              <Line type="monotone" dataKey="amIdx"     name={amLabel === "Asset Manager" ? "AM Index" : "Producer Index"} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="dealerIdx" name="Dealer Index" stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* ── Chart 3: Open Interest ───────────────────────────────────── */}
+        <div className="border-t border-zinc-900 px-4 pb-4 pt-4">
+          <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            Open Interest — Thousands of Contracts
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickFormatter={xTickFormatter}
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={{ stroke: "#27272a" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "#52525b", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => `${v}k`}
+                width={40}
+              />
+              <Tooltip content={<ChartTooltip unit="k" />} />
+              <Bar dataKey="oi" name="Open Interest" fill="#3f3f46" radius={[1, 1, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    )
+  }
+
+  
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
 
-      {/* Controls */}
+      {/* ── Controls ──────────────────────────────────────────────────────── */}
       <section className="border border-zinc-900 bg-[#0a0a0a]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-900 px-4 py-3">
           <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
@@ -1736,7 +1903,7 @@ function HistoricalDataView({ assets }) {
           </div>
 
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Year</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Year (Table)</div>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
@@ -1749,21 +1916,19 @@ function HistoricalDataView({ assets }) {
             </select>
           </div>
 
-          {filteredRows.length > 0 && (
-            <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
-              {filteredRows.length} rows shown
-            </div>
-          )}
+          <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+            {filteredRows.length} rows
+          </div>
         </div>
 
-        {/* Compact legend */}
+        {/* Legend */}
         <div className="flex flex-wrap gap-4 border-t border-zinc-900 px-4 py-2.5 text-[10px] uppercase tracking-[0.16em] text-zinc-600">
           <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-rose-900/60" />Index ≥90 extreme long</span>
           <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-emerald-900/60" />Index ≤10 extreme short</span>
           <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-amber-900/40" />Sharp net change</span>
           <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-violet-900/50" />Net flip</span>
           <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-sky-900/40" />OI spike</span>
-          <span className="text-sky-800">Row tint = Funds vs AM divergence</span>
+          <span className="text-sky-800">Row tint = divergence</span>
         </div>
       </section>
 
@@ -1783,8 +1948,33 @@ function HistoricalDataView({ assets }) {
         </section>
       )}
 
+      {/* ── Charts ────────────────────────────────────────────────────────── */}
+      {!loading && !error && chartData.length > 0 && (
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              Charts — {data?.name}
+            </span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+              {chartData.length} weeks shown
+            </span>
+          </div>
+          {recharts ? renderCharts() : (
+            <div className="p-6 text-sm text-zinc-600">
+              Loading charts... If this persists, run <code className="text-zinc-400">npm install recharts</code> in the frontend folder.
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Table ─────────────────────────────────────────────────────────── */}
       {!loading && !error && filteredRows.length > 0 && (
         <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              Data Table
+            </span>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-[1600px] w-full border-collapse text-sm">
               <thead className="sticky top-0 z-10 bg-[#0a0a0a]">
@@ -1792,96 +1982,61 @@ function HistoricalDataView({ assets }) {
                   <th rowSpan={2} className="sticky left-0 z-20 bg-[#0a0a0a] px-3 py-3 text-left font-medium text-zinc-500 min-w-[105px]">
                     Date
                   </th>
-                  <th colSpan={2} className="px-3 py-2 text-center font-medium text-zinc-500 border-l border-zinc-800">
-                    Open Interest
-                  </th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">
-                    Funds / Non-Commercials
-                  </th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">
-                    {amLabel}
-                  </th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">
-                    Dealer / Banks
-                  </th>
+                  <th colSpan={2} className="px-3 py-2 text-center font-medium text-zinc-500 border-l border-zinc-800">Open Interest</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">Funds / Non-Commercials</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">{amLabel}</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">Dealer / Banks</th>
                 </tr>
                 <tr className="border-b border-zinc-900 text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-                  <th className="px-3 py-2 text-right font-medium border-l border-zinc-800">OI</th>
-                  <th className="px-3 py-2 text-right font-medium">Chg</th>
+                  <th className="px-3 py-2 text-right border-l border-zinc-800">OI</th>
+                  <th className="px-3 py-2 text-right">Chg</th>
                   {["Long","Short","% L","% S","Net","Net Chg","Index"].map((h) => (
                     <th key={`f-${h}`} className={cls("px-3 py-2 text-right font-medium text-emerald-900", h==="Long" && "border-l border-zinc-800")}>{h}</th>
                   ))}
                   {["Long","Short","% L","% S","Net","Net Chg","Index"].map((h) => (
-                    <th key={`a-${h}`} className={cls("px-3 py-2 text-right font-medium text-amber-900",   h==="Long" && "border-l border-zinc-800")}>{h}</th>
+                    <th key={`a-${h}`} className={cls("px-3 py-2 text-right font-medium text-amber-900", h==="Long" && "border-l border-zinc-800")}>{h}</th>
                   ))}
                   {["Long","Short","% L","% S","Net","Net Chg","Index"].map((h) => (
-                    <th key={`d-${h}`} className={cls("px-3 py-2 text-right font-medium text-sky-900",     h==="Long" && "border-l border-zinc-800")}>{h}</th>
+                    <th key={`d-${h}`} className={cls("px-3 py-2 text-right font-medium text-sky-900", h==="Long" && "border-l border-zinc-800")}>{h}</th>
                   ))}
                 </tr>
               </thead>
-
               <tbody>
                 {filteredRows.map((row, idx) => {
-                  const sig = sharpMap[row.date] || {}
-                  const fIdx  = idxCell(row.funds_index)
-                  const aIdx  = idxCell(row.am_index)
-                  const dIdx  = idxCell(row.dealer_index)
-
+                  const sig  = sharpMap[row.date] || {}
+                  const fIdx = idxCell(row.funds_index)
+                  const aIdx = idxCell(row.am_index)
+                  const dIdx = idxCell(row.dealer_index)
                   return (
-                    <tr
-                      key={row.date}
-                      className={cls(
-                        "border-b border-zinc-900/60 hover:brightness-110 transition",
-                        sig.divergence ? "bg-sky-950/15" : idx === 0 ? "bg-zinc-900/20" : ""
-                      )}
-                    >
-                      {/* Date dd-mm-yyyy */}
-                      <td className={cls(
-                        "sticky left-0 z-10 bg-inherit px-3 py-2 tabular-nums whitespace-nowrap font-mono text-xs",
+                    <tr key={row.date} className={cls(
+                      "border-b border-zinc-900/60 hover:brightness-110 transition",
+                      sig.divergence ? "bg-sky-950/15" : idx === 0 ? "bg-zinc-900/20" : ""
+                    )}>
+                      <td className={cls("sticky left-0 z-10 bg-inherit px-3 py-2 tabular-nums whitespace-nowrap font-mono text-xs",
                         idx === 0 ? "text-amber-300 font-semibold" : "text-zinc-400"
-                      )}>
-                        {fmtDate(row.date)}
-                      </td>
-
-                      {/* OI */}
-                      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">
-                        {fmtN(row.open_interest)}
-                      </td>
-                      <td className={cls("px-3 py-2 text-right tabular-nums", oiBg(sig.oiSpike))}>
-                        {fmtOiChange(row.oi_change, sig.oiSpike)}
-                      </td>
-
-                      {/* Funds */}
+                      )}>{fmtDate(row.date)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.open_interest)}</td>
+                      <td className={cls("px-3 py-2 text-right tabular-nums", oiBg(sig.oiSpike))}>{fmtOiChange(row.oi_change, sig.oiSpike)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.funds_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.funds_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.funds_pct_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.funds_pct_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{fmtNet(row.funds_net)}</td>
-                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpFunds, sig.fundsFlip))}>
-                        {fmtNetChange(row.funds_net_change, sig.sharpFunds, sig.fundsFlip)}
-                      </td>
+                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpFunds, sig.fundsFlip))}>{fmtNetChange(row.funds_net_change, sig.sharpFunds, sig.fundsFlip)}</td>
                       <td className={cls("px-3 py-2 text-right tabular-nums", fIdx.bg)}>{fIdx.el}</td>
-
-                      {/* AM / Producer */}
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.am_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.am_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.am_pct_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.am_pct_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{fmtNet(row.am_net)}</td>
-                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpAm, sig.amFlip))}>
-                        {fmtNetChange(row.am_net_change, sig.sharpAm, sig.amFlip)}
-                      </td>
+                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpAm, sig.amFlip))}>{fmtNetChange(row.am_net_change, sig.sharpAm, sig.amFlip)}</td>
                       <td className={cls("px-3 py-2 text-right tabular-nums", aIdx.bg)}>{aIdx.el}</td>
-
-                      {/* Dealer */}
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.dealer_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.dealer_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.dealer_pct_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.dealer_pct_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{fmtNet(row.dealer_net)}</td>
-                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpDealer, sig.dealerFlip))}>
-                        {fmtNetChange(row.dealer_net_change, sig.sharpDealer, sig.dealerFlip)}
-                      </td>
+                      <td className={cls("px-3 py-2 text-right tabular-nums", changeBg(sig.sharpDealer, sig.dealerFlip))}>{fmtNetChange(row.dealer_net_change, sig.sharpDealer, sig.dealerFlip)}</td>
                       <td className={cls("px-3 py-2 text-right tabular-nums", dIdx.bg)}>{dIdx.el}</td>
                     </tr>
                   )
