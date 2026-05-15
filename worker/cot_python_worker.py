@@ -4,6 +4,8 @@ import io
 import csv
 import zipfile
 from datetime import datetime
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 import pandas as pd
 import requests
@@ -669,6 +671,21 @@ def run_weekly_update():
     final_new    = final_df[final_df['report_date'].isin(latest_dates)].copy()
 
     upsert_to_db(final_new)
+
+    # Run alert check after each update
+    try:
+        alert_res = requests.post(
+            "http://localhost:8000/api/alerts/run",
+            timeout=30
+        )
+        if alert_res.ok:
+            data = alert_res.json()
+            log(f"Alert check: {data.get('saved', 0)} new alerts, email sent: {data.get('email_sent')}")
+        else:
+            log(f"Alert check HTTP error: {alert_res.status_code}")
+    except Exception as e:
+        log(f"Alert check failed (backend may not be running): {e}")
+
     log('=== WEEKLY UPDATE COMPLETE ===')
 
 
