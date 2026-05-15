@@ -3624,6 +3624,25 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
 
   return (
     <div className="space-y-4">
+
+      {/* Tabs */}
+      <div className="flex border-b border-zinc-900">
+        {[{key:'live',label:'Live Signals'},{key:'history',label:'Signal History'}].map((tab) => (
+          <button key={tab.key} onClick={() => setHistoryTab(tab.key)}
+            className={cls('border-b-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.22em] transition',
+              historyTab === tab.key ? 'border-amber-400 text-zinc-100' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            )}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {historyTab === 'history' ? (
+        <Panel title="Signal Lifecycle History">
+          <SignalHistoryTable items={signalHistory} loading={historyLoading} />
+        </Panel>
+      ) : (<>
+
       <Panel
         title="Signals Engine"
         right={<span className="text-xs uppercase tracking-[0.22em] text-amber-400">ranked live signals</span>}
@@ -3932,6 +3951,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
           />
         </div>
       </div>
+      </>)}
     </div>
   )
 }
