@@ -4,6 +4,7 @@ import {
   BarChart2,
   Bell,
   Calendar,
+  Download,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -1050,6 +1051,314 @@ function PairAlignmentSpark({ left = 0, right = 0 }) {
       <circle cx={pad} cy={y1} r="4" fill="#e4e4e7" />
       <circle cx={width - pad} cy={y2} r="4" fill="#e4e4e7" />
     </svg>
+  )
+}
+
+function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
+  if (!asset || !profile) return null
+ 
+  const idx = asset.funds_percentile_3y
+  const direction = asset.funds_index_direction
+  const dirArrow = direction === "rising" ? "↑" : direction === "falling" ? "↓" : "→"
+ 
+  const fmtN = (v) => {
+    if (v == null) return "n/a"
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v)
+  }
+ 
+  const fmtIdx = (v) => v != null ? Number(v).toFixed(1) : "n/a"
+ 
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  const currentMonth = new Date().getMonth()
+ 
+  return (
+    <div id="asset-pdf-report" style={{ display: "none" }}>
+      <style>{`
+        @media print {
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        @page { margin: 16mm; size: A4; }
+        body { background: #050505 !important; }
+        body * { visibility: hidden !important; }
+        #asset-pdf-report,
+        #asset-pdf-report * { visibility: visible !important; }
+        #asset-pdf-report {
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          background: #050505 !important;
+          z-index: 99999 !important;
+        }
+}
+        #asset-pdf-report {
+          background: #050505;
+          color: #ffffff;
+          font-family: "Inter", sans-serif;
+          font-size: 11px;
+          line-height: 1.6;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 32px;
+        }
+        .pdf-header { border-bottom: 1px solid #27272a; padding-bottom: 16px; margin-bottom: 24px; }
+        .pdf-title { font-size: 22px; font-weight: 700; color: #f4f4f5; margin-bottom: 4px; }
+        .pdf-subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: #71717a; }
+        .pdf-section { margin-bottom: 20px; }
+        .pdf-section-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.3em; color: #52525b; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px; margin-bottom: 12px; }
+        .pdf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+        .pdf-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+        .pdf-metric { border: 1px solid #27272a; padding: 10px; background: #0a0a0a; }
+        .pdf-metric-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: #71717a; margin-bottom: 4px; }
+        .pdf-metric-value { font-size: 16px; font-weight: 600; color: #f4f4f5; }
+        .pdf-metric-sub { font-size: 10px; color: #71717a; margin-top: 2px; }
+        .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .pdf-table th { background: #0a0a0a; padding: 6px 8px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #71717a; border-bottom: 1px solid #27272a; }
+        .pdf-table td { padding: 6px 8px; border-bottom: 1px solid #1a1a1a; color: #a1a1aa; }
+        .pdf-table td.highlight { color: #f4f4f5; font-weight: 600; }
+        .pdf-bar-wrap { background: #18181b; height: 6px; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+        .pdf-bar { height: 100%; border-radius: 2px; }
+        .pdf-season { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+        .pdf-season-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 8px; border: 1px solid #1a1a1a; }
+        .pdf-footer { border-top: 1px solid #27272a; padding-top: 12px; margin-top: 24px; font-size: 9px; color: #52525b; display: flex; justify-content: space-between; }
+        .c-green { color: #4ade80; }
+        .c-red { color: #f87171; }
+        .c-amber { color: #fbbf24; }
+        .c-sky { color: #38bdf8; }
+        .c-neutral { color: #a1a1aa; }
+      `}</style>
+ 
+      {/* Header */}
+      <div className="pdf-header">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <div className="pdf-title">{asset.name}</div>
+            <div className="pdf-subtitle">
+              {asset.symbol} · {asset.sector} · COT Analysis Report
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.3em", color: "#52525b" }}>
+              ktaliman · trading
+            </div>
+            <div style={{ fontSize: "10px", color: "#71717a", marginTop: "4px" }}>
+              {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      {/* Key Metrics */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Key Metrics</div>
+        <div className="pdf-grid">
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">COT Index</div>
+            <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`}>
+              {fmtIdx(idx)}
+            </div>
+            <div className="pdf-bar-wrap">
+              <div className="pdf-bar" style={{
+                width: `${Math.max(2, idx ?? 0)}%`,
+                background: idx >= 65 ? "#4ade80" : idx <= 35 ? "#f87171" : "#71717a"
+              }} />
+            </div>
+          </div>
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">Flow State</div>
+            <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`} style={{ fontSize: "13px" }}>
+              {asset.flow_state || "Neutral"}
+            </div>
+            <div className="pdf-metric-sub">{profile.setupBias}</div>
+          </div>
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">Momentum</div>
+            <div className={`pdf-metric-value ${direction === "rising" ? "c-green" : direction === "falling" ? "c-red" : "c-neutral"}`}>
+              {dirArrow} {asset.funds_index_wow_change != null ? `${asset.funds_index_wow_change > 0 ? "+" : ""}${asset.funds_index_wow_change.toFixed(1)}` : "—"}
+            </div>
+            <div className="pdf-metric-sub">
+              {asset.funds_index_acceleration || "—"}
+            </div>
+          </div>
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">Open Interest</div>
+            <div className="pdf-metric-value" style={{ fontSize: "13px", color: "#f4f4f5" }}>
+              {fmtN(asset.open_interest)}
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      {/* Rolling Averages */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Rolling Averages & Trend</div>
+        <div className="pdf-grid-3">
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">3-Week Avg Index</div>
+            <div className={`pdf-metric-value ${(asset.funds_index_3w_avg ?? 50) >= 65 ? "c-green" : (asset.funds_index_3w_avg ?? 50) <= 35 ? "c-red" : "c-neutral"}`}>
+              {asset.funds_index_3w_avg != null ? asset.funds_index_3w_avg.toFixed(1) : "n/a"}
+            </div>
+          </div>
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">8-Week Avg Index</div>
+            <div className={`pdf-metric-value ${(asset.funds_index_8w_avg ?? 50) >= 65 ? "c-green" : (asset.funds_index_8w_avg ?? 50) <= 35 ? "c-red" : "c-neutral"}`}>
+              {asset.funds_index_8w_avg != null ? asset.funds_index_8w_avg.toFixed(1) : "n/a"}
+            </div>
+          </div>
+          <div className="pdf-metric">
+            <div className="pdf-metric-label">vs Trend (Momentum)</div>
+            <div className={`pdf-metric-value ${(asset.funds_index_momentum ?? 0) > 0 ? "c-green" : (asset.funds_index_momentum ?? 0) < 0 ? "c-red" : "c-neutral"}`}>
+              {asset.funds_index_momentum != null ? `${asset.funds_index_momentum > 0 ? "+" : ""}${asset.funds_index_momentum.toFixed(1)}` : "n/a"}
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      {/* Positioning Detail */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Positioning Detail</div>
+        <table className="pdf-table">
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th style={{ textAlign: "right" }}>Long</th>
+              <th style={{ textAlign: "right" }}>Short</th>
+              <th style={{ textAlign: "right" }}>Net</th>
+              <th style={{ textAlign: "right" }}>% Long</th>
+              <th style={{ textAlign: "right" }}>% Short</th>
+              <th style={{ textAlign: "right" }}>Index</th>
+            </tr>
+          </thead>
+          <tbody>
+            {asset.source_type === "TFF" ? (
+              <>
+                <tr>
+                  <td className="highlight">Leveraged Funds</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.funds_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.funds_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.funds_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.funds_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>{asset.funds_pct_oi != null ? `${asset.funds_pct_oi.toFixed(1)}%` : "n/a"}</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }} className={idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}>
+                    {fmtIdx(idx)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="highlight">Dealer / Banks</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.dealer_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.dealer_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>{asset.dealer_pct_oi != null ? `${asset.dealer_pct_oi.toFixed(1)}%` : "n/a"}</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }} className={(asset.dealer_percentile_3y ?? 50) >= 65 ? "c-green" : (asset.dealer_percentile_3y ?? 50) <= 35 ? "c-red" : "c-neutral"}>
+                    {fmtIdx(asset.dealer_percentile_3y)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="highlight">Asset Manager</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.asset_manager_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.asset_manager_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.asset_manager_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.asset_manager_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>{asset.asset_manager_pct_oi != null ? `${asset.asset_manager_pct_oi.toFixed(1)}%` : "n/a"}</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }} className={(asset.asset_manager_percentile_3y ?? 50) >= 65 ? "c-green" : (asset.asset_manager_percentile_3y ?? 50) <= 35 ? "c-red" : "c-neutral"}>
+                    {fmtIdx(asset.asset_manager_percentile_3y)}
+                  </td>
+                </tr>
+              </>
+            ) : (
+              <>
+                <tr>
+                  <td className="highlight">Managed Money</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.funds_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.funds_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.funds_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.funds_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }} className={idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}>
+                    {fmtIdx(idx)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="highlight">Producer / Merchant</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.producer_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.producer_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.producer_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.producer_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                </tr>
+                <tr>
+                  <td className="highlight">Swap Dealers</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_long)}</td>
+                  <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_short)}</td>
+                  <td style={{ textAlign: "right" }} className={Number(asset.dealer_net) > 0 ? "c-green" : "c-red"}>
+                    {fmtN(asset.dealer_net)}
+                  </td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                  <td style={{ textAlign: "right" }}>—</td>
+                </tr>
+              </>
+            )}
+          </tbody>
+        </table>
+      </div>
+ 
+      {/* Setup Analysis */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Setup Analysis</div>
+        <div style={{ border: "1px solid #27272a", padding: "12px", background: "#0a0a0a", fontSize: "11px", color: "#a1a1aa", lineHeight: "1.7" }}>
+          <div style={{ color: "#f4f4f5", fontWeight: "600", marginBottom: "6px" }}>{profile.setupBias}</div>
+          <div>{profile.setupSummary}</div>
+          <div style={{ marginTop: "8px", color: "#71717a" }}>{profile.contextualInterpretation}</div>
+        </div>
+      </div>
+ 
+      {/* Seasonality */}
+      {sparkProfile.length === 12 && (
+        <div className="pdf-section">
+          <div className="pdf-section-title">Seasonal Pattern (5-Year Average)</div>
+          <div className="pdf-season">
+            {MONTHS.map((m, i) => {
+              const v = sparkProfile[i]
+              const bg = v >= 65 ? "#14532d" : v <= 35 ? "#450a0a" : "#18181b"
+              const color = v >= 65 ? "#4ade80" : v <= 35 ? "#f87171" : "#71717a"
+              const isCurrent = i === currentMonth
+              return (
+                <div key={m} className="pdf-season-cell" style={{
+                  background: bg,
+                  color,
+                  border: isCurrent ? "1px solid #f59e0b" : "1px solid #1a1a1a",
+                  fontWeight: isCurrent ? "700" : "400",
+                }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "8px", color: "#52525b" }}>{m}</div>
+                    <div>{v != null ? v.toFixed(0) : "—"}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+ 
+      {/* Footer */}
+      <div className="pdf-footer">
+        <span>panchenko trading · COT Analytical Dashboard</span>
+        <span>Data source: CFTC · Generated {new Date().toLocaleDateString("en-GB")}</span>
+      </div>
+    </div>
   )
 }
 
@@ -3527,11 +3836,40 @@ function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData =
     );
   }
 
+  const handleExportPDF = () => {
+    // Show the print element
+    const el = document.getElementById("asset-pdf-report")
+    if (el) el.style.display = "block"
+    setTimeout(() => {
+      window.print()
+      setTimeout(() => { if (el) el.style.display = "none" }, 500)
+    }, 100)
+  }
+ 
   return (
     <div className="space-y-4">
+      {/* Hidden PDF report element */}
+      <AssetPDFReport
+        asset={asset}
+        profile={profile}
+        sparkProfile={sparkProfile}
+        seasonalityData={seasonalityData}
+      />
+ 
       <Panel
         title={t("panels.assetExplorer")}
-        right={<span className="text-amber-400">deep analysis</span>}
+        right={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportPDF}
+              className="flex items-center gap-1.5 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
+            >
+              <Download size={11} />
+              Export PDF
+            </button>
+            <span className="text-amber-400 text-xs uppercase tracking-[0.22em]">deep analysis</span>
+          </div>
+        }
       >
         <div className="space-y-4">
           <ExplorerTabs
