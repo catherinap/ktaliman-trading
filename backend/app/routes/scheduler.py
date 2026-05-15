@@ -27,8 +27,8 @@ router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 _scheduler = BackgroundScheduler(timezone="UTC")
 _SCHEDULE = {
     "day_of_week": "fri",   # Friday
-    "hour":        21,      # 21:00 UTC = 16:00 EST / 17:00 EDT
-    "minute":      0,
+    "hour":        20,
+    "minute":      35,
 }
 
 SCHEDULE_STATE = {

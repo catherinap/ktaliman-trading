@@ -1462,7 +1462,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
  
   return (
     <aside className={cls(
-      'fixed left-0 top-0 z-30 flex h-screen flex-col border-r border-zinc-900 bg-[#070707]',
+      'fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-[#0a0e1a]','border-[#1e2d4a]',
       'transition-[width] duration-300 ease-in-out overflow-hidden',
       collapsed ? 'w-0' : 'w-60'
     )}>
@@ -1481,8 +1481,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
                 collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
                 isActive
-                  ? 'border-amber-400 bg-zinc-900/70 text-zinc-100'
-                  : 'border-transparent text-zinc-500 hover:bg-zinc-900/40 hover:text-zinc-300'
+                ? 'border-blue-500 bg-blue-500/10 text-blue-300'
+                : 'border-transparent text-slate-500 hover:bg-blue-500/5 hover:text-slate-300'
               )}
             >
               <Icon size={16} className="shrink-0" />
@@ -1557,9 +1557,9 @@ function AlertBell({ onOpen }) {
       className="relative grid h-8 w-8 place-items-center border border-zinc-800 text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
       title="Alerts"
     >
-      <Bell size={14} />
+      <Bell size={15} />
       {unreadCount > 0 && (
-        <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+        <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-rose-500 text-[9px] font-bold text-white" style={{ borderRadius: '4px', minWidth: '20px' }}>
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}
@@ -1590,7 +1590,7 @@ function AlertDrawer({ open, onClose }) {
  
   const severityTone = (s) =>
     s === "high"   ? "text-rose-400 border-rose-900/50 bg-rose-950/20" :
-    s === "medium" ? "text-amber-400 border-amber-900/50 bg-amber-950/20" :
+    s === "medium" ? "text-blue-400 border-amber-900/50 bg-amber-950/20" :
                      "text-zinc-400 border-zinc-800 bg-zinc-950"
  
   const severityDot = (s) =>
@@ -1706,7 +1706,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
   const { t } = useTranslation()
  
   return (
-    <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-900 bg-[#090909] px-4 py-3 text-xs uppercase tracking-[0.24em] text-zinc-500">
+    <div className="sticky top-0 z-20 flex items-center justify-between border-b px-4 py-3 text-xs uppercase tracking-[0.24em] text-slate-500" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
  
       {/* Left: burger + page title */}
       <div className="flex items-center gap-3">
@@ -1755,8 +1755,8 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
 
 function Panel({ title, children, right }) {
   return (
-    <section className="border border-zinc-900 bg-[#0a0a0a]">
-      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+    <section className="border bg-[#0f1629]" style={{ borderColor: 'var(--border-subtle)' }}>
+    <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em] text-slate-500" style={{ borderColor: 'var(--border-subtle)' }}>
         <span>{title}</span>
         {right ? <div>{right}</div> : null}
       </div>
@@ -1767,7 +1767,7 @@ function Panel({ title, children, right }) {
 
 function Metric({ label, value }) {
   return (
-    <div className="border border-zinc-900 bg-[#080808] p-3">
+    <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)', borderRadius: '10px' }}>
       <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">{label}</div>
       <div className="mt-2 text-zinc-100">{value}</div>
     </div>
@@ -1776,7 +1776,7 @@ function Metric({ label, value }) {
 
 function ImpactBadge({ impact }) {
   const { t } = useTranslation();
-  const tone = impact === 'High' ? 'text-rose-400' : impact === 'Med' ? 'text-amber-400' : 'text-zinc-400'
+  const tone = impact === 'High' ? 'text-rose-400' : impact === 'Med' ? 'text-blue-400' : 'text-zinc-400'
   return <span className={cls('text-xs uppercase tracking-[0.2em]', tone)}>{impact}</span>
 }
 
@@ -1845,8 +1845,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
         />
     
         {/* Macro Snapshot */}
-        <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+        <section className="border bg-[#0f1629]" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em] text-slate-500" style={{ borderColor: 'var(--border-subtle)' }}>
             <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
               {t("panels.macroRegime")}
             </span>
@@ -1859,7 +1859,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
             <div className="grid grid-cols-3 gap-3">
               {[
                 { key: "growth",    label: "Growth",    color: "text-emerald-400" },
-                { key: "inflation", label: "Inflation", color: "text-amber-400" },
+                { key: "inflation", label: "Inflation", color: "text-blue-400" },
                 { key: "policy",    label: "Policy",    color: "text-sky-400" },
               ].map(({ key, label, color }) => {
                 const score = sleeveScores[key]
@@ -2694,7 +2694,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
     if (r.includes("risk-on") || r.includes("expansion") || r.includes("benign"))
       return "text-emerald-400"
     if (r.includes("warning") || r.includes("inversion") || r.includes("pressure"))
-      return "text-amber-400"
+      return "text-blue-400"
     return "text-sky-400"
   }
 
@@ -2704,15 +2704,15 @@ function MacroContextPanel({ aiLanguage = "en" }) {
     const r = item.regime
     // VIX
     if (r === "extreme_fear" || r === "fear") return "text-rose-300"
-    if (r === "complacent")                   return "text-amber-300"
+    if (r === "complacent")                   return "text-blue-300"
     if (r === "calm")                         return "text-emerald-400"
-    if (r === "elevated")                     return "text-amber-400"
+    if (r === "elevated")                     return "text-blue-400"
     // Yield curve
     if (r === "inverted") return "text-rose-400"
-    if (r === "flat")     return "text-amber-400"
+    if (r === "flat")     return "text-blue-400"
     if (r === "steep")    return "text-emerald-400"
     // DXY
-    if (r === "strengthening") return "text-amber-400"
+    if (r === "strengthening") return "text-blue-400"
     if (r === "weakening")     return "text-emerald-400"
     return "text-zinc-300"
   }
@@ -3032,15 +3032,20 @@ function MacroView({ assets, aiLanguage }) {
       </div>
 
       <div className="space-y-4">
-        <Panel title={t("panels.macroNotes")}>
-          <div className="space-y-4 text-sm leading-7 text-zinc-300">
-            <div>Macro view is derived directly from current COT positioning composites, not from live economic news.</div>
-            <div>Growth uses index futures, Inflation uses metals and energy proxies, and Policy uses major FX contracts.</div>
-            <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">
-              This is phase one macro logic. Next step can add news-aware commentary and rolling regime history.
-            </div>
-          </div>
-        </Panel>
+        <AIAnalysisPanel
+          type="macro"
+          data={{
+            growth_score:    growthScore,
+            inflation_score: inflationScore,
+            policy_score:    policyScore,
+            composite:       macroComposite,
+            growth_assets:    sleeveData.find((x) => x.key === "growth")?.members || [],
+            inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+            policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+          }}
+          aiLanguage={aiLanguage}
+          title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
+        />
 
         <Panel title={t("panels.compositeScores")}>
           <div className="space-y-3">
@@ -3123,7 +3128,7 @@ function CorrelationView({ assets }) {
 
   return (
     <div className="space-y-4">
-      <Panel title={t("panels.correlation")} right={<span className="text-amber-400">positioning relationships</span>}>
+      <Panel title={t("panels.correlation")} right={<span className="text-blue-400">positioning relationships</span>}>
         <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="grid gap-4 md:grid-cols-4">
             <Metric label="Universe" value={universeAssets.length} />
@@ -3384,7 +3389,7 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
  
   return (
     <div className="space-y-4">
-      <Panel title={t("panels.seasonality")} right={<span className="text-amber-400">calendar context</span>}>
+      <Panel title={t("panels.seasonality")} right={<span className="text-blue-400">calendar context</span>}>
         <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="grid gap-4 md:grid-cols-3">
             <Metric label="Current Month" value={currentMonth} />
@@ -3871,7 +3876,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData =
               <Download size={11} />
               Export PDF
             </button>
-            <span className="text-amber-400 text-xs uppercase tracking-[0.22em]">deep analysis</span>
+            <span className="text-blue-400 text-xs uppercase tracking-[0.22em]">deep analysis</span>
           </div>
         }
       >
@@ -4142,7 +4147,7 @@ function SignalHistoryTable({ items, loading }) {
  
   const stateTone = (state) => {
     if (state === 'active')      return 'text-emerald-400'
-    if (state === 'aging')       return 'text-amber-400'
+    if (state === 'aging')       return 'text-blue-400'
     if (state === 'candidate')   return 'text-sky-400'
     if (state === 'stale')       return 'text-zinc-500'
     if (state === 'invalidated') return 'text-rose-400'
@@ -4372,7 +4377,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
 
       <Panel
         title="Signals Engine"
-        right={<span className="text-xs uppercase tracking-[0.22em] text-amber-400">ranked live signals</span>}
+        right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">ranked live signals</span>}
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Metric label="Tracked Signals" value={engine.counts.total} />
@@ -4418,15 +4423,15 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="border border-zinc-900 bg-[#080808] p-3">
+                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
                     <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Priority</div>
                     <div className="mt-2 text-xl text-zinc-100">{formatPercentile(topSignal.priorityScore)}</div>
                   </div>
-                  <div className="border border-zinc-900 bg-[#080808] p-3">
+                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
                     <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Entry Quality</div>
                     <div className="mt-2 text-xl text-zinc-100">{topSignal.conviction}</div>
                   </div>
-                  <div className="border border-zinc-900 bg-[#080808] p-3">
+                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
                     <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">State</div>
                     <div className="mt-2 text-xl text-zinc-100">{stateLabel(topSignal.state)}</div>
                   </div>
@@ -4689,7 +4694,7 @@ function UpdateDataView({ updateState, updateBusy, onRun, schedulerState, timezo
   const isRunning   = updateState?.status === 'running'
   const statusTone  = updateState?.status === 'success'  ? 'text-emerald-400'
                     : updateState?.status === 'error'    ? 'text-rose-400'
-                    : updateState?.status === 'running'  ? 'text-amber-400'
+                    : updateState?.status === 'running'  ? 'text-blue-400'
                     : 'text-zinc-400'
  
 const fmtUtc = (iso) => {
@@ -5437,7 +5442,7 @@ useEffect(() => {
 ), }[active]
 
  return (
-    <div className="flex min-h-screen bg-[#050505] text-zinc-200">
+    <div className="flex min-h-screen text-slate-200" style={{ background: 'var(--bg-base)' }}>
       <Sidebar
         active={active}
         setActive={setActive}

@@ -2,27 +2,226 @@
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
+* { box-sizing: border-box; }
 
+/* ── Background ─────────────────────────────────────────────────────────── */
 body {
   margin: 0;
-  background: #050505;
-  color: #e5e7eb;
+  color: #e2e8f0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #05080f 0%, #071020 35%, #0a1838 65%, #0c1e45 100%) !important;
+  background-attachment: fixed !important;
 }
 
-* {
-  box-sizing: border-box;
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.25); border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+aside {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important;
+  height: 100vh !important;
+  z-index: 30 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: rgba(4,7,18,0.92) !important;
+  border-right: 1px solid rgba(59,130,246,0.12) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+aside nav { flex: 1 !important; overflow-y: auto !important; overflow-x: hidden !important; }
+aside nav::-webkit-scrollbar { display: none; }
+
+/* Active nav — gradient pill */
+aside button[class*="border-blue-5"],
+aside button[class*="border-amber-4"] {
+  background: linear-gradient(90deg, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.08) 100%) !important;
+  border: 1px solid rgba(59,130,246,0.3) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 0 20px rgba(59,130,246,0.08) inset !important;
+}
+aside button[class*="border-blue-5"] *,
+aside button[class*="border-amber-4"] * { color: #93c5fd !important; }
+aside button { border-radius: 10px !important; transition: all 0.15s !important; }
+aside button:not([class*="border-blue-5"]):not([class*="border-amber-4"]):hover {
+  background: rgba(255,255,255,0.04) !important;
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* ── Logo — solid blue ──────────────────────────────────────────────────── */
+.bg-white {
+  background: #2563eb !important;
+  border-radius: 10px !important;
+}
+.bg-white span { color: #ffffff !important; }
+
+/* ── TopBar glass ───────────────────────────────────────────────────────── */
+.sticky.top-0 {
+  background: rgba(4,7,18,0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(59,130,246,0.1) !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #262626;
-  border-radius: 999px;
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLASS PANELS
+   ═══════════════════════════════════════════════════════════════════════════ */
+section {
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
+}
+section > div:first-child {
+  background: rgba(255,255,255,0.025) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
 }
 
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
+/* Inner cards */
+[class*="bg-\[#080808\]"],
+[class*="bg-\[#0a0a0a\]"],
+[class*="bg-\[#0d0d0d\]"],
+.bg-zinc-950 {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(12px) !important;
 }
+[class*="bg-black\\/"] {
+  background: rgba(255,255,255,0.03) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* ALL borders → subtle white */
+[class*="border-zinc-900"],
+[class*="border-zinc-800"] {
+  border-color: rgba(255,255,255,0.07) !important;
+}
+[class*="divide-zinc-900"] > * + * {
+  border-top-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Rounded corners on ALL bordered divs EXCEPT table cells */
+div[class*="border-zinc"],
+button[class*="border-zinc"] {
+  border-color: rgba(255,255,255,0.08) !important;
+  border-radius: 10px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ISSUE 2 — TABLE CELLS: NO border-radius
+   ══════════════════════════════════════════════════════════════════════════ */
+td, th {
+  border-radius: 0 !important;
+}
+table { border-radius: 10px; overflow: hidden; }
+thead th {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+tbody tr { border-color: rgba(255,255,255,0.04) !important; }
+tbody tr:hover { background: rgba(255,255,255,0.04) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ISSUE 1 — DROPDOWN: dark background
+   ══════════════════════════════════════════════════════════════════════════ */
+select {
+  background: rgba(10,20,45,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 8px !important;
+  color: #e2e8f0 !important;
+}
+select option {
+  background: #0d1a35 !important;
+  color: #e2e8f0 !important;
+  padding: 8px 12px !important;
+}
+select:focus {
+  border-color: rgba(59,130,246,0.5) !important;
+  outline: none !important;
+}
+input {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 8px !important;
+  color: #e2e8f0 !important;
+}
+input:focus { border-color: rgba(59,130,246,0.5) !important; outline: none !important; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ISSUE 7 — SETTINGS: inner padding
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Settings panel inner content gets more breathing room */
+[class*="space-y-6"] > div {
+  padding: 2px 0 !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+button { border-radius: 8px !important; transition: all 0.15s !important; }
+[class*="border-amber-4"], [class*="border-amber-5"] {
+  border-color: rgba(59,130,246,0.4) !important;
+}
+[class*="text-amber-3"], [class*="text-amber-4"] { color: #93c5fd !important; }
+[class*="bg-amber-5\\/"], [class*="bg-amber-4\\/"] {
+  background: rgba(59,130,246,0.1) !important;
+}
+[class*="bg-violet"], [class*="border-violet"] {
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)) !important;
+  border-color: rgba(139,92,246,0.35) !important;
+  border-radius: 8px !important;
+}
+
+/* ── Hover ──────────────────────────────────────────────────────────────── */
+[class*="hover\\:bg-zinc"]:hover,
+[class*="hover\\:brightness"]:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* ── Glow on numbers ────────────────────────────────────────────────────── */
+.text-rose-300   { text-shadow: 0 0 14px rgba(248,113,113,0.55) !important; }
+.text-emerald-300{ text-shadow: 0 0 14px rgba(52,211,153,0.55)  !important; }
+.text-rose-400   { text-shadow: 0 0 8px  rgba(248,113,113,0.3)  !important; }
+.text-emerald-400{ text-shadow: 0 0 8px  rgba(52,211,153,0.3)   !important; }
+.text-blue-300, .text-blue-400 { text-shadow: 0 0 8px rgba(59,130,246,0.4) !important; }
+
+/* ── Alert drawer ───────────────────────────────────────────────────────── */
+.fixed.right-0.top-0.z-50 {
+  background: rgba(4,7,18,0.97) !important;
+  border-left: 1px solid rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* Metric cards and any bordered div without zinc class */
+.border.p-3,
+.border.p-4,
+.border.border-zinc-900.p-3,
+.border.border-zinc-900.p-4,
+[class~="border"][class~="p-3"],
+[class~="border"][class~="p-4"] {
+  border-radius: 10px !important;
+}
+
+/* Gap between panels */
+.space-y-4>*+* {
+  margin-top: 1rem !important;
+}
+
+.space-y-3>*+* {
+  margin-top: 0.75rem !important;
+}
+
+.grid.gap-4 {
+  gap: 1rem !important;
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid rgba(59,130,246,0.5) !important;
+  outline-offset: 2px;
+}
+
