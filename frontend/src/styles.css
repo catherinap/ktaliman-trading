@@ -38,10 +38,12 @@ aside nav::-webkit-scrollbar { display: none; }
 /* Active nav — gradient pill */
 aside button[class*="border-blue-5"],
 aside button[class*="border-amber-4"] {
-  background: linear-gradient(90deg, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.08) 100%) !important;
-  border: 1px solid rgba(59,130,246,0.3) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 0 20px rgba(59,130,246,0.08) inset !important;
+  background: linear-gradient(90deg, rgba(59, 131, 246, 0.496) 0%, rgba(59, 130, 246, 0.08) 100%) !important;
+  border: 1px solid #2564ebab !important;
+  border-radius: 8px !important;
+  box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.08) inset,
+      0 9px 26px 4px rgba(59, 131, 246, 0.1) !important;
 }
 aside button[class*="border-blue-5"] *,
 aside button[class*="border-amber-4"] * { color: #93c5fd !important; }

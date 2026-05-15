@@ -1559,7 +1559,24 @@ function AlertBell({ onOpen }) {
     >
       <Bell size={15} />
       {unreadCount > 0 && (
-        <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-rose-500 text-[9px] font-bold text-white" style={{ borderRadius: '4px', minWidth: '20px' }}>
+        <span style={{
+          position: 'absolute',
+          top: '-6px',
+          right: '-6px',
+          minWidth: '18px',
+          height: '18px',
+          padding: '0 4px',
+          background: '#ef4444',
+          borderRadius: '4px',
+          fontSize: '9px',
+          fontWeight: '700',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: 1,
+          letterSpacing: '0.02em',
+        }}>
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}
