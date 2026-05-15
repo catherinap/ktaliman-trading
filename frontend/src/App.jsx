@@ -3405,6 +3405,151 @@ function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData =
   );
 }
 
+function SignalHistoryTable({ items, loading }) {
+  const [filter, setFilter] = useState('all') // all | active | aging | invalidated
+ 
+  const filtered = useMemo(() => {
+    if (filter === 'all') return items
+    return items.filter((s) => s.current_state === filter)
+  }, [items, filter])
+ 
+  const stateTone = (state) => {
+    if (state === 'active')      return 'text-emerald-400'
+    if (state === 'aging')       return 'text-amber-400'
+    if (state === 'candidate')   return 'text-sky-400'
+    if (state === 'stale')       return 'text-zinc-500'
+    if (state === 'invalidated') return 'text-rose-400'
+    return 'text-zinc-500'
+  }
+ 
+  const dirTone = (dir) =>
+    dir === 'long' ? 'text-emerald-400' : dir === 'short' ? 'text-rose-400' : 'text-zinc-500'
+ 
+  const fmtDate = (iso) => {
+    if (!iso) return '—'
+    const [y, m, d] = iso.split('-')
+    return `${d}.${m}.${y}`
+  }
+ 
+  const ScoreSparkline = ({ history }) => {
+    if (!history?.length) return <span className="text-zinc-700">—</span>
+    const vals = history.map((h) => h.score)
+    const min = Math.min(...vals)
+    const max = Math.max(...vals)
+    const range = max - min || 1
+    const w = 60
+    const h = 20
+    const points = vals.map((v, i) => {
+      const x = (i / (vals.length - 1 || 1)) * w
+      const y = h - ((v - min) / range) * h
+      return `${x},${y}`
+    }).join(' ')
+    return (
+      <svg width={w} height={h} className="overflow-visible">
+        <polyline points={points} fill="none" stroke="#71717a" strokeWidth="1.5" />
+        <circle
+          cx={w}
+          cy={h - ((vals[vals.length - 1] - min) / range) * h}
+          r="2"
+          fill="#a1a1aa"
+        />
+      </svg>
+    )
+  }
+ 
+  return (
+    <div className="space-y-3">
+      {/* Filter tabs */}
+      <div className="flex gap-1">
+        {['all', 'active', 'aging', 'invalidated', 'stale'].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cls(
+              'border px-3 py-1 text-[10px] uppercase tracking-[0.2em] transition',
+              filter === f
+                ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
+                : 'border-zinc-800 text-zinc-600 hover:text-zinc-400'
+            )}
+          >
+            {f} ({f === 'all' ? items.length : items.filter((s) => s.current_state === f).length})
+          </button>
+        ))}
+      </div>
+ 
+      {loading && (
+        <div className="space-y-2 p-4">
+          {[100, 85, 70].map((w, i) => (
+            <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      )}
+ 
+      {!loading && filtered.length === 0 && (
+        <div className="p-4 text-sm text-zinc-600">
+          No signals found. Run the worker to populate signal history.
+        </div>
+      )}
+ 
+      {!loading && filtered.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-zinc-800 text-[10px] uppercase tracking-[0.2em] text-zinc-600">
+                <th className="px-3 py-2 text-left">Asset</th>
+                <th className="px-3 py-2 text-left">Dir</th>
+                <th className="px-3 py-2 text-left">State</th>
+                <th className="px-3 py-2 text-right">Weeks</th>
+                <th className="px-3 py-2 text-right">Current</th>
+                <th className="px-3 py-2 text-right">Peak</th>
+                <th className="px-3 py-2 text-left">First seen</th>
+                <th className="px-3 py-2 text-left">8w trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s) => (
+                <tr key={s.id} className="border-b border-zinc-900/60 hover:bg-zinc-900/30 transition">
+                  <td className="px-3 py-2">
+                    <div className="text-zinc-200">{s.name}</div>
+                    <div className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">{s.symbol} · {s.sector}</div>
+                  </td>
+                  <td className={cls("px-3 py-2 uppercase text-[11px] tracking-[0.2em]", dirTone(s.direction))}>
+                    {s.direction === 'long' ? '↑ Long' : '↓ Short'}
+                  </td>
+                  <td className={cls("px-3 py-2 uppercase text-[10px] tracking-[0.18em]", stateTone(s.current_state))}>
+                    {s.current_state}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
+                    {s.weeks_active}w
+                  </td>
+                  <td className={cls("px-3 py-2 text-right tabular-nums font-medium", flowColor(s.current_score))}>
+                    {s.current_score != null ? s.current_score.toFixed(1) : '—'}
+                  </td>
+                  <td className={cls("px-3 py-2 text-right tabular-nums", flowColor(s.peak_score))}>
+                    {s.peak_score != null ? s.peak_score.toFixed(1) : '—'}
+                  </td>
+                  <td className="px-3 py-2 text-zinc-500 tabular-nums text-xs">
+                    {fmtDate(s.first_seen_date)}
+                    {s.became_active_date && s.became_active_date !== s.first_seen_date && (
+                      <div className="text-emerald-600">Active: {fmtDate(s.became_active_date)}</div>
+                    )}
+                    {s.invalidated_date && (
+                      <div className="text-rose-600">Closed: {fmtDate(s.invalidated_date)}</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <ScoreSparkline history={s.score_history} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityData = [] }) {
 
   const macroSleeves = useMemo(() => {
@@ -3430,11 +3575,25 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
     [assets, seasonalityData, macroComposite]
   )
 
-  const [stateFilter, setStateFilter] = useState('all')
+ const [stateFilter, setStateFilter] = useState('all')
   const [directionFilter, setDirectionFilter] = useState('all')
   const [sectorFilter, setSectorFilter] = useState('all')
   const [minScore, setMinScore] = useState(55)
   const [alertsOnly, setAlertsOnly] = useState(false)
+ 
+  // Signal history state
+  const [signalHistory, setSignalHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyTab, setHistoryTab] = useState('live') // 'live' | 'history'
+ 
+  React.useEffect(() => {
+    setHistoryLoading(true)
+    fetch('/api/signals/history?active_only=false&limit=200')
+      .then((r) => r.ok ? r.json() : { items: [] })
+      .then((json) => setSignalHistory(json.items || []))
+      .catch(() => setSignalHistory([]))
+      .finally(() => setHistoryLoading(false))
+  }, [])
   const [sortBy, setSortBy] = useState('priority')
 
   const sectors = useMemo(() => {
