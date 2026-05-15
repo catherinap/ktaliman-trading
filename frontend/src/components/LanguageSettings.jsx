@@ -1,10 +1,11 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+import React from "react"
+import { useTranslation } from "react-i18next"
+import CustomSelect from "./CustomSelect"
 
 const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "uk", label: "Українська" }
-];
+  { value: "en", label: "English" },
+  { value: "uk", label: "Українська" },
+]
 
 export default function LanguageSettings({
   uiLanguage,
@@ -12,9 +13,9 @@ export default function LanguageSettings({
   syncAiWithUi,
   onChangeUiLanguage,
   onChangeAiLanguage,
-  onToggleSyncAiWithUi
+  onToggleSyncAiWithUi,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   return (
     <section className="space-y-4">
@@ -27,49 +28,40 @@ export default function LanguageSettings({
         </p>
       </div>
 
-      <label className="block space-y-2">
+      <div className="space-y-2">
         <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
           {t("settings.language.interface")}
         </div>
-        <select
+        <CustomSelect
           value={uiLanguage}
-          onChange={(e) => onChangeUiLanguage(e.target.value)}
-          className="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none"
-        >
-          {LANGUAGES.map((lng) => (
-            <option key={lng.code} value={lng.code}>
-              {lng.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={onChangeUiLanguage}
+          options={LANGUAGES}
+          minWidth="100%"
+        />
+      </div>
 
-      <label className="block space-y-2">
+      <div className="space-y-2">
         <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
           {t("settings.language.ai")}
         </div>
-        <select
+        <CustomSelect
           value={aiLanguage}
-          onChange={(e) => onChangeAiLanguage(e.target.value)}
+          onChange={onChangeAiLanguage}
+          options={LANGUAGES}
           disabled={syncAiWithUi}
-          className="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none disabled:opacity-50"
-        >
-          {LANGUAGES.map((lng) => (
-            <option key={lng.code} value={lng.code}>
-              {lng.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          minWidth="100%"
+        />
+      </div>
 
-      <label className="flex items-center gap-3 text-sm text-zinc-300">
+      <label className="flex items-center gap-3 text-sm text-zinc-300 cursor-pointer">
         <input
           type="checkbox"
           checked={syncAiWithUi}
           onChange={(e) => onToggleSyncAiWithUi(e.target.checked)}
+          style={{ accentColor: "#3b82f6" }}
         />
         <span>{t("settings.language.sync")}</span>
       </label>
     </section>
-  );
+  )
 }

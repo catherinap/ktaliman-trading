@@ -18,6 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import LanguageSettings from "./components/LanguageSettings";
 import AIAnalysisPanel from "./components/AIAnalysisPanel";
+import CustomSelect from "./components/CustomSelect"
 
 
 
@@ -4927,7 +4928,7 @@ function SettingsView({
   return (
     <Panel title={t("settings.title")}>
       <div className="space-y-6 text-sm text-zinc-300">
-        <LanguageSettings
+        <LanguageSettings 
           uiLanguage={uiLanguage}
           aiLanguage={aiLanguage}
           syncAiWithUi={syncAiWithUi}
@@ -4941,15 +4942,12 @@ function SettingsView({
           <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
             Display Timezone
           </div>
-          <select
+          <CustomSelect
             value={timezone}
-            onChange={(e) => onChangeTimezone(e.target.value)}
-            className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[260px]"
-          >
-            {TIMEZONES.map((tz) => (
-              <option key={tz.value} value={tz.value}>{tz.label}</option>
-            ))}
-          </select>
+            onChange={onChangeTimezone}
+            options={TIMEZONES}
+            minWidth="280px"
+          />
           <div className="text-xs text-zinc-600">
             Used for displaying timestamps in Update tab and scheduler times.
           </div>
