@@ -1140,7 +1140,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.3em", color: "#52525b" }}>
-              ktaliman · trading
+              panchenko · trading
             </div>
             <div style={{ fontSize: "10px", color: "#71717a", marginTop: "4px" }}>
               {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
