@@ -89,10 +89,6 @@ section {
   -webkit-backdrop-filter: blur(20px) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
-section > div:first-child {
-  background: rgba(255,255,255,0.025) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-}
 
 /* Inner cards */
 [class*="bg-\[#080808\]"],
