@@ -10,6 +10,7 @@ import {
   Layout,
   LineChart,
   Settings,
+  Star,
   Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -17,9 +18,11 @@ import LanguageSettings from "./components/LanguageSettings";
 import AIAnalysisPanel from "./components/AIAnalysisPanel";
 
 
+
 const NAV_ITEMS = [
   { key: "workspace", labelKey: "nav.workspace", icon: Layout },
   { key: "macro", labelKey: "nav.macro", icon: Globe },
+  { key: "watchlist", labelKey: "nav.watchlist", icon: Star },
   { key: "summary", labelKey: "nav.summary", icon: BarChart2 },
   { key: "explorer", labelKey: "nav.explorer", icon: Activity },
   { key: "correlation", labelKey: "nav.correlation", icon: LineChart },
@@ -1192,23 +1195,25 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         {collapsed ? (
           /* Collapsed: monogram only */
           <div className="flex h-8 w-8 items-center justify-center border border-zinc-800">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-300">KP</span>
+            <div className="flex h-8 w-8 items-center justify-center bg-white">
+  <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-900">KP</span>
+</div>
           </div>
         ) : (
           /* Expanded: full logo */
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-700 bg-zinc-900">
-              <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-200">KP</span>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-white">
+              <span className="text-[14px] font-bold tracking-[0.10em] text-zinc-900">KP</span>
             </div>
             <div className="overflow-hidden">
               <div className={cls(
-                'text-[9px] uppercase tracking-[0.45em] text-zinc-600 transition-all duration-200',
+                'text-[11px] font-bold uppercase tracking-[0.35em] text-zinc-100 transition-all duration-200',
                 collapsed ? 'opacity-0' : 'opacity-100'
               )}>
-                kpanchenko
+                panchenko
               </div>
               <div className={cls(
-                'text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-300 transition-all duration-200',
+                'text-[11px] font-bold uppercase tracking-[0.45em] text-zinc-100 transition-all duration-200',
                 collapsed ? 'opacity-0' : 'opacity-100'
               )}>
                 trading
@@ -1225,7 +1230,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed }) {
   const { t } = useTranslation()
  
   return (
-    <div className="flex items-center justify-between border-b border-zinc-900 bg-[#090909] px-4 py-3 text-xs uppercase tracking-[0.24em] text-zinc-500">
+    <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-900 bg-[#090909] px-4 py-3 text-xs uppercase tracking-[0.24em] text-zinc-500">
  
       {/* Left: burger + page title */}
       <div className="flex items-center gap-3">
@@ -1295,20 +1300,6 @@ function ImpactBadge({ impact }) {
   return <span className={cls('text-xs uppercase tracking-[0.2em]', tone)}>{impact}</span>
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// НОВИЙ Workspace component для App.jsx
-//
-// ЩО ТРЕБА ЗРОБИТИ:
-// 1. Додати імпорт AIAnalysisPanel на початку App.jsx (якщо ще не додано):
-//    import AIAnalysisPanel from "./components/AIAnalysisPanel";
-//
-// 2. Знайти в App.jsx функцію Workspace і замінити її ПОВНІСТЮ на код нижче
-//    (від "function Workspace(" до закриваючої "}" включно)
-//
-// 3. У const view = { ... } знайти:
-//    workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} />,
-//    Замінити на:
-//    workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} />,
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en" }) {
@@ -3988,6 +3979,239 @@ function SettingsView({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WATCHLIST — новий компонент + інструкції підключення
+// Вставити в App.jsx перед функцією App()
+// ─────────────────────────────────────────────────────────────────────────────
+ 
+function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watchlist, setWatchlist }) {
+  const { t } = useTranslation()
+ 
+  // ── Filtered watchlist assets ─────────────────────────────────────────────
+  const watchedAssets = useMemo(() =>
+    assets.filter((a) => watchlist.includes(a.symbol)),
+    [assets, watchlist]
+  )
+ 
+  // ── All assets sorted for the "add" selector ──────────────────────────────
+  const sortedAssets = useMemo(() =>
+    [...assets]
+      .filter((a) => !watchlist.includes(a.symbol))
+      .sort((a, b) => {
+        const sa = normalizeSector(a.sector || "")
+        const sb = normalizeSector(b.sector || "")
+        if (sa !== sb) return sa.localeCompare(sb)
+        return (a.name || "").localeCompare(b.name || "")
+      }),
+    [assets, watchlist]
+  )
+ 
+  const addToWatchlist = (symbol) => {
+    if (!watchlist.includes(symbol)) {
+      setWatchlist((prev) => [...prev, symbol])
+    }
+  }
+ 
+  const removeFromWatchlist = (symbol) => {
+    setWatchlist((prev) => prev.filter((s) => s !== symbol))
+  }
+ 
+  const openAsset = (symbol) => {
+    setSelected(symbol)
+    setActive("explorer")
+  }
+ 
+  // ── Empty state ───────────────────────────────────────────────────────────
+  if (watchedAssets.length === 0) {
+    return (
+      <div className="space-y-4">
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+              {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
+            </span>
+          </div>
+          <div className="p-4 space-y-4">
+            <p className="text-sm text-zinc-500">
+              {aiLanguage === "uk"
+                ? "Додай активи для швидкого доступу та моніторингу."
+                : "Add assets to monitor them in one place."}
+            </p>
+            <AddAssetRow sortedAssets={sortedAssets} onAdd={addToWatchlist} aiLanguage={aiLanguage} />
+          </div>
+        </section>
+      </div>
+    )
+  }
+ 
+  return (
+    <div className="space-y-4">
+ 
+      {/* Header + Add */}
+      <section className="border border-zinc-900 bg-[#0a0a0a]">
+        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
+          </span>
+          <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-600">
+            {watchedAssets.length} {aiLanguage === "uk" ? "активів" : "assets"}
+          </span>
+        </div>
+        <div className="p-4">
+          <AddAssetRow sortedAssets={sortedAssets} onAdd={addToWatchlist} aiLanguage={aiLanguage} />
+        </div>
+      </section>
+ 
+      {/* Asset grid */}
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {watchedAssets.map((asset) => (
+          <WatchlistCard
+            key={asset.symbol}
+            asset={asset}
+            onOpen={openAsset}
+            onRemove={removeFromWatchlist}
+            aiLanguage={aiLanguage}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+ 
+// ── Add asset row ─────────────────────────────────────────────────────────────
+function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
+  const [selected, setSelected] = useState("")
+ 
+  const handleAdd = () => {
+    if (selected) {
+      onAdd(selected)
+      setSelected("")
+    }
+  }
+ 
+  return (
+    <div className="flex items-center gap-3">
+      <select
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[220px]"
+      >
+        <option value="">
+          {aiLanguage === "uk" ? "Обери актив..." : "Select asset..."}
+        </option>
+        {sortedAssets.map((a) => (
+          <option key={a.symbol} value={a.symbol}>
+            {a.name} ({a.symbol})
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={handleAdd}
+        disabled={!selected}
+        className={cls(
+          "border px-4 py-2 text-[11px] uppercase tracking-[0.22em] transition",
+          selected
+            ? "border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+            : "cursor-not-allowed border-zinc-800 text-zinc-600"
+        )}
+      >
+        {aiLanguage === "uk" ? "Додати" : "Add"}
+      </button>
+    </div>
+  )
+}
+ 
+// ── Single watchlist card ─────────────────────────────────────────────────────
+function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
+  const idx    = asset.funds_percentile_3y
+  const dirMap = { rising: "↑", falling: "↓", flat: "→" }
+  const arrow  = dirMap[asset.funds_index_direction] || ""
+ 
+  const idxBg = idx >= 90 ? "border-rose-800/50 bg-rose-950/20"
+              : idx <= 10 ? "border-emerald-800/50 bg-emerald-950/20"
+              : "border-zinc-800 bg-[#080808]"
+ 
+  return (
+    <div className={cls("border p-4 space-y-3 transition hover:brightness-110", idxBg)}>
+ 
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-sm font-medium text-zinc-100">{asset.name}</div>
+          <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-600">
+            {asset.symbol} · {normalizeSector(asset.sector)}
+          </div>
+        </div>
+        {/* Remove button */}
+        <button
+          onClick={() => onRemove(asset.symbol)}
+          className="shrink-0 border border-zinc-800 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:border-zinc-700 hover:text-zinc-400 transition"
+          title={aiLanguage === "uk" ? "Видалити" : "Remove"}
+        >
+          ✕
+        </button>
+      </div>
+ 
+      {/* Key metrics */}
+      <div className="grid grid-cols-3 gap-2">
+        {/* COT Index */}
+        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Index</div>
+          <div className={cls("mt-1 text-base font-semibold tabular-nums", flowColor(idx))}>
+            {idx != null ? idx.toFixed(1) : "n/a"}
+          </div>
+        </div>
+        {/* Momentum */}
+        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Momentum</div>
+          <div className={cls(
+            "mt-1 text-sm font-medium",
+            asset.funds_index_direction === "rising"  ? "text-emerald-400" :
+            asset.funds_index_direction === "falling" ? "text-rose-400" : "text-zinc-500"
+          )}>
+            {arrow} {asset.funds_index_wow_change != null
+              ? `${asset.funds_index_wow_change > 0 ? "+" : ""}${asset.funds_index_wow_change.toFixed(1)}`
+              : "—"}
+          </div>
+        </div>
+        {/* Flow State */}
+        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Flow</div>
+          <div className={cls("mt-1 text-[10px] uppercase tracking-[0.14em]", flowColor(idx))}>
+            {asset.flow_state || "Neutral"}
+          </div>
+        </div>
+      </div>
+ 
+      {/* Funds net */}
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-zinc-600 uppercase tracking-[0.18em]">Net</span>
+        <span className={cls("tabular-nums font-medium", Number(asset.funds_net) > 0 ? "text-emerald-400" : Number(asset.funds_net) < 0 ? "text-rose-400" : "text-zinc-500")}>
+          {asset.funds_net != null
+            ? new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(asset.funds_net)
+            : "—"}
+        </span>
+      </div>
+ 
+      {/* COT Index bar */}
+      <div className="h-1 overflow-hidden bg-zinc-900">
+        <div
+          className={cls("h-full transition-all", flowColor(idx).replace("text-", "bg-"))}
+          style={{ width: `${Math.max(2, idx ?? 0)}%` }}
+        />
+      </div>
+ 
+      {/* Open in Explorer */}
+      <button
+        onClick={() => onOpen(asset.symbol)}
+        className="w-full border border-zinc-800 py-1.5 text-[10px] uppercase tracking-[0.22em] text-zinc-500 hover:border-zinc-700 hover:text-zinc-300 transition"
+      >
+        {aiLanguage === "uk" ? "Відкрити аналіз →" : "Open in Explorer →"}
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   const [active, setActive] = useState('workspace')
   const [selected, setSelected] = useState(null)
@@ -4001,6 +4225,17 @@ export default function App() {
   const [updateState, setUpdateState] = useState({ status: 'idle', started_at: null, finished_at: null, return_code: null, log: '', error: '' })
   const [updateBusy, setUpdateBusy] = useState(false)
   const [schedulerState, setSchedulerState] = useState(null)
+  const [watchlist, setWatchlist] = useState(() => {
+  try {
+    const saved = localStorage.getItem("ktaliman-watchlist")
+    return saved ? JSON.parse(saved) : []
+  } catch { return [] }
+})
+
+useEffect(() => {
+  try { localStorage.setItem("ktaliman-watchlist", JSON.stringify(watchlist)) }
+  catch {}
+}, [watchlist])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [economicCalendar, setEconomicCalendar] = useState([]);
@@ -4194,7 +4429,8 @@ export default function App() {
   const view = { 
   workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} />, 
   macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} />, 
-	summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />,
+  summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />,
+  watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
   history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
 	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 

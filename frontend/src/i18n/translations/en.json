@@ -2,6 +2,7 @@
   "nav": {
     "workspace": "Live Workspace",
     "macro": "Macro",
+    "watchlist": "Watchlist",
     "summary": "COT Summary",
     "explorer": "Asset Explorer",
     "correlation": "Correlation",
