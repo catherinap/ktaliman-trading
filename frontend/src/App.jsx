@@ -4958,29 +4958,9 @@ function SettingsView({
         {/* Email Alerts */}
         <div className="space-y-3">
           <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
-            Email Alerts
-          </div>
-          <div className="border border-zinc-900 bg-zinc-950 p-4 space-y-3 text-sm text-zinc-400">
-            <div>
-              Add to <span className="text-zinc-200">backend/.env.local</span>:
-            </div>
-            <pre className="text-xs text-zinc-500 leading-6 bg-[#080808] border border-zinc-900 p-3 overflow-x-auto">{`ALERT_EMAIL_ENABLED=true
-ALERT_EMAIL_FROM=your@gmail.com
-ALERT_EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
-ALERT_EMAIL_TO=recipient@email.com`}</pre>
-            <div className="text-xs text-zinc-600">
-              Use a Gmail App Password (not your main password).
-              Generate at: myaccount.google.com → Security → App Passwords
-            </div>
+            Email Alerts (Test)
           </div>
           <AlertTestButton />
-        </div>
-
-        <div>{t("settings.security.line1")}</div>
-        <div>{t("settings.security.line2")}</div>
- 
-        <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">
-          {t("settings.security.next")}
         </div>
       </div>
     </Panel>
