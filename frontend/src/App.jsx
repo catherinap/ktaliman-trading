@@ -79,10 +79,69 @@ function signalStrengthLabel(score) {
 }
 
 function flowColor(percentile) {
-  if (percentile == null) return 'text-zinc-400'
-  if (percentile >= 65) return 'text-emerald-400'
-  if (percentile <= 35) return 'text-rose-400'
-  return 'text-zinc-300'
+  if (percentile == null) return "text-zinc-500";
+  if (percentile >= 65) return "text-emerald-400";
+  if (percentile <= 35) return "text-rose-400";
+  return "text-zinc-300";
+}
+ 
+function MomentumBadge({ asset, size = "md" }) {
+  const direction   = asset?.funds_index_direction
+  const momentum    = asset?.funds_index_momentum
+  const wow         = asset?.funds_index_wow_change
+  const avg3w       = asset?.funds_index_3w_avg
+  const avg8w       = asset?.funds_index_8w_avg
+  const accel       = asset?.funds_index_acceleration
+ 
+  if (!direction) return null
+ 
+  // Arrow icon
+  const arrow = direction === "rising"  ? "↑"
+              : direction === "falling" ? "↓"
+              : "→"
+ 
+  // Color based on direction + momentum strength
+  const strong = Math.abs(momentum ?? 0) > 8
+  const dirColor = direction === "rising"
+    ? (strong ? "text-emerald-300" : "text-emerald-500")
+    : direction === "falling"
+    ? (strong ? "text-rose-300"    : "text-rose-500")
+    : "text-zinc-500"
+ 
+  // Acceleration dot
+  const accelColor = accel === "accelerating" ? "bg-emerald-400"
+                   : accel === "decelerating" ? "bg-rose-400"
+                   : "bg-zinc-600"
+ 
+  const isSmall = size === "sm"
+ 
+  return (
+    <div className={cls("flex items-center gap-1.5", isSmall ? "text-[10px]" : "text-xs")}>
+      {/* Direction arrow */}
+      <span className={cls("font-bold tabular-nums", dirColor, isSmall ? "text-xs" : "text-sm")}>
+        {arrow}
+      </span>
+ 
+      {/* WoW change */}
+      {wow != null && (
+        <span className={cls("tabular-nums uppercase tracking-[0.14em]", dirColor)}>
+          {wow > 0 ? "+" : ""}{wow.toFixed(1)}
+        </span>
+      )}
+ 
+      {/* Acceleration dot */}
+      {accel && !isSmall && (
+        <div className={cls("h-1.5 w-1.5 rounded-full", accelColor)} title={accel} />
+      )}
+ 
+      {/* 3w / 8w avg — only in md size */}
+      {!isSmall && avg3w != null && avg8w != null && (
+        <span className="text-zinc-600 tabular-nums">
+          3w:{avg3w.toFixed(0)} · 8w:{avg8w.toFixed(0)}
+        </span>
+      )}
+    </div>
+  )
 }
 
 function formatPercentile(value) {
@@ -1461,8 +1520,11 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                         style={{ width: `${Math.max(4, a.funds_percentile_3y ?? 0)}%` }}
                       />
                     </div>
-                    <div className={cls("mt-2 text-[11px] uppercase tracking-[0.2em]", flowColor(a.funds_percentile_3y))}>
-                      {a.flow_state || "Neutral"}
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <div className={cls("text-[11px] uppercase tracking-[0.2em]", flowColor(a.funds_percentile_3y))}>
+                        {a.flow_state || "Neutral"}
+                      </div>
+                      <MomentumBadge asset={a} size="sm" />
                     </div>
                   </button>
                 ))}
@@ -2840,6 +2902,9 @@ function Summary({ assets, setActive, setSelected }) {
                   <th rowSpan={2} className="px-3 py-3 text-right font-medium">
                     OI
                   </th>
+                  <th rowSpan={2} className="px-3 py-3 text-left font-medium">
+                    Momentum
+                  </th>
 
                   {headerGroups.map((group) => (
                     <th
@@ -2879,10 +2944,15 @@ function Summary({ assets, setActive, setSelected }) {
                     >
                       <td className="sticky left-0 z-10 bg-zinc-950 px-3 py-2">
                         <div className="text-sm font-medium text-zinc-100">{asset.symbol}</div>
+                        <div className="text-xs text-zinc-500">{asset.name}</div>
                       </td>
-
+ 
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-200">
                         {formatNumber(asset.open_interest)}
+                      </td>
+ 
+                      <td className="px-3 py-2">
+                        <MomentumBadge asset={asset} size="sm" />
                       </td>
 
                       {groups.map((group) => (
@@ -3049,6 +3119,52 @@ function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData =
             <Metric label="Dealer Net" value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
             <Metric label="Flow State" value={asset.flow_state || "Neutral"} />
+          </div>
+ 
+          {/* Momentum bar */}
+          <div className="border border-zinc-900 bg-[#080808] px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+                Momentum
+              </span>
+              <MomentumBadge asset={asset} size="md" />
+              <div className="flex items-center gap-6 text-[11px] text-zinc-500">
+                {asset.funds_index_3w_avg != null && (
+                  <span>
+                    3w avg: <span className={flowColor(asset.funds_index_3w_avg)}>
+                      {asset.funds_index_3w_avg.toFixed(1)}
+                    </span>
+                  </span>
+                )}
+                {asset.funds_index_8w_avg != null && (
+                  <span>
+                    8w avg: <span className={flowColor(asset.funds_index_8w_avg)}>
+                      {asset.funds_index_8w_avg.toFixed(1)}
+                    </span>
+                  </span>
+                )}
+                {asset.funds_index_momentum != null && (
+                  <span>
+                    vs trend: <span className={
+                      asset.funds_index_momentum > 0 ? "text-emerald-400" :
+                      asset.funds_index_momentum < 0 ? "text-rose-400" : "text-zinc-400"
+                    }>
+                      {asset.funds_index_momentum > 0 ? "+" : ""}
+                      {asset.funds_index_momentum.toFixed(1)}
+                    </span>
+                  </span>
+                )}
+                {asset.funds_index_acceleration && (
+                  <span className={
+                    asset.funds_index_acceleration === "accelerating" ? "text-emerald-400" :
+                    asset.funds_index_acceleration === "decelerating" ? "text-rose-400" :
+                    "text-zinc-500"
+                  }>
+                    {asset.funds_index_acceleration}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
