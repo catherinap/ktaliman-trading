@@ -3872,16 +3872,32 @@ const fmtUtc = (iso) => {
 
 function Placeholder({ title }) { return (<Panel title={title}><div className="text-sm text-zinc-400">This tab is scaffolded. Live data is already connected for core COT views.</div></Panel>) }
 
+const TIMEZONES = [
+  { value: "Europe/Copenhagen", label: "Denmark (CET/CEST)" },
+  { value: "Europe/Kyiv",       label: "Ukraine (EET/EEST)" },
+  { value: "Europe/London",     label: "UK (GMT/BST)" },
+  { value: "Europe/Berlin",     label: "Germany (CET/CEST)" },
+  { value: "Europe/Paris",      label: "France (CET/CEST)" },
+  { value: "America/New_York",  label: "New York (EST/EDT)" },
+  { value: "America/Chicago",   label: "Chicago (CST/CDT)" },
+  { value: "America/Los_Angeles","label": "Los Angeles (PST/PDT)" },
+  { value: "Asia/Dubai",        label: "Dubai (GST)" },
+  { value: "Asia/Singapore",    label: "Singapore (SGT)" },
+  { value: "UTC",               label: "UTC" },
+]
+ 
 function SettingsView({
   uiLanguage,
   aiLanguage,
   syncAiWithUi,
+  timezone,
   onChangeUiLanguage,
   onChangeAiLanguage,
   onToggleSyncAiWithUi,
+  onChangeTimezone,
 }) {
   const { t } = useTranslation();
-
+ 
   return (
     <Panel title={t("settings.title")}>
       <div className="space-y-6 text-sm text-zinc-300">
@@ -3893,10 +3909,29 @@ function SettingsView({
           onChangeAiLanguage={onChangeAiLanguage}
           onToggleSyncAiWithUi={onToggleSyncAiWithUi}
         />
-
+ 
+        {/* Timezone selector */}
+        <div className="space-y-2">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            Display Timezone
+          </div>
+          <select
+            value={timezone}
+            onChange={(e) => onChangeTimezone(e.target.value)}
+            className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[260px]"
+          >
+            {TIMEZONES.map((tz) => (
+              <option key={tz.value} value={tz.value}>{tz.label}</option>
+            ))}
+          </select>
+          <div className="text-xs text-zinc-600">
+            Used for displaying timestamps in Update tab and scheduler times.
+          </div>
+        </div>
+ 
         <div>{t("settings.security.line1")}</div>
         <div>{t("settings.security.line2")}</div>
-
+ 
         <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">
           {t("settings.security.next")}
         </div>
@@ -3937,6 +3972,7 @@ export default function App() {
     return {
       aiLanguage: "en",
       syncAiWithUi: true,
+      timezone: "Europe/Copenhagen",
     };
   });
 
@@ -3972,6 +4008,10 @@ export default function App() {
       syncAiWithUi: value,
       aiLanguage: value ? (i18n.language || "en") : prev.aiLanguage,
     }));
+  };
+ 
+  const handleTimezoneChange = (tz) => {
+    setAppSettings((prev) => ({ ...prev, timezone: tz }));
   };
 
   async function fetchUpdateStatus() {
@@ -4111,16 +4151,18 @@ export default function App() {
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
 	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />, 
-	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} />, 
+	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
 	settings: (
   <SettingsView
-    uiLanguage={uiLanguage}
-    aiLanguage={appSettings.aiLanguage}
-    syncAiWithUi={appSettings.syncAiWithUi}
-    onChangeUiLanguage={handleUiLanguageChange}
-    onChangeAiLanguage={handleAiLanguageChange}
-    onToggleSyncAiWithUi={handleSyncAiWithUiChange}
-  />
+      uiLanguage={uiLanguage}
+      aiLanguage={appSettings.aiLanguage}
+      syncAiWithUi={appSettings.syncAiWithUi}
+      timezone={appSettings.timezone || "Europe/Copenhagen"}
+      onChangeUiLanguage={handleUiLanguageChange}
+      onChangeAiLanguage={handleAiLanguageChange}
+      onToggleSyncAiWithUi={handleSyncAiWithUiChange}
+      onChangeTimezone={handleTimezoneChange}
+    />
 ), }[active]
 
   return (
