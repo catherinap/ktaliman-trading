@@ -1346,6 +1346,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
       {/* ── Row 1: AI Briefing + Macro Snapshot ─────────────────────────── */}
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
 
+        <MacroContextPanel aiLanguage={aiLanguage} />
+
         {/* AI Weekly Briefing */}
         <AIAnalysisPanel
           type="macro"
@@ -1361,7 +1363,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           aiLanguage={aiLanguage}
           title={aiLanguage === "uk" ? "AI — Weekly Briefing" : "AI — Weekly Briefing"}
         />
-
+    
         {/* Macro Snapshot */}
         <section className="border border-zinc-900 bg-[#0a0a0a]">
           <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
@@ -2176,6 +2178,217 @@ function HistoricalDataView({ assets }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MacroContextPanel — вставити в App.jsx перед function MacroView
+// Показує VIX, Yield Curve, DXY як macro backdrop для COT аналізу
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MacroContextPanel({ aiLanguage = "en" }) {
+  const [data, setData]       = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState("")
+  const [lastFetch, setLastFetch] = useState(null)
+
+  const load = React.useCallback(() => {
+    setLoading(true)
+    setError("")
+    fetch("/api/macro-context")
+      .then((r) => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((json) => {
+        setData(json)
+        setLastFetch(new Date())
+      })
+      .catch((e) => setError(String(e)))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // Auto-load on mount
+  React.useEffect(() => { load() }, [load])
+
+  // ── Regime color ────────────────────────────────────────────────────────
+  const regimeTone = (regime) => {
+    if (!regime) return "text-zinc-500"
+    const r = regime.toLowerCase()
+    if (r.includes("risk-off") || r.includes("stress") || r.includes("contraction"))
+      return "text-rose-400"
+    if (r.includes("risk-on") || r.includes("expansion") || r.includes("benign"))
+      return "text-emerald-400"
+    if (r.includes("warning") || r.includes("inversion") || r.includes("pressure"))
+      return "text-amber-400"
+    return "text-sky-400"
+  }
+
+  // ── Item card color ─────────────────────────────────────────────────────
+  const itemTone = (item) => {
+    if (!item?.regime) return "text-zinc-300"
+    const r = item.regime
+    // VIX
+    if (r === "extreme_fear" || r === "fear") return "text-rose-300"
+    if (r === "complacent")                   return "text-amber-300"
+    if (r === "calm")                         return "text-emerald-400"
+    if (r === "elevated")                     return "text-amber-400"
+    // Yield curve
+    if (r === "inverted") return "text-rose-400"
+    if (r === "flat")     return "text-amber-400"
+    if (r === "steep")    return "text-emerald-400"
+    // DXY
+    if (r === "strengthening") return "text-amber-400"
+    if (r === "weakening")     return "text-emerald-400"
+    return "text-zinc-300"
+  }
+
+  const itemBg = (item) => {
+    if (!item?.alert) return "border-zinc-900 bg-[#080808]"
+    const r = item?.regime
+    if (r === "inverted" || r === "fear" || r === "extreme_fear")
+      return "border-rose-900/40 bg-rose-950/15"
+    if (r === "flat" || r === "complacent" || r === "strengthening")
+      return "border-amber-900/40 bg-amber-950/15"
+    return "border-emerald-900/40 bg-emerald-950/15"
+  }
+
+  const fmtValue = (item) => {
+    if (item.value == null) return "n/a"
+    if (item.key === "yield_curve") {
+      const sign = item.value >= 0 ? "+" : ""
+      return `${sign}${item.value.toFixed(2)}%`
+    }
+    if (item.key === "vix") return item.value.toFixed(2)
+    if (item.key === "spx") return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(item.value)
+    return item.value.toFixed(2)
+  }
+
+  const fmtChange = (item) => {
+    if (item.change_pct == null) return null
+    const sign = item.change_pct >= 0 ? "+" : ""
+    return `${sign}${item.change_pct.toFixed(2)}%`
+  }
+
+  return (
+    <section className="border border-zinc-900 bg-[#0a0a0a]">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            {aiLanguage === "uk" ? "Макро контекст" : "Macro Context"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          {data?.macro_regime && (
+            <span className={cls("text-[11px] uppercase tracking-[0.22em]", regimeTone(data.macro_regime))}>
+              {data.macro_regime}
+            </span>
+          )}
+          <button
+            onClick={load}
+            disabled={loading}
+            className={cls(
+              "border px-2 py-1 text-[10px] uppercase tracking-[0.2em] transition",
+              loading
+                ? "cursor-not-allowed border-zinc-800 text-zinc-600"
+                : "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+            )}
+          >
+            {loading ? "..." : aiLanguage === "uk" ? "Оновити" : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading && !data && (
+        <div className="p-4 space-y-2">
+          {[100, 80, 60].map((w, i) => (
+            <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="px-4 py-3 text-xs text-rose-400">
+          {aiLanguage === "uk" ? "Помилка: " : "Error: "}{error}
+        </div>
+      )}
+
+      {/* Items */}
+      {data?.items?.length > 0 && (
+        <div className="p-4 space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {data.items.map((item) => (
+              <div key={item.key} className={cls("border p-3 space-y-2", itemBg(item))}>
+                {/* Label + regime badge */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                    {item.label}
+                  </span>
+                  {item.regime && (
+                    <span className={cls("text-[9px] uppercase tracking-[0.16em]", itemTone(item))}>
+                      {item.regime.replace(/_/g, " ")}
+                    </span>
+                  )}
+                </div>
+
+                {/* Value + change */}
+                <div className="flex items-end justify-between gap-2">
+                  <span className={cls("text-xl font-semibold tabular-nums", itemTone(item))}>
+                    {fmtValue(item)}
+                  </span>
+                  {fmtChange(item) && (
+                    <span className={cls(
+                      "text-xs tabular-nums mb-0.5",
+                      item.change_pct >= 0 ? "text-emerald-400" : "text-rose-400"
+                    )}>
+                      {fmtChange(item)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Yield curve detail */}
+                {item.key === "yield_curve" && item.t10y && item.t2y && (
+                  <div className="text-[10px] text-zinc-600">
+                    10Y: {item.t10y.toFixed(2)}% · 2Y: {item.t2y.toFixed(2)}%
+                  </div>
+                )}
+
+                {/* Interpretation */}
+                <div className="text-[11px] leading-5 text-zinc-500">
+                  {item.interpretation}
+                </div>
+
+                {/* Alert dot */}
+                {item.alert && (
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-amber-400">
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    {aiLanguage === "uk" ? "Увага" : "Watch"}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Last fetch time */}
+          {lastFetch && (
+            <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-700">
+              {aiLanguage === "uk" ? "Оновлено: " : "Updated: "}
+              {lastFetch.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No data */}
+      {!loading && !error && (!data?.items || data.items.length === 0) && (
+        <div className="px-4 py-4 text-sm text-zinc-600">
+          {aiLanguage === "uk"
+            ? "Дані недоступні. Встанови yfinance: pip install yfinance"
+            : "No data available. Install yfinance: pip install yfinance"}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function MacroView({ assets, aiLanguage }) {
   const { t } = useTranslation();
 
@@ -2249,6 +2462,7 @@ function MacroView({ assets, aiLanguage }) {
             <span className="text-zinc-500">Verdict:</span> {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
+        <MacroContextPanel aiLanguage={aiLanguage} />
 
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="border border-zinc-900 bg-[#080808] p-4">
