@@ -18,6 +18,8 @@ from app.routes.history import router as history_router
 from app.routes.workspace import router as workspace_router
 from app.routes.update import router as update_router
 from app.routes.seasonality import router as seasonality_router
+from app.routes.scheduler import router as scheduler_router
+from app.routes.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="Ktaliman Trading API")
 
@@ -29,13 +31,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health_router, prefix="/api")
-app.include_router(system_router, prefix="/api")
-app.include_router(heatmap_router, prefix="/api")
-app.include_router(assets_router, prefix="/api")
-app.include_router(signals_router, prefix="/api")
-app.include_router(gpt_router, prefix="/api")
+app.include_router(health_router,     prefix="/api")
+app.include_router(system_router,     prefix="/api")
+app.include_router(heatmap_router,    prefix="/api")
+app.include_router(assets_router,     prefix="/api")
+app.include_router(signals_router,    prefix="/api")
+app.include_router(gpt_router,        prefix="/api")
 app.include_router(workspace_router)
-app.include_router(history_router, prefix="/api")
+app.include_router(history_router,    prefix="/api")
 app.include_router(update_router)
 app.include_router(seasonality_router, prefix="/api")
+app.include_router(scheduler_router)
+
+
+@app.on_event("startup")
+async def on_startup():
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    stop_scheduler()

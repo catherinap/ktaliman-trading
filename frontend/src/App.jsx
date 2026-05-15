@@ -2045,6 +2045,7 @@ function HistoricalDataView({ assets }) {
                     Date
                   </th>
                   <th colSpan={2} className="px-3 py-2 text-center font-medium text-zinc-500 border-l border-zinc-800">Open Interest</th>
+                  <th colSpan={1} className="px-3 py-2 text-center font-medium text-violet-700 border-l border-zinc-800">Momentum</th>
                   <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">Funds / Non-Commercials</th>
                   <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">{amLabel}</th>
                   <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">Dealer / Banks</th>
@@ -2052,6 +2053,7 @@ function HistoricalDataView({ assets }) {
                 <tr className="border-b border-zinc-900 text-[10px] uppercase tracking-[0.18em] text-zinc-600">
                   <th className="px-3 py-2 text-right border-l border-zinc-800">OI</th>
                   <th className="px-3 py-2 text-right">Chg</th>
+                  <th className="px-3 py-2 text-left border-l border-zinc-800 text-violet-900">Direction</th>
                   {["Long","Short","% L","% S","Net","Net Chg","Index"].map((h) => (
                     <th key={`f-${h}`} className={cls("px-3 py-2 text-right font-medium text-emerald-900", h==="Long" && "border-l border-zinc-800")}>{h}</th>
                   ))}
@@ -2077,8 +2079,25 @@ function HistoricalDataView({ assets }) {
                       <td className={cls("sticky left-0 z-10 bg-inherit px-3 py-2 tabular-nums whitespace-nowrap font-mono text-xs",
                         idx === 0 ? "text-amber-300 font-semibold" : "text-zinc-400"
                       )}>{fmtDate(row.date)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.open_interest)}</td>
-                      <td className={cls("px-3 py-2 text-right tabular-nums", oiBg(sig.oiSpike))}>{fmtOiChange(row.oi_change, sig.oiSpike)}</td>
+                      {/* OI */}
+                      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">
+                        {fmtN(row.open_interest)}
+                      </td>
+                      <td className={cls("px-3 py-2 text-right tabular-nums", oiBg(sig.oiSpike))}>
+                        {fmtOiChange(row.oi_change, sig.oiSpike)}
+                      </td>
+
+                      {/* Momentum */}
+                      <td className="px-3 py-2 border-l border-zinc-900">
+                        <MomentumBadge asset={{
+                          funds_index_direction:    row.funds_index_direction,
+                          funds_index_momentum:     row.funds_index_momentum,
+                          funds_index_wow_change:   row.funds_index_wow_change,
+                          funds_index_3w_avg:       row.funds_index_3w_avg,
+                          funds_index_8w_avg:       row.funds_index_8w_avg,
+                          funds_index_acceleration: row.funds_index_acceleration,
+                        }} size="sm" />
+                      </td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 border-l border-zinc-900">{fmtN(row.funds_long)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtN(row.funds_short)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-zinc-500">{fmtPct(row.funds_pct_long)}</td>
@@ -3720,11 +3739,134 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
 }
 
 
-function UpdateDataView({ updateState, updateBusy, onRun }) {
-  const { t } = useTranslation();
-  const isRunning = updateState?.status === 'running'
-  const statusTone = updateState?.status === 'success' ? 'text-emerald-400' : updateState?.status === 'error' ? 'text-rose-400' : updateState?.status === 'running' ? 'text-amber-400' : 'text-zinc-400'
-  return (<div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]"><div className="space-y-4"><Panel title={t("panels.updateControl")}><div className="space-y-4"><div className="text-sm leading-7 text-zinc-300">Run the Python worker manually from the UI. This will download current CFTC data, compute metrics and upsert records into <span className="text-zinc-100">cot_analytics</span>.</div><div className="flex items-center gap-3"><button onClick={onRun} disabled={updateBusy || isRunning} className={cls('border px-4 py-3 text-sm uppercase tracking-[0.22em]', updateBusy || isRunning ? 'cursor-not-allowed border-zinc-800 text-zinc-600' : 'border-amber-400 text-amber-300 hover:bg-amber-400/10')}>{isRunning ? 'Worker Running...' : 'Run Worker'}</button><div className={cls('text-sm uppercase tracking-[0.2em]', statusTone)}>{updateState?.status || 'idle'}</div></div></div></Panel><Panel title="Worker Log"><pre className="max-h-[420px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">{updateState?.log || 'No log output yet.'}</pre></Panel></div><div className="space-y-4"><Panel title="Run Status"><div className="space-y-3 text-sm text-zinc-300"><div className="flex justify-between gap-4"><span className="text-zinc-500">Status</span><span className={statusTone}>{updateState?.status || 'idle'}</span></div><div className="flex justify-between gap-4"><span className="text-zinc-500">Started</span><span>{updateState?.started_at || '—'}</span></div><div className="flex justify-between gap-4"><span className="text-zinc-500">Finished</span><span>{updateState?.finished_at || '—'}</span></div><div className="flex justify-between gap-4"><span className="text-zinc-500">Return Code</span><span>{updateState?.return_code ?? '—'}</span></div></div></Panel><Panel title="Errors"><div className="text-sm leading-7 text-zinc-300">{updateState?.error || 'No errors reported.'}</div></Panel></div></div>)
+function UpdateDataView({ updateState, updateBusy, onRun, schedulerState }) {
+  const { t } = useTranslation()
+  const isRunning   = updateState?.status === 'running'
+  const statusTone  = updateState?.status === 'success'  ? 'text-emerald-400'
+                    : updateState?.status === 'error'    ? 'text-rose-400'
+                    : updateState?.status === 'running'  ? 'text-amber-400'
+                    : 'text-zinc-400'
+ 
+  const fmtUtc = (iso) => {
+    if (!iso) return '—'
+    try {
+      return new Date(iso).toLocaleString('uk-UA', {
+        timeZone: 'Europe/Kyiv',
+        day:    '2-digit', month: '2-digit', year: 'numeric',
+        hour:   '2-digit', minute: '2-digit',
+      }) + ' (Kyiv)'
+    } catch { return iso }
+  }
+ 
+  return (
+    <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+      <div className="space-y-4">
+ 
+        {/* Manual run */}
+        <Panel title={t("panels.updateControl")}>
+          <div className="space-y-4">
+            <div className="text-sm leading-7 text-zinc-300">
+              Run the Python worker manually from the UI. This will download current CFTC data,
+              compute metrics and upsert records into <span className="text-zinc-100">cot_analytics</span>.
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onRun}
+                disabled={updateBusy || isRunning}
+                className={cls(
+                  'border px-4 py-3 text-sm uppercase tracking-[0.22em]',
+                  updateBusy || isRunning
+                    ? 'cursor-not-allowed border-zinc-800 text-zinc-600'
+                    : 'border-amber-400 text-amber-300 hover:bg-amber-400/10'
+                )}
+              >
+                {isRunning ? 'Worker Running...' : 'Run Worker'}
+              </button>
+              <div className={cls('text-sm uppercase tracking-[0.2em]', statusTone)}>
+                {updateState?.status || 'idle'}
+              </div>
+            </div>
+          </div>
+        </Panel>
+ 
+        {/* Worker Log */}
+        <Panel title="Worker Log">
+          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
+            {updateState?.log || 'No log output yet.'}
+          </pre>
+        </Panel>
+      </div>
+ 
+      <div className="space-y-4">
+ 
+        {/* Auto-Schedule status */}
+        <Panel title="Auto-Schedule">
+          <div className="space-y-3 text-sm text-zinc-300">
+            {schedulerState ? (
+              <>
+                <div className="flex justify-between gap-4">
+                  <span className="text-zinc-500">Status</span>
+                  <span className={schedulerState.scheduler_running ? 'text-emerald-400' : 'text-rose-400'}>
+                    {schedulerState.scheduler_running ? 'Active' : 'Stopped'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-zinc-500">Schedule</span>
+                  <span className="text-zinc-300">{schedulerState.schedule}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-zinc-500">Next run</span>
+                  <span className="text-amber-300">{fmtUtc(schedulerState.next_run_utc)}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-zinc-500">Last auto-run</span>
+                  <span>{fmtUtc(schedulerState.last_auto_run_utc)}</span>
+                </div>
+                <div className="mt-2 border border-zinc-900 bg-zinc-950 p-3 text-xs text-zinc-500">
+                  CFTC publishes every Friday ~15:30 EST. Auto-run fires at 16:00 EST (21:00 UTC)
+                  with 30 min buffer to ensure data is available.
+                </div>
+              </>
+            ) : (
+              <div className="text-zinc-600">
+                Scheduler status unavailable. Restart backend to activate.
+              </div>
+            )}
+          </div>
+        </Panel>
+ 
+        {/* Run Status */}
+        <Panel title="Run Status">
+          <div className="space-y-3 text-sm text-zinc-300">
+            <div className="flex justify-between gap-4">
+              <span className="text-zinc-500">Status</span>
+              <span className={statusTone}>{updateState?.status || 'idle'}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-zinc-500">Started</span>
+              <span>{fmtUtc(updateState?.started_at)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-zinc-500">Finished</span>
+              <span>{fmtUtc(updateState?.finished_at)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-zinc-500">Return code</span>
+              <span>{updateState?.return_code ?? '—'}</span>
+            </div>
+          </div>
+        </Panel>
+ 
+        {/* Errors */}
+        <Panel title="Errors">
+          <div className="text-sm leading-7 text-zinc-300">
+            {updateState?.error || 'No errors reported.'}
+          </div>
+        </Panel>
+ 
+      </div>
+    </div>
+  )
 }
 
 function Placeholder({ title }) { return (<Panel title={title}><div className="text-sm text-zinc-400">This tab is scaffolded. Live data is already connected for core COT views.</div></Panel>) }
@@ -3769,11 +3911,12 @@ export default function App() {
   const [status, setStatus] = useState(null)
   const [heatmap, setHeatmap] = useState({})
   const [assets, setAssets] = useState([])
-    const [signals, setSignals] = useState([])
+  const [signals, setSignals] = useState([])
   const [seasonalityData, setSeasonalityData] = useState([])
   const [workspaceData, setWorkspaceData] = useState({ macro_regime: null, releases: [], calendar: [], news: [] })
   const [updateState, setUpdateState] = useState({ status: 'idle', started_at: null, finished_at: null, return_code: null, log: '', error: '' })
   const [updateBusy, setUpdateBusy] = useState(false)
+  const [schedulerState, setSchedulerState] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [economicCalendar, setEconomicCalendar] = useState([]);
@@ -3840,6 +3983,17 @@ export default function App() {
       console.error(err)
     }
   }
+ 
+  async function fetchSchedulerStatus() {
+    try {
+      const res = await fetch('/api/scheduler/status')
+      if (!res.ok) return
+      const json = await res.json()
+      setSchedulerState(json)
+    } catch (err) {
+      // scheduler might not be available, fail silently
+    }
+  }
 
   async function runUpdate() {
     try {
@@ -3899,7 +4053,15 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem("ktaliman-app-settings", JSON.stringify(appSettings));}, [appSettings]);
   useEffect(() => { loadAll() }, [])
-  useEffect(() => { fetchUpdateStatus(); const timer = setInterval(fetchUpdateStatus, 3000); return () => clearInterval(timer) }, [])
+  useEffect(() => {
+    fetchUpdateStatus()
+    fetchSchedulerStatus()
+    const timer = setInterval(() => {
+      fetchUpdateStatus()
+      fetchSchedulerStatus()
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
   useEffect(() => {
   let ignore = false;
 
@@ -3948,7 +4110,7 @@ export default function App() {
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
 	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />, 
-	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} />, 
+	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} />, 
 	settings: (
   <SettingsView
     uiLanguage={uiLanguage}

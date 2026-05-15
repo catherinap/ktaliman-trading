@@ -69,7 +69,13 @@ def get_history(symbol: str):
                 CASE WHEN source_type='TFF' THEN dealer_intermediary_long  ELSE swap_dealers_long  END AS dealer_long,
                 CASE WHEN source_type='TFF' THEN dealer_intermediary_short ELSE swap_dealers_short END AS dealer_short,
                 CASE WHEN source_type='TFF' THEN dealer_intermediary_net   ELSE swap_dealers_net   END AS dealer_net,
-                CASE WHEN source_type='TFF' THEN dealer_intermediary_percentile_3y ELSE swap_dealers_percentile_3y END AS dealer_index
+                CASE WHEN source_type='TFF' THEN dealer_intermediary_percentile_3y ELSE swap_dealers_percentile_3y END AS dealer_index,
+                funds_index_3w_avg,
+                funds_index_8w_avg,
+                funds_index_direction,
+                funds_index_momentum,
+                funds_index_acceleration,
+                funds_index_wow_change
             FROM cot_analytics
             WHERE symbol = :symbol
             ORDER BY report_date DESC
@@ -106,7 +112,13 @@ def get_history(symbol: str):
             "dealer_pct_short": pct_short(row["dealer_long"], row["dealer_short"]),
             "dealer_net":       row["dealer_net"],
             "dealer_net_change":net_change(row["dealer_net"], prev["dealer_net"] if prev else None),
-            "dealer_index":     row["dealer_index"],
+            "dealer_index":          row["dealer_index"],
+            "funds_index_3w_avg":    row["funds_index_3w_avg"],
+            "funds_index_8w_avg":    row["funds_index_8w_avg"],
+            "funds_index_direction": row["funds_index_direction"],
+            "funds_index_momentum":  row["funds_index_momentum"],
+            "funds_index_acceleration": row["funds_index_acceleration"],
+            "funds_index_wow_change": row["funds_index_wow_change"],
         })
 
     return {
