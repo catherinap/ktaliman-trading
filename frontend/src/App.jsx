@@ -3739,7 +3739,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
 }
 
 
-function UpdateDataView({ updateState, updateBusy, onRun, schedulerState }) {
+function UpdateDataView({ updateState, updateBusy, onRun, schedulerState, timezone = "Europe/Copenhagen" }) {
   const { t } = useTranslation()
   const isRunning   = updateState?.status === 'running'
   const statusTone  = updateState?.status === 'success'  ? 'text-emerald-400'
@@ -3747,14 +3747,15 @@ function UpdateDataView({ updateState, updateBusy, onRun, schedulerState }) {
                     : updateState?.status === 'running'  ? 'text-amber-400'
                     : 'text-zinc-400'
  
-  const fmtUtc = (iso) => {
+const fmtUtc = (iso) => {
     if (!iso) return '—'
     try {
-      return new Date(iso).toLocaleString('uk-UA', {
-        timeZone: 'Europe/Kyiv',
-        day:    '2-digit', month: '2-digit', year: 'numeric',
-        hour:   '2-digit', minute: '2-digit',
-      }) + ' (Kyiv)'
+      const label = TIMEZONES.find((tz) => tz.value === timezone)?.label?.match(/\(([^)]+)\)/)?.[1] || timezone
+      return new Date(iso).toLocaleString('en-GB', {
+        timeZone: timezone,
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      }) + ` (${label})`
     } catch { return iso }
   }
  
