@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   BarChart2,
+  Bell,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -1226,7 +1227,173 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
   )
 }
 
-function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed }) {
+function AlertBell({ onOpen }) {
+  const [unreadCount, setUnreadCount] = useState(0)
+ 
+  React.useEffect(() => {
+    const fetchCount = () => {
+      fetch("/api/alerts/unread?limit=1")
+        .then((r) => r.ok ? r.json() : { unread_count: 0 })
+        .then((json) => setUnreadCount(json.unread_count || 0))
+        .catch(() => {})
+    }
+    fetchCount()
+    const timer = setInterval(fetchCount, 60_000) // check every minute
+    return () => clearInterval(timer)
+  }, [])
+ 
+  return (
+    <button
+      onClick={onOpen}
+      className="relative grid h-8 w-8 place-items-center border border-zinc-800 text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
+      title="Alerts"
+    >
+      <Bell size={14} />
+      {unreadCount > 0 && (
+        <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </button>
+  )
+}
+
+function AlertDrawer({ open, onClose }) {
+  const [alerts, setAlerts]   = useState([])
+  const [loading, setLoading] = useState(false)
+ 
+  const load = React.useCallback(() => {
+    if (!open) return
+    setLoading(true)
+    fetch("/api/alerts/unread?limit=50")
+      .then((r) => r.ok ? r.json() : { items: [] })
+      .then((json) => setAlerts(json.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [open])
+ 
+  React.useEffect(() => { load() }, [load])
+ 
+  const markAllRead = () => {
+    fetch("/api/alerts/mark-read", { method: "POST" })
+      .then(() => setAlerts((prev) => prev.map((a) => ({ ...a, is_read: true }))))
+  }
+ 
+  const severityTone = (s) =>
+    s === "high"   ? "text-rose-400 border-rose-900/50 bg-rose-950/20" :
+    s === "medium" ? "text-amber-400 border-amber-900/50 bg-amber-950/20" :
+                     "text-zinc-400 border-zinc-800 bg-zinc-950"
+ 
+  const severityDot = (s) =>
+    s === "high"   ? "bg-rose-400" :
+    s === "medium" ? "bg-amber-400" : "bg-zinc-600"
+ 
+  if (!open) return null
+ 
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/40"
+        onClick={onClose}
+      />
+ 
+      {/* Drawer */}
+      <div className="fixed right-0 top-0 z-50 flex h-screen w-[400px] flex-col border-l border-zinc-800 bg-[#070707] shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-400">
+            COT Alerts
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={markAllRead}
+              className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-zinc-400 transition"
+            >
+              Mark all read
+            </button>
+            <button
+              onClick={onClose}
+              className="grid h-7 w-7 place-items-center border border-zinc-800 text-zinc-500 hover:text-zinc-300 transition"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+ 
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto">
+          {loading && (
+            <div className="p-4 space-y-2">
+              {[100, 85, 70].map((w, i) => (
+                <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          )}
+ 
+          {!loading && alerts.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+              <Bell size={28} className="text-zinc-700" />
+              <div className="text-sm text-zinc-600">No alerts yet.</div>
+              <div className="text-xs text-zinc-700">
+                Alerts fire automatically after each weekly COT update.
+              </div>
+            </div>
+          )}
+ 
+          {!loading && alerts.length > 0 && (
+            <div className="divide-y divide-zinc-900">
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={cls(
+                    "border-l-2 px-4 py-3 transition",
+                    !alert.is_read ? severityTone(alert.severity) : "border-zinc-900 text-zinc-600"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2">
+                      <div className={cls("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", !alert.is_read ? severityDot(alert.severity) : "bg-zinc-700")} />
+                      <div className={cls("text-sm font-medium leading-5", !alert.is_read ? "text-zinc-100" : "text-zinc-500")}>
+                        {alert.title}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 pl-3.5 text-xs leading-5 text-zinc-500">
+                    {alert.body}
+                  </div>
+                  <div className="mt-1.5 pl-3.5 flex items-center gap-3 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                    <span>{alert.symbol}</span>
+                    <span>·</span>
+                    <span>{alert.report_date}</span>
+                    {alert.severity === "high" && !alert.is_read && (
+                      <span className="text-rose-600">high priority</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+ 
+        {/* Footer — run check */}
+        <div className="border-t border-zinc-900 px-4 py-3">
+          <button
+            onClick={() => {
+              fetch("/api/alerts/run", { method: "POST" })
+                .then(() => load())
+            }}
+            className="w-full border border-zinc-800 py-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:border-zinc-700 hover:text-zinc-300 transition"
+          >
+            Run Alert Check Now
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlertOpen }) {
   const { t } = useTranslation()
  
   return (
@@ -1264,10 +1431,14 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed }) {
       </div>
  
       {/* Right: stats */}
-      <div className="flex gap-6">
-        <span>{t('topbar.assets')} {status?.asset_count ?? '...'}</span>
-        <span>{t('topbar.rows')} {status?.total_rows ?? '...'}</span>
-        <span>{status?.latest_report_date ?? t('topbar.noData')}</span>
+      {/* Right: stats + alert bell */}
+      <div className="flex items-center gap-4">
+        <div className="flex gap-6 text-xs uppercase tracking-[0.24em] text-zinc-500">
+          <span>{t('topbar.assets')} {status?.asset_count ?? '...'}</span>
+          <span>{t('topbar.rows')} {status?.total_rows ?? '...'}</span>
+          <span>{status?.latest_report_date ?? t('topbar.noData')}</span>
+        </div>
+        <AlertBell onOpen={onAlertOpen} />
       </div>
     </div>
   )
@@ -4317,7 +4488,66 @@ const TIMEZONES = [
   { value: "Asia/Singapore",    label: "Singapore (SGT)" },
   { value: "UTC",               label: "UTC" },
 ]
+
+function AlertTestButton() {
+  const [email, setEmail]   = useState("")
+  const [status, setStatus] = useState(null) // null | "sending" | "ok" | "error"
+  const [msg, setMsg]       = useState("")
  
+  const sendTest = () => {
+    if (!email) return
+    setStatus("sending")
+    setMsg("")
+    fetch("/api/alerts/test-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_enabled: true, email_to: email }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) {
+          setStatus("ok")
+          setMsg(json.message || "Test email sent!")
+        } else {
+          setStatus("error")
+          setMsg(json.error || "Failed")
+        }
+      })
+      .catch((e) => { setStatus("error"); setMsg(String(e)) })
+  }
+ 
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="recipient@email.com"
+          className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[220px] placeholder:text-zinc-700"
+        />
+        <button
+          onClick={sendTest}
+          disabled={!email || status === "sending"}
+          className={cls(
+            "border px-3 py-2 text-[11px] uppercase tracking-[0.2em] transition",
+            email && status !== "sending"
+              ? "border-sky-500/50 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20"
+              : "cursor-not-allowed border-zinc-800 text-zinc-600"
+          )}
+        >
+          {status === "sending" ? "Sending..." : "Send Test"}
+        </button>
+      </div>
+      {msg && (
+        <div className={cls("text-xs", status === "ok" ? "text-emerald-400" : "text-rose-400")}>
+          {msg}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SettingsView({
   uiLanguage,
   aiLanguage,
@@ -4360,7 +4590,28 @@ function SettingsView({
             Used for displaying timestamps in Update tab and scheduler times.
           </div>
         </div>
- 
+        
+        {/* Email Alerts */}
+        <div className="space-y-3">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            Email Alerts
+          </div>
+          <div className="border border-zinc-900 bg-zinc-950 p-4 space-y-3 text-sm text-zinc-400">
+            <div>
+              Add to <span className="text-zinc-200">backend/.env.local</span>:
+            </div>
+            <pre className="text-xs text-zinc-500 leading-6 bg-[#080808] border border-zinc-900 p-3 overflow-x-auto">{`ALERT_EMAIL_ENABLED=true
+ALERT_EMAIL_FROM=your@gmail.com
+ALERT_EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
+ALERT_EMAIL_TO=recipient@email.com`}</pre>
+            <div className="text-xs text-zinc-600">
+              Use a Gmail App Password (not your main password).
+              Generate at: myaccount.google.com → Security → App Passwords
+            </div>
+          </div>
+          <AlertTestButton />
+        </div>
+
         <div>{t("settings.security.line1")}</div>
         <div>{t("settings.security.line2")}</div>
  
@@ -4618,6 +4869,7 @@ export default function App() {
   const [updateState, setUpdateState] = useState({ status: 'idle', started_at: null, finished_at: null, return_code: null, log: '', error: '' })
   const [updateBusy, setUpdateBusy] = useState(false)
   const [schedulerState, setSchedulerState] = useState(null)
+  const [alertDrawerOpen, setAlertDrawerOpen] = useState(false)
   const [watchlist, setWatchlist] = useState(() => {
   try {
     const saved = localStorage.getItem("ktaliman-watchlist")
@@ -4861,6 +5113,11 @@ useEffect(() => {
           status={status}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
+          onAlertOpen={() => setAlertDrawerOpen(true)}
+        />
+        <AlertDrawer
+          open={alertDrawerOpen}
+          onClose={() => setAlertDrawerOpen(false)}
         />
         <div className="flex-1 p-4 md:p-6">
           {loading

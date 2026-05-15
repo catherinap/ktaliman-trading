@@ -21,6 +21,7 @@ from app.routes.seasonality import router as seasonality_router
 from app.routes.scheduler import router as scheduler_router
 from app.routes.signal_history import router as signal_history_router
 from app.routes.macro_context import router as macro_context_router
+from app.routes.alerts import router as alerts_router
 from app.routes.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="Ktaliman Trading API")
@@ -46,6 +47,7 @@ app.include_router(seasonality_router, prefix="/api")
 app.include_router(scheduler_router)
 app.include_router(signal_history_router, prefix="/api")
 app.include_router(macro_context_router, prefix="/api")
+app.include_router(alerts_router, prefix="/api")
 
 
 @app.on_event("startup")
