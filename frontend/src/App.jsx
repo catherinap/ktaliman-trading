@@ -1145,77 +1145,125 @@ function GaugeArc({ value = 50 }) {
 }
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }) {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation()
+ 
   return (
-    <aside className={cls('shrink-0 border-r border-zinc-900 bg-[#070707] transition-all duration-300', collapsed ? 'w-20' : 'w-64')}>
-      <div className={cls('flex items-center border-b border-zinc-900', collapsed ? 'justify-center px-2 py-5' : 'justify-between px-4 py-5')}>
-        <div className={cls('flex items-center gap-3 overflow-hidden', collapsed && 'justify-center')}>
-          <div className="grid h-10 w-10 shrink-0 place-items-center border border-zinc-800 text-xs font-bold tracking-[0.35em] text-white">KP</div>
-          {!collapsed ? (
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">kpanchenko</div>
-              <div className="text-sm uppercase tracking-[0.25em] text-zinc-200">trading</div>
-            </div>
-          ) : null}
-        </div>
-        {!collapsed ? (
-          <button
-            onClick={() => setCollapsed(true)}
-            className="grid h-9 w-9 place-items-center border border-zinc-800 text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
-            aria-label="Collapse sidebar"
-          >
-            <ChevronLeft size={16} />
-          </button>
-        ) : null}
-      </div>
-      <div className="p-3">
-        {collapsed ? (
-          <div className="mb-3 flex justify-center">
+    <aside className={cls(
+      'fixed left-0 top-0 z-30 flex h-screen flex-col border-r border-zinc-900 bg-[#070707]',
+      'transition-[width] duration-300 ease-in-out overflow-hidden',
+      collapsed ? 'w-0' : 'w-60'
+    )}>
+ 
+      {/* Nav items — scrollable middle section */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 pt-4 space-y-0.5">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon
+          const isActive = active === item.key
+          return (
             <button
-              onClick={() => setCollapsed(false)}
-              className="grid h-10 w-10 place-items-center border border-zinc-800 text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
-              aria-label="Expand sidebar"
+              key={item.key}
+              onClick={() => setActive(item.key)}
+              title={collapsed ? t(item.labelKey) : undefined}
+              className={cls(
+                'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
+                collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
+                isActive
+                  ? 'border-amber-400 bg-zinc-900/70 text-zinc-100'
+                  : 'border-transparent text-zinc-500 hover:bg-zinc-900/40 hover:text-zinc-300'
+              )}
             >
-              <ChevronRight size={16} />
+              <Icon size={16} className="shrink-0" />
+              <span className={cls(
+                'whitespace-nowrap transition-all duration-200',
+                collapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'
+              )}>
+                {t(item.labelKey)}
+              </span>
             </button>
+          )
+        })}
+      </nav>
+ 
+      {/* Logo — fixed at bottom */}
+      <div className={cls(
+        'shrink-0 border-t border-zinc-900 transition-all duration-300',
+        collapsed ? 'px-0 py-4 flex justify-center' : 'px-4 py-4'
+      )}>
+        {collapsed ? (
+          /* Collapsed: monogram only */
+          <div className="flex h-8 w-8 items-center justify-center border border-zinc-800">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-300">KP</span>
           </div>
-        ) : null}
-        <nav className="space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon
-            const isActive = active === item.key
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActive(item.key)}
-                title={collapsed ? t(item.labelKey) : undefined}
-                className={cls(
-                  'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition',
-                  collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
-                  isActive ? 'border-amber-400 bg-zinc-900/70 text-zinc-100' : 'border-transparent text-zinc-500 hover:bg-zinc-900/40 hover:text-zinc-300'
-                )}
-              >
-                <Icon size={16} className="shrink-0" />
-                {!collapsed ? <span className="whitespace-nowrap">{t(item.labelKey)}</span> : null}
-              </button>
-            )
-          })}
-        </nav>
+        ) : (
+          /* Expanded: full logo */
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-700 bg-zinc-900">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-200">KP</span>
+            </div>
+            <div className="overflow-hidden">
+              <div className={cls(
+                'text-[9px] uppercase tracking-[0.45em] text-zinc-600 transition-all duration-200',
+                collapsed ? 'opacity-0' : 'opacity-100'
+              )}>
+                kpanchenko
+              </div>
+              <div className={cls(
+                'text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-300 transition-all duration-200',
+                collapsed ? 'opacity-0' : 'opacity-100'
+              )}>
+                trading
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   )
 }
 
-function TopBar({ active, status }) {
-  const { t } = useTranslation();
+function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed }) {
+  const { t } = useTranslation()
+ 
   return (
-    <div className="flex items-center justify-between border-b border-zinc-900 bg-[#090909] px-6 py-3 text-xs uppercase tracking-[0.24em] text-zinc-500">
-      <div>{t(NAV_ITEMS.find((n) => n.key === active)?.labelKey || "nav.workspace")}</div>
-<div className="flex gap-6">
-  <span>{t("topbar.assets")} {status?.asset_count ?? "..."}</span>
-  <span>{t("topbar.rows")} {status?.total_rows ?? "..."}</span>
-  <span>{status?.latest_report_date ?? t("topbar.noData")}</span>
-</div>
+    <div className="flex items-center justify-between border-b border-zinc-900 bg-[#090909] px-4 py-3 text-xs uppercase tracking-[0.24em] text-zinc-500">
+ 
+      {/* Left: burger + page title */}
+      <div className="flex items-center gap-3">
+        {/* Burger button */}
+        <button
+          onClick={() => setSidebarCollapsed((v) => !v)}
+          className="grid h-8 w-8 shrink-0 place-items-center border border-zinc-800 text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
+          aria-label="Toggle sidebar"
+        >
+          {/* Animated burger → X lines */}
+          <div className="flex flex-col items-center justify-center gap-[4px]">
+            <span className={cls(
+              'block h-px w-4 bg-current transition-all duration-300 origin-center',
+              !sidebarCollapsed && 'translate-y-[5px] rotate-45'
+            )} />
+            <span className={cls(
+              'block h-px w-4 bg-current transition-all duration-200',
+              !sidebarCollapsed && 'opacity-0 scale-x-0'
+            )} />
+            <span className={cls(
+              'block h-px w-4 bg-current transition-all duration-300 origin-center',
+              !sidebarCollapsed && '-translate-y-[5px] -rotate-45'
+            )} />
+          </div>
+        </button>
+ 
+        {/* Page title */}
+        <span className="text-zinc-400">
+          {t(NAV_ITEMS.find((n) => n.key === active)?.labelKey || 'nav.workspace')}
+        </span>
+      </div>
+ 
+      {/* Right: stats */}
+      <div className="flex gap-6">
+        <span>{t('topbar.assets')} {status?.asset_count ?? '...'}</span>
+        <span>{t('topbar.rows')} {status?.total_rows ?? '...'}</span>
+        <span>{status?.latest_report_date ?? t('topbar.noData')}</span>
+      </div>
     </div>
   )
 }
@@ -4165,13 +4213,32 @@ export default function App() {
     />
 ), }[active]
 
-  return (
+ return (
     <div className="flex min-h-screen bg-[#050505] text-zinc-200">
-      <Sidebar active={active} setActive={setActive} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
-      <main className="flex min-h-screen flex-1 flex-col">
-        <TopBar active={active} status={status} />
+      <Sidebar
+        active={active}
+        setActive={setActive}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+      />
+ 
+      {/* Main content — offset by sidebar width with smooth transition */}
+      <main className={cls(
+        'flex min-h-screen flex-1 flex-col transition-[margin-left] duration-300 ease-in-out',
+        sidebarCollapsed ? 'ml-0' : 'ml-60'
+      )}>
+        <TopBar
+          active={active}
+          status={status}
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+        />
         <div className="flex-1 p-4 md:p-6">
-          {loading ? <Panel title="Loading"><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel> : error ? <Panel title={t("panels.errors")}><div className="text-sm text-rose-400">{error}</div></Panel> : view}
+          {loading
+            ? <Panel title="Loading"><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
+            : error
+            ? <Panel title={t("panels.errors")}><div className="text-sm text-rose-400">{error}</div></Panel>
+            : view}
         </div>
       </main>
     </div>
