@@ -1072,7 +1072,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
   const currentMonth = new Date().getMonth()
  
   return (
-    <div id="asset-pdf-report" style={{ display: "none" }}>
+    <div id="asset-pdf-report" className="asset-pdf-report-instance" style={{ display: "none" }}>
       <style>{`
         @media print {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -3837,14 +3837,18 @@ function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData =
   }
 
   const handleExportPDF = () => {
-    // Show the print element
-    const el = document.getElementById("asset-pdf-report")
-    if (el) el.style.display = "block"
-    setTimeout(() => {
-      window.print()
-      setTimeout(() => { if (el) el.style.display = "none" }, 500)
-    }, 100)
-  }
+  // Remove any duplicate report elements first
+  const existing = document.querySelectorAll("#asset-pdf-report")
+  existing.forEach((el, i) => {
+    if (i > 0) el.remove() // keep only first
+  })
+  const el = document.getElementById("asset-pdf-report")
+  if (el) el.style.display = "block"
+  setTimeout(() => {
+    window.print()
+    setTimeout(() => { if (el) el.style.display = "none" }, 500)
+  }, 100)
+}
  
   return (
     <div className="space-y-4">
