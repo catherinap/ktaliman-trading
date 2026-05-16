@@ -1973,345 +1973,316 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
   }
 
   return (
-    <div className="space-y-4">
+    <><div className="flex justify-end">
+      <GuideButton sectionKey="workspace" openGuide={openGuide} />
+    </div><div className="space-y-4">
 
-      {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
+        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 1fr" }}>
 
-        {/* LEFT col: Macro Context + Macro Regime stacked */}
-        <div className="space-y-4">
-          <MacroContextPanel aiLanguage={aiLanguage} />
+          {/* LEFT col: Macro Context + Macro Regime stacked */}
+          <div className="space-y-4">
+            <MacroContextPanel aiLanguage={aiLanguage} />
 
+            <section className="border border-zinc-900 bg-[#0a0a0a]">
+              <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+                  {t("panels.macroRegime")}
+                </span>
+                <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
+                  {macroLabel(macroComposite, t)}
+                </span>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { key: "growth", label: "Growth", color: "text-emerald-400" },
+                    { key: "inflation", label: "Inflation", color: "text-blue-400" },
+                    { key: "policy", label: "Policy", color: "text-sky-400" },
+                  ].map(({ key, label, color }) => {
+                    const score = sleeveScores[key];
+                    return (
+                      <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+                        <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
+                        <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
+                          {score != null ? score.toFixed(1) : "n/a"}
+                        </div>
+                        <div className="mt-1 text-[10px] text-zinc-600">{macroLabel(score, t)}</div>
+                        <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <div className={cls("h-full rounded-full", macroTone(score).replace("text-", "bg-"))}
+                            style={{ width: `${Math.max(2, score ?? 0)}%`, transition: "width 0.6s ease" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="uppercase tracking-[0.2em] text-zinc-600">Composite</span>
+                    <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
+                      {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 text-xs leading-5 text-zinc-500">
+                    {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT col: Alert Feed + AI Briefing (fills remaining height) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {/* AI Briefing fills remaining space + expands with content */}
+            <AIAnalysisPanel
+              type="macro"
+              data={{
+                growth_score: sleeveScores.growth,
+                inflation_score: sleeveScores.inflation,
+                policy_score: sleeveScores.policy,
+                composite: macroComposite,
+                growth_assets: findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+                inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+                policy_assets: findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+              }}
+              aiLanguage={aiLanguage}
+              title="AI — Weekly Briefing"
+              fillHeight={true} />
+            <section className="border border-zinc-900 bg-[#0a0a0a]" style={{ flexShrink: 0 }}>
+              <div className="border-b border-zinc-900 px-4 py-3">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Alert Feed</span>
+              </div>
+              <div className="divide-y divide-zinc-900">
+                {alertFeed.length === 0 ? (
+                  <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
+                ) : alertFeed.map((alert) => (
+                  <div key={alert.id} className="px-4 py-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
+                      <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
+                        alertImpactTone(alert.impact))}>
+                        {alert.impact}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        {/* ══ ROW 2: 2 equal cols ══════════════════════════════════════════════ */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
+
+          {/* LEFT: Top Active Signals — 3×2 circles */}
           <section className="border border-zinc-900 bg-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
               <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                {t("panels.macroRegime")}
+                Top Active Signals
               </span>
-              <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
-                {macroLabel(macroComposite, t)}
-              </span>
+              <button onClick={() => setActive("signals")}
+                className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:text-zinc-300 transition">
+                All →
+              </button>
             </div>
             <div className="p-4">
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { key: "growth",    label: "Growth",    color: "text-emerald-400" },
-                  { key: "inflation", label: "Inflation", color: "text-blue-400" },
-                  { key: "policy",    label: "Policy",    color: "text-sky-400" },
-                ].map(({ key, label, color }) => {
-                  const score = sleeveScores[key]
+              {topSignals.length === 0 ? (
+                <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                  {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* RIGHT: COT Heatmap compact */}
+          <section className="border border-zinc-900 bg-[#0a0a0a]">
+            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+              <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+                {t("panels.cotFlowHeatmap")}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-zinc-700">0</span>
+                <div style={{
+                  width: "60px", height: "3px", borderRadius: "2px",
+                  background: "linear-gradient(90deg, #f87171, rgba(148,163,184,0.3) 50%, #4ade80)"
+                }} />
+                <span className="text-[9px] text-zinc-700">100</span>
+              </div>
+            </div>
+            <div className="px-4 py-3 space-y-3">
+              {Object.entries(heatmap || {}).map(([sector, items]) => (
+                <div key={sector}>
+                  <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
+                    style={{ color: "rgba(148,163,184,0.35)" }}>{sector}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: "6px" }}>
+                    {items.map((a) => <HeatmapCard key={a.symbol} a={a} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+
+          {/* Economic Calendar */}
+          <section className="border border-zinc-900 bg-[#0a0a0a]">
+            <div className="border-b border-zinc-900 px-4 py-3 shrink-0">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+                  {t("panels.economicCalendar")}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {/* Impact filter */}
+                  {["all", "high", "medium"].map(v => (
+                    <button key={v} onClick={() => setCalImpact(v)}
+                      style={{
+                        fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em',
+                        textTransform: 'uppercase', padding: '2px 7px',
+                        border: `1px solid ${calImpact === v ? 'rgba(248,113,113,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                        background: calImpact === v ? 'rgba(248,113,113,0.1)' : 'transparent',
+                        color: calImpact === v ? '#f87171' : '#52525b',
+                        cursor: 'pointer', borderRadius: '4px',
+                      }}>
+                      {v === "all" ? "All" : v === "high" ? "High" : "Med"}
+                    </button>
+                  ))}
+                  <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.08)' }} />
+                  {/* Country filter */}
+                  {["all", "US", "EU", "GB", "JP"].map(v => (
+                    <button key={v} onClick={() => setCalCountry(v)}
+                      style={{
+                        fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
+                        textTransform: 'uppercase', padding: '2px 6px',
+                        border: `1px solid ${calCountry === v ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                        background: calCountry === v ? 'rgba(96,165,250,0.1)' : 'transparent',
+                        color: calCountry === v ? '#60a5fa' : '#52525b',
+                        cursor: 'pointer', borderRadius: '4px',
+                      }}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+              {calendar.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
+              ) : calendar.filter(e => calImpact === "all" || e.importance === calImpact)
+                .filter(e => calCountry === "all" || e.country === calCountry)
+                .slice(0, 20).map((event) => {
+                  const imp = (event.importance || "").toLowerCase();
+                  const isHigh = imp === "high";
+                  const isMed = imp === "medium";
+                  const hasData = event.actual != null || event.forecast != null || event.previous != null;
                   return (
-                    <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
-                      <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
-                      <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
-                        {score != null ? score.toFixed(1) : "n/a"}
+                    <div key={event.id} className="px-3 py-2.5"
+                      style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
+                        : isMed ? { borderLeft: "2px solid rgba(251,191,36,0.4)", background: "rgba(251,191,36,0.02)" }
+                          : { borderLeft: "2px solid transparent" }}>
+
+                      {/* Row 1: time + currency + title + importance */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {(() => {
+                            const { time, date, day } = formatEventDateTime(event.datetime, timezone);
+                            return (
+                              <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em' }}>
+                                  {day} {date}
+                                </span>
+                                <span className="text-[11px] tabular-nums text-zinc-400 font-mono">
+                                  {time}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                          <span style={{
+                            fontSize: '10px', fontWeight: 700, color: '#60a5fa',
+                            letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0
+                          }}>
+                            {event.currency || event.country || ""}
+                          </span>
+                          <span className="text-sm text-zinc-100 leading-5" style={{ fontWeight: 500 }}>
+                            {event.title || "TBD"}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em',
+                          textTransform: 'uppercase', flexShrink: 0, paddingTop: '2px',
+                          color: isHigh ? '#f87171' : isMed ? '#fbbf24' : '#52525b'
+                        }}>
+                          {event.importance || ""}
+                        </span>
                       </div>
-                      <div className="mt-1 text-[10px] text-zinc-600">{macroLabel(score, t)}</div>
-                      <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        <div className={cls("h-full rounded-full", macroTone(score).replace("text-", "bg-"))}
-                          style={{ width: `${Math.max(2, score ?? 0)}%`, transition: "width 0.6s ease" }} />
-                      </div>
+
+                      {/* Row 2: actual / forecast / previous */}
+                      {hasData && (
+                        <div className="flex items-center gap-3 mt-1.5 pl-0">
+                          {event.actual != null && (
+                            <div className="flex items-center gap-1">
+                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Act</span>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
+                            </div>
+                          )}
+                          {event.forecast != null && (
+                            <div className="flex items-center gap-1">
+                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Fc</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.forecast}</span>
+                            </div>
+                          )}
+                          {event.previous != null && (
+                            <div className="flex items-center gap-1">
+                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Prv</span>
+                              <span style={{ fontSize: '12px', fontWeight: 400, color: '#71717a', fontVariantNumeric: 'tabular-nums' }}>{event.previous}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )
+                  );
                 })}
-              </div>
-              <div className="mt-3 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="uppercase tracking-[0.2em] text-zinc-600">Composite</span>
-                  <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
-                    {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
-                  </span>
-                </div>
-                <div className="mt-1.5 text-xs leading-5 text-zinc-500">
-                  {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
-                </div>
-              </div>
             </div>
           </section>
-        </div>
 
-        {/* RIGHT col: Alert Feed + AI Briefing (fills remaining height) */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {/* AI Briefing fills remaining space + expands with content */}
-          <AIAnalysisPanel
-            type="macro"
-            data={{
-              growth_score:     sleeveScores.growth,
-              inflation_score:  sleeveScores.inflation,
-              policy_score:     sleeveScores.policy,
-              composite:        macroComposite,
-              growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
-              inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
-              policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
-            }}
-            aiLanguage={aiLanguage}
-            title="AI — Weekly Briefing"
-            fillHeight={true}
-          />  
-          <section className="border border-zinc-900 bg-[#0a0a0a]" style={{ flexShrink: 0 }}>
+          {/* Market News */}
+          <section className="border border-zinc-900 bg-[#0a0a0a]">
             <div className="border-b border-zinc-900 px-4 py-3">
-              <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Alert Feed</span>
+              <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+                {t("panels.marketNews")}
+              </span>
             </div>
-            <div className="divide-y divide-zinc-900">
-              {alertFeed.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
-              ) : alertFeed.map((alert) => (
-                <div key={alert.id} className="px-4 py-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
-                    <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
-                      alertImpactTone(alert.impact))}>
-                      {alert.impact}
-                    </span>
-                  </div>
-                  <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
-                </div>
-              ))}
+            <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+              {news.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
+              ) : news.map((item) => {
+                const url = item.url && item.url !== "#" ? item.url : null;
+                const style = newsItemStyle(item);
+                return (
+                  <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
+                    className="block px-4 py-2.5 transition" style={{ textDecoration: "none", ...style }}
+                    onClick={(e) => { if (!url) e.preventDefault(); } }
+                    onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; } }
+                    onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent"; } }
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className={cls("text-[9px] uppercase tracking-[0.18em]", categoryTone(item.category))}>
+                        {item.category}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.05em' }}>{item.source}</span>
+                    </div>
+                    <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
+                  </a>
+                );
+              })}
             </div>
           </section>
         </div>
-      </div>
-
-      {/* ══ ROW 2: 2 equal cols ══════════════════════════════════════════════ */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
-
-        {/* LEFT: Top Active Signals — 3×2 circles */}
-        <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-              Top Active Signals
-            </span>
-            <button onClick={() => setActive("signals")}
-              className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:text-zinc-300 transition">
-              All →
-            </button>
-          </div>
-          <div className="p-4">
-            {topSignals.length === 0 ? (
-              <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* RIGHT: COT Heatmap compact */}
-        <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-              {t("panels.cotFlowHeatmap")}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] text-zinc-700">0</span>
-              <div style={{ width: "60px", height: "3px", borderRadius: "2px",
-                background: "linear-gradient(90deg, #f87171, rgba(148,163,184,0.3) 50%, #4ade80)" }} />
-              <span className="text-[9px] text-zinc-700">100</span>
-            </div>
-          </div>
-          <div className="px-4 py-3 space-y-3">
-            {Object.entries(heatmap || {}).map(([sector, items]) => (
-              <div key={sector}>
-                <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
-                  style={{ color: "rgba(148,163,184,0.35)" }}>{sector}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: "6px" }}>
-                  {items.map((a) => <HeatmapCard key={a.symbol} a={a} />)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-
-{/* Economic Calendar */}
-<section className="border border-zinc-900 bg-[#0a0a0a]">
- <div className="border-b border-zinc-900 px-4 py-3 shrink-0">
-  <div className="flex items-center justify-between gap-2 flex-wrap">
-    <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-      {t("panels.economicCalendar")}
-    </span>
-    <div className="flex items-center gap-1.5">
-      {/* Impact filter */}
-      {["all","high","medium"].map(v => (
-        <button key={v} onClick={() => setCalImpact(v)}
-          style={{
-            fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em',
-            textTransform: 'uppercase', padding: '2px 7px',
-            border: `1px solid ${calImpact === v ? 'rgba(248,113,113,0.5)' : 'rgba(255,255,255,0.08)'}`,
-            background: calImpact === v ? 'rgba(248,113,113,0.1)' : 'transparent',
-            color: calImpact === v ? '#f87171' : '#52525b',
-            cursor: 'pointer', borderRadius: '4px',
-          }}>
-          {v === "all" ? "All" : v === "high" ? "High" : "Med"}
-        </button>
-      ))}
-      <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.08)' }} />
-      {/* Country filter */}
-      {["all","US","EU","GB","JP"].map(v => (
-        <button key={v} onClick={() => setCalCountry(v)}
-          style={{
-            fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
-            textTransform: 'uppercase', padding: '2px 6px',
-            border: `1px solid ${calCountry === v ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
-            background: calCountry === v ? 'rgba(96,165,250,0.1)' : 'transparent',
-            color: calCountry === v ? '#60a5fa' : '#52525b',
-            cursor: 'pointer', borderRadius: '4px',
-          }}>
-          {v}
-        </button>
-      ))}
-    </div>
-  </div>
-</div>
-  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-    {calendar.length === 0 ? (
-      <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
-    ) : calendar.filter(e => calImpact === "all" || e.importance === calImpact)
-        .filter(e => calCountry === "all" || e.country === calCountry)
-        .slice(0, 20).map((event) => {
-      const imp = (event.importance || "").toLowerCase()
-      const isHigh = imp === "high"
-      const isMed  = imp === "medium"
-      const hasData = event.actual != null || event.forecast != null || event.previous != null
-      return (
-        <div key={event.id} className="px-3 py-2.5"
-          style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
-               : isMed  ? { borderLeft: "2px solid rgba(251,191,36,0.4)",  background: "rgba(251,191,36,0.02)" }
-               :           { borderLeft: "2px solid transparent" }}>
-
-          {/* Row 1: time + currency + title + importance */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              {(() => {
-                const { time, date, day } = formatEventDateTime(event.datetime, timezone)
-                return (
-                  <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em' }}>
-                      {day} {date}
-                    </span>
-                    <span className="text-[11px] tabular-nums text-zinc-400 font-mono">
-                      {time}
-                    </span>
-                  </div>
-                )
-              })()}
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#60a5fa',
-                letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0 }}>
-                {event.currency || event.country || ""}
-              </span>
-              <span className="text-sm text-zinc-100 leading-5" style={{ fontWeight: 500 }}>
-                {event.title || "TBD"}
-              </span>
-            </div>
-            <span style={{
-              fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em',
-              textTransform: 'uppercase', flexShrink: 0, paddingTop: '2px',
-              color: isHigh ? '#f87171' : isMed ? '#fbbf24' : '#52525b'
-            }}>
-              {event.importance || ""}
-            </span>
-          </div>
-
-          {/* Row 2: actual / forecast / previous */}
-          {hasData && (
-            <div className="flex items-center gap-3 mt-1.5 pl-0">
-              {event.actual != null && (
-                <div className="flex items-center gap-1">
-                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Act</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
-                </div>
-              )}
-              {event.forecast != null && (
-                <div className="flex items-center gap-1">
-                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Fc</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.forecast}</span>
-                </div>
-              )}
-              {event.previous != null && (
-                <div className="flex items-center gap-1">
-                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Prv</span>
-                  <span style={{ fontSize: '12px', fontWeight: 400, color: '#71717a', fontVariantNumeric: 'tabular-nums' }}>{event.previous}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )
-    })}
-  </div>
-</section>
-
-        {/* Market News */}
-        <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="border-b border-zinc-900 px-4 py-3">
-            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-              {t("panels.marketNews")}
-            </span>
-          </div>
-          <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-            {news.length === 0 ? (
-              <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
-            ) : news.map((item) => {
-              const url = item.url && item.url !== "#" ? item.url : null
-              const style = newsItemStyle(item)
-              return (
-                <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
-                  className="block px-4 py-2.5 transition" style={{ textDecoration: "none", ...style }}
-                  onClick={(e) => { if (!url) e.preventDefault() }}
-                  onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)" }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent" }}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className={cls("text-[9px] uppercase tracking-[0.18em]", categoryTone(item.category))}>
-                      {item.category}
-                    </span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.05em' }}>{item.source}</span>
-                  </div>
-                  <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
-                </a>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* Guide / Help panel */}
-        <section className="border border-zinc-900 bg-[#0a0a0a] flex flex-col">
-          <div className="border-b border-zinc-900 px-4 py-3">
-            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-              Platform Guide
-            </span>
-          </div>
-          <div className="flex flex-col gap-3 p-4 flex-1">
-            <p className="text-sm text-zinc-500 leading-6">
-              The Guide tab contains detailed instructions for reading and interpreting each section of the platform.
-            </p>
-            <div className="space-y-1.5">
-              {[
-                { label: "How to read COT Index", key: "cot" },
-                { label: "Signal lifecycle explained", key: "signals" },
-                { label: "Macro regime framework", key: "macro" },
-              ].map((item) => (
-                <button key={item.key} onClick={() => setActive("guide")}
-                  className="w-full text-left text-s text-zinc-600 hover:text-blue-400 transition py-1"
-                  style={{ background: "none", border: "none", cursor: "pointer" }}>
-                  → {item.label}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setActive("guide")}
-              className="mt-auto border border-zinc-800 py-2.5 text-[11px] uppercase tracking-[0.22em] text-zinc-400 hover:border-blue-500/40 hover:text-blue-300 transition w-full"
-              style={{ borderRadius: "8px" }}
-            >
-              Open Platform Guide →
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
+      </div></>
   )
 }
 function HistoricalDataView({ assets }) {
