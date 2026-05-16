@@ -5573,6 +5573,12 @@ export default function App() {
   const [updateBusy, setUpdateBusy] = useState(false)
   const [schedulerState, setSchedulerState] = useState(null)
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false)
+  const [guideSection, setGuideSection] = useState(null)
+
+  const openGuide = (sectionKey = null) => {
+    setGuideSection(sectionKey)
+    setActive("guide")
+  }
   const [watchlist, setWatchlist] = useState(() => {
   try {
     const saved = localStorage.getItem("ktaliman-watchlist")
@@ -5783,7 +5789,7 @@ useEffect(() => {
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
 	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
-	guide: <GuideView setActive={setActive} />,
+	guide: <GuideView setActive={setActive} initialSection={guideSection} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
 	settings: (
   <SettingsView
