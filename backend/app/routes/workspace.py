@@ -54,6 +54,17 @@ def fetch_news_internal(limit: int = 8) -> list:
     return []
 
 
+def fetch_calendar_internal(limit: int = 12) -> list:
+    """Fetch calendar from internal /api/calendar route."""
+    try:
+        r = requests.get("http://localhost:8000/api/calendar", params={"limit": limit}, timeout=8)
+        if r.ok:
+            return r.json().get("items", [])
+    except Exception:
+        pass
+    return []
+
+
 def fetch_calendar_external(limit: int = 10) -> list:
     """Fetch economic calendar from external service if available."""
     try:
@@ -165,7 +176,9 @@ def get_workspace():
     )
 
     # ── Calendar ──────────────────────────────────────────────────────────────
-    calendar = fetch_calendar_external(limit=12)
+    calendar = fetch_calendar_internal(limit=12)
+    if not calendar:
+        calendar = fetch_calendar_external(limit=12)
     if not calendar:
         eligible = [x for x in rows if x["funds_percentile_3y"] is not None]
         for item in sorted(eligible, key=lambda x: abs(float(x["funds_percentile_3y"]) - 50), reverse=True)[:4]:

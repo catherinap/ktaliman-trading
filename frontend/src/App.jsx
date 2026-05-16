@@ -2141,10 +2141,11 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                       {event.importance || ""}
                     </span>
                   </div>
-                  {(event.forecast != null || event.previous != null) && (
-                    <div className="mt-0.5 text-[10px] text-zinc-600 pl-0">
-                      {event.forecast != null ? `Fc ${event.forecast}` : ""}
-                      {event.previous != null ? ` · Prv ${event.previous}` : ""}
+                  {(event.forecast != null || event.previous != null || event.actual != null) && (
+                    <div className="mt-0.5 flex gap-3 text-[10px] text-zinc-600">
+                      {event.actual   != null && <span className="text-emerald-400">Act {event.actual}</span>}
+                      {event.forecast != null && <span>Fc {event.forecast}</span>}
+                      {event.previous != null && <span>Prv {event.previous}</span>}
                     </div>
                   )}
                 </div>
@@ -5798,37 +5799,39 @@ useEffect(() => {
     setLoading(true)
     setError('')
 
-    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes] = await Promise.all([
-      fetch('/api/system/status'),
-      fetch('/api/heatmap'),
-      fetch('/api/assets'),
-      fetch('/api/signals'),
-      fetch('/api/workspace'),
-      fetch('/api/seasonality'),
-    ])
- 
-    if (!statusRes.ok || !heatmapRes.ok || !assetsRes.ok || !signalsRes.ok || !workspaceRes.ok) {
-      throw new Error('Failed to load API data')
-    }
- 
-    const statusJson      = await statusRes.json()
-    const heatmapJson     = await heatmapRes.json()
-    const assetsJson      = await assetsRes.json()
-    const signalsJson     = await signalsRes.json()
-    const workspaceJson   = await workspaceRes.json()
-    const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
- 
-    setStatus(statusJson)
-    setHeatmap(heatmapJson.sectors || {})
-    setAssets(assetsJson.items || [])
-    setSignals(signalsJson.items || [])
-    setSeasonalityData(seasonalityJson.items || [])
-    setWorkspaceData({
-      macro_regime: workspaceJson.macro_regime || null,
-      releases: workspaceJson.releases || [],
-      calendar: workspaceJson.calendar || [],
-      news: workspaceJson.news || [],
-    })
+    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes, calendarRes] = await Promise.all([
+  fetch('/api/system/status'),
+  fetch('/api/heatmap'),
+  fetch('/api/assets'),
+  fetch('/api/signals'),
+  fetch('/api/workspace'),
+  fetch('/api/seasonality'),
+  fetch('/api/calendar?limit=15'),
+])
+
+if (!statusRes.ok || !heatmapRes.ok || !assetsRes.ok || !signalsRes.ok || !workspaceRes.ok) {
+  throw new Error('Failed to load API data')
+}
+
+const statusJson      = await statusRes.json()
+const heatmapJson     = await heatmapRes.json()
+const assetsJson      = await assetsRes.json()
+const signalsJson     = await signalsRes.json()
+const workspaceJson   = await workspaceRes.json()
+const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
+const calendarJson    = calendarRes.ok    ? await calendarRes.json()    : { items: [] }
+
+setStatus(statusJson)
+setHeatmap(heatmapJson.sectors || {})
+setAssets(assetsJson.items || [])
+setSignals(signalsJson.items || [])
+setSeasonalityData(seasonalityJson.items || [])
+setWorkspaceData({
+  macro_regime: workspaceJson.macro_regime || null,
+  releases: workspaceJson.releases || [],
+  calendar: calendarJson.items?.length ? calendarJson.items : (workspaceJson.calendar || []),
+  news: workspaceJson.news || [],
+})
 
     if ((assetsJson.items || []).length > 0) {
       setSelected((prev) => prev || assetsJson.items[0].symbol)
