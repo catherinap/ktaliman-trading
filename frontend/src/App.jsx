@@ -5,6 +5,7 @@ import {
   Bell,
   Calendar,
   Download,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -19,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import LanguageSettings from "./components/LanguageSettings";
 import AIAnalysisPanel from "./components/AIAnalysisPanel";
 import CustomSelect from "./components/CustomSelect"
+import GuideButton from "./components/GuideButton"
 
 
 
@@ -32,6 +34,7 @@ const NAV_ITEMS = [
   { key: "seasonality", labelKey: "nav.seasonality", icon: Calendar },
   { key: "signals", labelKey: "nav.signals", icon: Zap },
   { key: "history", labelKey: "nav.history", icon: BarChart2 },
+  { key: "guide", labelKey: "nav.guide", icon: BookOpen },
   { key: "update", labelKey: "nav.update", icon: Database },
   { key: "settings", labelKey: "nav.settings", icon: Settings },
 ]
@@ -1800,7 +1803,7 @@ function ImpactBadge({ impact }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en" }) {
+function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide }) {
   const { t } = useTranslation()
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
@@ -2564,31 +2567,22 @@ function HistoricalDataView({ assets }) {
         <div className="flex flex-wrap items-end gap-4 p-4">
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Asset</div>
-            <select
-              value={selectedSymbol}
-              onChange={(e) => { setSelectedSymbol(e.target.value); setYearFilter("all") }}
-              className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[200px]"
-            >
-              {sortedAssets.map((a) => (
-                <option key={a.symbol} value={a.symbol}>
-                  {a.name} ({a.symbol})
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+                value={selectedSymbol}
+                onChange={(v) => { setSelectedSymbol(v); setYearFilter("all") }}
+                options={sortedAssets.map((a) => ({ value: a.symbol, label: `${a.name} (${a.symbol})` }))}
+                minWidth="200px"
+              />
           </div>
 
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Year (Table)</div>
-            <select
+            <CustomSelect
               value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              <option value="all">All years</option>
-              {availableYears.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+              onChange={setYearFilter}
+              options={[{ value: "all", label: "All years" }, ...availableYears.map((y) => ({ value: String(y), label: String(y) }))]}
+              minWidth="120px"
+            />
           </div>
 
           <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
@@ -2961,7 +2955,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   )
 }
 
-function MacroView({ assets, aiLanguage }) {
+function MacroView({ assets, aiLanguage, openGuide }) {
   const { t } = useTranslation();
 
   const sleeveData = useMemo(() => Object.entries(MACRO_SLEEVES).map(([key, config]) => {
@@ -3009,7 +3003,7 @@ function MacroView({ assets, aiLanguage }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[1.35fr_0.9fr]">
       <div className="space-y-4">
-        <Panel title={t("panels.macroComposite")} right={<span className={cls('text-xs uppercase tracking-[0.22em]', macroTone(macroComposite))}>live cot composite</span>}>
+        <Panel title={t("panels.macroComposite")} right={<GuideButton sectionKey="macro" openGuide={openGuide} />}>
           <div className="grid gap-6 md:grid-cols-3">
             {sleeveData.map((sleeve) => (
               <div key={sleeve.key}>
@@ -3140,7 +3134,7 @@ function MacroView({ assets, aiLanguage }) {
   )
 }
 
-function CorrelationView({ assets }) {
+function CorrelationView({ assets, openGuide }) {
   const { t } = useTranslation();
   const universeAssets = useMemo(() => findAssetsExact(assets, CORRELATION_UNIVERSE), [assets])
   const pairs = useMemo(() => buildPositioningPairs(universeAssets), [universeAssets])
@@ -3206,7 +3200,7 @@ function CorrelationView({ assets }) {
 
   return (
     <div className="space-y-4">
-      <Panel title={t("panels.correlation")} right={<span className="text-blue-400">positioning relationships</span>}>
+      <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
         <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="grid gap-4 md:grid-cols-4">
             <Metric label="Universe" value={universeAssets.length} />
@@ -3392,7 +3386,7 @@ function CorrelationView({ assets }) {
     </div>
   )
 }
-function SeasonalityView({ assets, seasonalityData = [] }) {
+function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
   const { t } = useTranslation();
   const rows = useMemo(() => {
     if (!seasonalityData || seasonalityData.length === 0) return []
@@ -3467,7 +3461,7 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
  
   return (
     <div className="space-y-4">
-      <Panel title={t("panels.seasonality")} right={<span className="text-blue-400">calendar context</span>}>
+      <Panel title={t("panels.seasonality")} right={<GuideButton sectionKey="seasonality" openGuide={openGuide} />}>
         <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="grid gap-4 md:grid-cols-3">
             <Metric label="Current Month" value={currentMonth} />
@@ -3645,7 +3639,7 @@ function SeasonalityView({ assets, seasonalityData = [] }) {
   )
 }
 
-function Summary({ assets, setActive, setSelected }) {
+function Summary({ assets, setActive, setSelected, openGuide }) {
   const { t } = useTranslation();
   const sectorGroups = useMemo(() => {
     return assets.reduce((acc, asset) => {
@@ -3722,6 +3716,9 @@ function Summary({ assets, setActive, setSelected }) {
 
   return (
   <div className="space-y-6">
+    <div className="flex justify-end">
+      <GuideButton sectionKey="cot" openGuide={openGuide} />
+    </div>
     {Object.entries(sectorGroups).map(([sector, items]) => {
       const headerGroups = items.length ? getGroupConfig(items[0]) : []
 
@@ -3813,7 +3810,7 @@ function Summary({ assets, setActive, setSelected }) {
  )
 }
 
-function Explorer({ assets, selected, setSelected, aiLanguage, seasonalityData = [] }) {
+function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, seasonalityData = [] }) {
   const { t } = useTranslation();
 
   const asset = assets.find((a) => a.symbol === selected) || assets[0];
@@ -4360,7 +4357,7 @@ function SignalHistoryTable({ items, loading }) {
   )
 }
 
-function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityData = [] }) {
+function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,seasonalityData = [] }) {
 
   const macroSleeves = useMemo(() => {
     return Object.entries(MACRO_SLEEVES).map(([key, config]) => {
@@ -4453,77 +4450,14 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
         </Panel>
       ) : (<>
 
-      <Panel
-        title="Signals Engine"
-        right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">ranked live signals</span>}
-      >
+      <Panel title="ranked live signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
+            
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Metric label="Tracked Signals" value={engine.counts.total} />
           <Metric label="Active" value={engine.counts.active} />
           <Metric label="Aging" value={engine.counts.aging} />
           <Metric label="Invalidated" value={engine.counts.invalidated} />
           <Metric label="Alert Feed" value={engine.counts.alerts} />
-        </div>
-
-        <div className="mt-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="border border-zinc-900 bg-zinc-950 p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">How it works</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-300">
-              Signals are ranked by entry quality, freshness, directional strength, and macro-context alignment.
-              States are designed to behave like an alert engine rather than a static scanner.
-            </div>
-            <div className="mt-3 border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-400">
-              Active signals are actionable now, aging signals need caution, stale signals have lost timing edge,
-              and invalidated signals no longer meet minimum quality conditions.
-            </div>
-          </div>
-
-          <div className="border border-zinc-900 bg-zinc-950 p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Top Ranked Signal</div>
-            {topSignal ? (
-              <div className="mt-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg text-zinc-100">{topSignal.asset}</div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-                      {topSignal.symbol} · {topSignal.sector}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSelected(topSignal.symbol)
-                      setActive('explorer')
-                    }}
-                    className="border border-zinc-800 px-3 py-2 text-[11px] uppercase tracking-[0.22em] text-zinc-300 transition hover:border-zinc-700 hover:text-zinc-100"
-                  >
-                    Open Asset
-                  </button>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Priority</div>
-                    <div className="mt-2 text-xl text-zinc-100">{formatPercentile(topSignal.priorityScore)}</div>
-                  </div>
-                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Entry Quality</div>
-                    <div className="mt-2 text-xl text-zinc-100">{topSignal.conviction}</div>
-                  </div>
-                  <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">State</div>
-                    <div className="mt-2 text-xl text-zinc-100">{stateLabel(topSignal.state)}</div>
-                  </div>
-                </div>
-
-                <div className="text-sm leading-7 text-zinc-300">
-                  {topSignal.asset} currently ranks first because its directional positioning, inferred freshness,
-                  and contextual filters are stronger than the rest of the live universe.
-                </div>
-              </div>
-            ) : (
-              <div className="mt-3 text-sm text-zinc-400">No signals match the current filter set.</div>
-            )}
-          </div>
         </div>
       </Panel>
 
@@ -4534,76 +4468,34 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, seasonalityDa
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div>
             <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">State</div>
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              className="w-full border border-zinc-900 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="aging">Aging</option>
-              <option value="candidate">Candidate</option>
-              <option value="stale">Stale</option>
-              <option value="invalidated">Invalidated</option>
-            </select>
+            <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
+              options={[{value:"all",label:"All"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
+                {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
           </div>
 
           <div>
             <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">Direction</div>
-            <select
-              value={directionFilter}
-              onChange={(e) => setDirectionFilter(e.target.value)}
-              className="w-full border border-zinc-900 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              <option value="all">All</option>
-              <option value="long">Long</option>
-              <option value="short">Short</option>
-              <option value="neutral">Neutral</option>
-            </select>
+            <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
+              options={[{value:"all",label:"All"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
           </div>
 
           <div>
             <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">Sector</div>
-            <select
-              value={sectorFilter}
-              onChange={(e) => setSectorFilter(e.target.value)}
-              className="w-full border border-zinc-900 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              {sectors.map((sector) => (
-                <option key={sector} value={sector}>
-                  {sector === 'all' ? 'All' : sector}
-                </option>
-              ))}
-            </select>
+            <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
+              options={sectors.map((s) => ({ value: s, label: s === "all" ? "All" : s }))} />
           </div>
 
           <div>
             <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">Minimum Score</div>
-            <select
-              value={minScore}
-              onChange={(e) => setMinScore(Number(e.target.value))}
-              className="w-full border border-zinc-900 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              <option value={0}>0+</option>
-              <option value={40}>40+</option>
-              <option value={55}>55+</option>
-              <option value={70}>70+</option>
-              <option value={85}>85+</option>
-            </select>
+            <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
+              options={[{value:"0",label:"0+"},{value:"40",label:"40+"},{value:"55",label:"55+"},{value:"70",label:"70+"},{value:"85",label:"85+"}]} />
           </div>
 
           <div>
             <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">Sort By</div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full border border-zinc-900 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none"
-            >
-              <option value="priority">Priority</option>
-              <option value="quality">Entry Quality</option>
-              <option value="freshness">Freshness</option>
-              <option value="age">Age</option>
-            </select>
+            <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
+              options={[{value:"priority",label:"Priority"},{value:"quality",label:"Entry Quality"},
+                {value:"freshness",label:"Freshness"},{value:"age",label:"Age"}]} />
           </div>
 
           <div>
@@ -5137,20 +5029,13 @@ function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
  
   return (
     <div className="flex items-center gap-3">
-      <select
-        value={selected}
-        onChange={(e) => setSelected(e.target.value)}
-        className="border border-zinc-800 bg-[#080808] px-3 py-2 text-sm text-zinc-200 outline-none min-w-[220px]"
-      >
-        <option value="">
-          {aiLanguage === "uk" ? "Обери актив..." : "Select asset..."}
-        </option>
-        {sortedAssets.map((a) => (
-          <option key={a.symbol} value={a.symbol}>
-            {a.name} ({a.symbol})
-          </option>
-        ))}
-      </select>
+      <CustomSelect
+          value={selected}
+          onChange={setSelected}
+          placeholder={aiLanguage === "uk" ? "Обери актив..." : "Select asset..."}
+          options={sortedAssets.map((a) => ({ value: a.symbol, label: `${a.name} (${a.symbol})` }))}
+          minWidth="220px"
+        />
       <button
         onClick={handleAdd}
         disabled={!selected}
@@ -5254,6 +5139,422 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
       >
         {aiLanguage === "uk" ? "Відкрити аналіз →" : "Open in Explorer →"}
       </button>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GUIDE VIEW — вставити в App.jsx перед function App()
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GUIDE_SECTIONS = [
+  {
+    key: "workspace",
+    title: "Live Workspace",
+    icon: "⊞",
+    color: "#60a5fa",
+    summary: "Your weekly starting point. Shows the most actionable information at a glance.",
+    blocks: [
+      {
+        title: "Macro Context (VIX / Yield Curve / DXY / S&P 500)",
+        content: `These four indicators tell you the broader market backdrop before you look at COT data.
+
+**VIX** — fear gauge. Below 15 = complacent (markets are relaxed, reversals can happen suddenly). 20–30 = elevated uncertainty. Above 30 = fear, risk-off.
+
+**Yield Curve (10Y−2Y)** — when the spread is positive, the economy is in expansion mode. When inverted (negative), it historically precedes recessions. Inverted curve = be careful with risk-on trades.
+
+**DXY** — strengthening dollar is bearish for commodities (gold, oil) and EM currencies. Weakening dollar is bullish for these assets.
+
+**S&P 500** — confirms the overall risk appetite. Rising SPX + calm VIX = risk-on environment.`
+      },
+      {
+        title: "Macro Regime (Growth / Inflation / Policy)",
+        content: `This panel takes COT positioning data from three sleeves and calculates a composite reading.
+
+**Growth** (indices: SPX, NDX, DJIA) — where funds are positioned in equity futures. High = funds are long equities = growth optimism.
+
+**Inflation** (XAU, XAG, COPPER, WTI) — commodity positioning. High = inflation trade is on.
+
+**Policy** (USD, EUR, JPY, GBP, CHF) — FX positioning reflects rate expectations. High = dollar bullish bets dominate.
+
+The **Composite** score is the average of all three. Use it to assess overall macro bias.`
+      },
+      {
+        title: "AI — Weekly Briefing",
+        content: `Click "Generate Analysis" to get an AI interpretation of the current macro regime, sleeve positioning, and what it means for the week ahead.
+
+The AI reads: Growth/Inflation/Policy scores, composite, individual asset data, and synthesises a plain-English briefing.
+
+Regenerate every week after new COT data arrives (Friday evening).`
+      },
+      {
+        title: "Top Active Signals",
+        content: `The 6 assets with the strongest current COT setup, ranked by Priority Score (0–100).
+
+**Circle gauge** — filled proportionally to the Priority Score. Green = long bias, red = short bias.
+
+**Priority Score** factors in: COT Index level, freshness of the move, entry quality, and macro context alignment.
+
+Click any card to open the full Asset Explorer for that instrument.`
+      },
+      {
+        title: "COT Flow Heatmap",
+        content: `A quick visual scan of all assets across all sectors. Each card shows:
+- Symbol (top left)
+- COT Index value (large number) — where positioning sits on a 0–100 scale
+- Weekly change with arrow ↑↓ (top right)
+- Flow State label (bottom)
+
+**Colour coding:** green = bullish positioning zone (≥65), red = bearish zone (≤35), dark red/green border = extreme (≥90 or ≤10).`
+      },
+    ]
+  },
+  {
+    key: "macro",
+    title: "Macro Regime",
+    icon: "◎",
+    color: "#34d399",
+    summary: "Deep dive into the three macro sleeves and how COT positioning aligns with the economic cycle.",
+    blocks: [
+      {
+        title: "Sleeve Detail",
+        content: `Each sleeve (Growth, Inflation, Policy) shows individual asset COT Index values and their state (Neutral, Accumulation, Distribution, Long/Short Extreme).
+
+The sleeve composite is the average of all member assets. If one asset is missing data, it is excluded from the average.
+
+**Reading the sleeve:** if Growth is at 72 (Accumulation) but Inflation is at 28 (Distribution), the macro picture is mixed — equity longs are building while commodity longs are unwinding. This often happens in late-cycle transitions.`
+      },
+      {
+        title: "Macro Phase & Dispersion",
+        content: `**Macro Phase** is derived from the composite score: Defensive (<35), Balanced (35–65), Constructive (>65).
+
+**Dispersion** measures how spread apart the three sleeve scores are. High dispersion = sleeves disagree = uncertain regime. Low dispersion = aligned = higher conviction macro call.
+
+Use dispersion as a confidence filter: only act on macro thesis when dispersion is below 30.`
+      },
+    ]
+  },
+  {
+    key: "cot",
+    title: "COT Summary",
+    icon: "≡",
+    color: "#a78bfa",
+    summary: "Full table of all tracked assets with COT positioning data.",
+    blocks: [
+      {
+        title: "Understanding the COT Index",
+        content: `The **COT Index** (0–100) is a Min-Max normalisation of net positioning over a rolling 156-week (3-year) window.
+
+- **100** = funds are the most long they have been in 3 years
+- **0** = funds are the most short they have been in 3 years
+- **50** = exactly in the middle of the 3-year range
+
+**Key thresholds:**
+- ≥90 = Long Extreme — crowded long, watch for reversal
+- ≥65 = Accumulation — bullish positioning building
+- ≤35 = Distribution — bearish positioning building  
+- ≤10 = Short Extreme — crowded short, watch for squeeze`
+      },
+      {
+        title: "Momentum Fields",
+        content: `**Direction** (↑↓→) — trend of COT Index over last 4 weeks.
+
+**WoW Change** — how many index points moved this week.
+
+**3w / 8w Average** — short and medium-term rolling averages of the COT Index.
+
+**vs Trend** — current index minus 8w average. Positive = above trend (accelerating). Negative = below trend (fading).
+
+**Acceleration** — comparing recent slope to prior slope. "Accelerating" means the move is picking up speed.`
+      },
+      {
+        title: "Participant Groups",
+        content: `**TFF reports (Financials):**
+- Leveraged Funds = hedge funds, CTAs. These are the "smart money" directional players. Follow their net position for signals.
+- Asset Managers = pension funds, long-only. Slower to turn, confirm macro trends.
+- Dealer/Intermediary = banks. Often on the other side of leveraged funds — countertrend signal.
+
+**Disaggregated reports (Commodities):**
+- Managed Money = hedge funds (equivalent to Leveraged Funds in TFF)
+- Producer/Merchant = commercial hedgers. Their positioning is risk-reduction, not directional.
+- Swap Dealers = similar to bank dealers.`
+      },
+    ]
+  },
+  {
+    key: "explorer",
+    title: "Asset Explorer",
+    icon: "◈",
+    color: "#f59e0b",
+    summary: "Deep analysis of a single asset — positioning, momentum, seasonality, and AI interpretation.",
+    blocks: [
+      {
+        title: "Setup Analysis Panel",
+        content: `The setup analysis synthesises COT Index, momentum, and seasonal context into a plain-English assessment.
+
+**Setup Bias** — the overall directional lean based on current COT positioning.
+
+**Entry Quality** — rates the current timing of the setup: High Conviction, Moderate, or Weak. Based on how extreme the positioning is, whether it's fresh or extended, and whether momentum confirms.
+
+**What to Watch** — specific conditions that would confirm or invalidate the setup.`
+      },
+      {
+        title: "Charts",
+        content: `Three charts are available:
+
+**Net Position** — raw net contracts (longs minus shorts). Shows the absolute level of directional commitment.
+
+**COT Index** — normalised 0–100. Use this for cross-asset comparison and extreme detection.
+
+**Open Interest** — total contracts outstanding. Rising OI + rising index = strong trend. Rising OI + falling index = potential reversal.`
+      },
+      {
+        title: "Seasonality Panel",
+        content: `Shows the average COT Index for each calendar month, calculated over a 5-year rolling window.
+
+Green months = historically funds are positioned long during this period.
+Red months = historically funds are positioned short.
+
+**How to use:** check whether the current COT signal aligns with seasonal tendency. A short signal in a historically bullish month needs more conviction to act on.`
+      },
+    ]
+  },
+  {
+    key: "signals",
+    title: "ranked live signal",
+    icon: "⚡",
+    color: "#f87171",
+    summary: "Ranked list of active COT signals with quality scoring and lifecycle tracking.",
+    blocks: [
+      {
+        title: "Signal States",
+        content: `Each signal goes through a lifecycle:
+
+**Candidate** — positioning is approaching a threshold but not yet active.
+
+**Active** — COT Index is in the signal zone (≥65 long or ≤35 short) with supporting conditions.
+
+**Aging** — signal has been active for many weeks, positioning may be getting extended. Reduce size or tighten stops.
+
+**Stale** — signal has been active too long without resolving. Lower priority.
+
+**Invalidated** — positioning crossed to the opposite side. Exit signal.`
+      },
+      {
+        title: "Priority Score",
+        content: `The Priority Score (0–100) ranks signals by overall quality. It considers:
+
+- **COT Index level** — how extreme is the positioning?
+- **Entry quality** — is the signal fresh or extended?
+- **Momentum alignment** — is the direction confirmed by recent trend?
+- **Macro context** — does the signal align with the macro regime?
+- **Seasonal support** — does seasonality confirm the direction?
+
+Higher score = better risk/reward setup. Focus on scores above 70.`
+      },
+      {
+        title: "Signal History",
+        content: `The Signal History tab tracks every signal over time with:
+
+- First seen date and how many weeks it has been active
+- Peak score vs current score
+- 8-week sparkline of COT Index movement
+- Resolution date if the signal was invalidated
+
+Use this to assess how reliable signals have been historically and how long typical setups last.`
+      },
+    ]
+  },
+  {
+    key: "seasonality",
+    title: "Seasonality",
+    icon: "◷",
+    color: "#67e8f9",
+    summary: "Monthly seasonal tendencies based on 5-year average COT positioning.",
+    blocks: [
+      {
+        title: "How Seasonality Works",
+        content: `For each asset and each calendar month, the platform calculates the average COT Index across the last 5 years.
+
+This tells you: "In this month of the year, where do funds typically position?"
+
+**Seasonal Breadth** — what percentage of the tracked universe has a supportive seasonal tailwind right now.
+
+**Supportive Windows** — how many months in the current quarter tend to be bullish for the asset.`
+      },
+      {
+        title: "Using Seasonality as a Filter",
+        content: `Seasonality is a secondary filter, not a primary signal.
+
+**Good use:** you have a long signal from COT. Seasonality shows the current month is historically bullish. This increases confidence.
+
+**Caution use:** you have a long signal but seasonality is bearish. This doesn't mean the signal is wrong — but it means you need stronger COT confirmation before acting.
+
+Never trade seasonality alone. Always require a COT signal to align first.`
+      },
+    ]
+  },
+  {
+    key: "correlation",
+    title: "Correlation",
+    icon: "⇄",
+    color: "#86efac",
+    summary: "Cross-asset COT positioning alignment — which assets are moving together?",
+    blocks: [
+      {
+        title: "Reading the Correlation Matrix",
+        content: `The matrix shows pairwise correlation of COT Index values across your tracked universe.
+
+**High positive correlation (green)** — two assets are positioned similarly. If one is a long signal, the other tends to confirm it. This is a macro cluster.
+
+**High negative correlation (red)** — assets are positioned opposite. Classic example: USD long vs EUR short. This is normal — these are natural pairs.
+
+**Low correlation (neutral)** — assets are moving independently. Useful for diversification.`
+      },
+      {
+        title: "Avg Alignment Score",
+        content: `The overall alignment score tells you how correlated the universe is as a whole.
+
+**High alignment (>70)** — most assets are positioned similarly. Strong macro trend. High conviction.
+
+**Low alignment (<40)** — assets are diverging. Mixed signals. Reduce position sizes and wait for clarity.
+
+Use alignment as a regime confidence indicator alongside Macro Composite.`
+      },
+    ]
+  },
+]
+
+function GuideView({ setActive }) {
+  const [openSection, setOpenSection] = useState(null)
+  const [openBlock, setOpenBlock]     = useState(null)
+
+  const toggle = (sectionKey, blockIdx) => {
+    const id = `${sectionKey}-${blockIdx}`
+    setOpenBlock((prev) => prev === id ? null : id)
+  }
+
+  const toggleSection = (key) => {
+    setOpenSection((prev) => {
+      if (prev === key) return null
+      setOpenBlock(null)
+      return key
+    })
+  }
+
+  return (
+    <div className="space-y-4 max-w-4xl">
+
+      {/* Header */}
+      <div className="border border-zinc-900 bg-[#0a0a0a] p-6" style={{ borderRadius: "14px" }}>
+        <div className="text-[11px] uppercase tracking-[0.35em] text-zinc-500 mb-2">Platform Guide</div>
+        <div className="text-xl font-semibold text-zinc-100 mb-3">How to read and use this dashboard</div>
+        <div className="text-sm leading-6 text-zinc-400">
+          This guide explains each section of the platform — what the data means, how to interpret signals,
+          and how to use the tools together for better market analysis.
+          Each section corresponds to a tab in the sidebar.
+        </div>
+      </div>
+
+      {/* Sections */}
+      {GUIDE_SECTIONS.map((section) => {
+        const isOpen = openSection === section.key
+        return (
+          <div key={section.key} className="border border-zinc-900 bg-[#0a0a0a] overflow-hidden"
+            style={{ borderRadius: "14px", borderColor: isOpen ? `${section.color}25` : undefined }}>
+
+            {/* Section header — clickable */}
+            <button
+              onClick={() => toggleSection(section.key)}
+              className="w-full flex items-center justify-between px-5 py-4 text-left transition hover:bg-white/[0.02]"
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <div className="flex items-center gap-4">
+                <span style={{ fontSize: "18px", color: section.color, lineHeight: 1 }}>
+                  {section.icon}
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-zinc-100">{section.title}</div>
+                  <div className="text-xs text-zinc-500 mt-0.5">{section.summary}</div>
+                </div>
+              </div>
+              <span className="text-zinc-600 text-lg transition-transform"
+                style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "block" }}>
+                ↓
+              </span>
+            </button>
+
+            {/* Section content — accordion blocks */}
+            {isOpen && (
+              <div className="border-t border-zinc-900 divide-y divide-zinc-900">
+                {section.blocks.map((block, idx) => {
+                  const id = `${section.key}-${idx}`
+                  const isBlockOpen = openBlock === id
+                  return (
+                    <div key={idx}>
+                      {/* Block header */}
+                      <button
+                        onClick={() => toggle(section.key, idx)}
+                        className="w-full flex items-center justify-between px-5 py-3 text-left transition hover:bg-white/[0.02]"
+                        style={{ background: "none", border: "none", cursor: "pointer" }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div style={{
+                            width: 6, height: 6, borderRadius: "50%",
+                            background: isBlockOpen ? section.color : "rgba(148,163,184,0.3)",
+                            flexShrink: 0, transition: "background 0.2s"
+                          }} />
+                          <span className="text-sm text-zinc-300">{block.title}</span>
+                        </div>
+                        <span className="text-zinc-600 text-sm transition-transform shrink-0"
+                          style={{ transform: isBlockOpen ? "rotate(45deg)" : "rotate(0deg)", marginLeft: "12px" }}>
+                          +
+                        </span>
+                      </button>
+
+                      {/* Block content */}
+                      {isBlockOpen && (
+                        <div className="px-5 pb-5 pt-1">
+                          <div className="border-l-2 pl-4" style={{ borderColor: `${section.color}40` }}>
+                            {block.content.split('\n').map((line, i) => {
+                              if (!line.trim()) return <div key={i} className="h-2" />
+                              // Bold: **text**
+                              const parts = line.split(/(\*\*[^*]+\*\*)/g)
+                              return (
+                                <div key={i} className="text-sm leading-6 text-zinc-400">
+                                  {parts.map((part, j) =>
+                                    part.startsWith("**") && part.endsWith("**")
+                                      ? <span key={j} className="text-zinc-200 font-medium">{part.slice(2, -2)}</span>
+                                      : <span key={j}>{part}</span>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Go to section button */}
+                <div className="px-5 py-3">
+                  <button
+                    onClick={() => setActive(section.key === "cot" ? "summary" : section.key)}
+                    className="text-xs uppercase tracking-[0.2em] transition"
+                    style={{ background: "none", border: "none", cursor: "pointer",
+                      color: section.color, opacity: 0.7 }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = "0.7"}
+                  >
+                    → Open {section.title}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -5474,15 +5775,16 @@ useEffect(() => {
 }, []);
 
   const view = { 
-  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} />, 
-  macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} />, 
-  summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} />,
+  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide}/>, 
+  macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide}/>, 
+  summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} openGuide={openGuide}/>,
   watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
   history: <HistoricalDataView assets={assets} />, 
-	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />,
-	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} />, 
-	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} />, 
-	update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
+	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
+	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
+	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
+	guide: <GuideView setActive={setActive} />,
+  update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
 	settings: (
   <SettingsView
       uiLanguage={uiLanguage}

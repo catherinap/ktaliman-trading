@@ -2,13 +2,14 @@
   "nav": {
     "workspace": "Робочий простір",
     "macro": "Макро",
-    "watchlist": "Список спостереження",
+    "watchlist": "Обрані активи",
     "summary": "COT Зведення",
     "explorer": "Огляд активу",
     "correlation": "Кореляція",
     "seasonality": "Сезонність",
     "signals": "Сигнали",
     "history": "Історичні дані",
+    "guide": "Довідка",
     "update": "Оновити дані",
     "settings": "Налаштування"
   },
