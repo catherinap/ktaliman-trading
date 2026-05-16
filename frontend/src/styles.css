@@ -1,6 +1,9 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -panel-color-dark: #091027a1;
+  --panel-color-light: #112b4a;
+  --small-panel-color: #0c1a316d;
 }
 * { box-sizing: border-box; }
 
@@ -9,7 +12,7 @@ body {
   margin: 0;
   color: #f2f7ff;
   min-height: 100vh;
-  background: linear-gradient(145deg, #010918 50%, #112b4a 85%, #081d37 100%) !important;
+  background: linear-gradient(145deg, #010918 50%, var(--panel-color-light) 85%, #081d37 100%) !important;
   background-attachment: fixed !important;
 }
 
@@ -27,7 +30,7 @@ aside {
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  background: linear-gradient(145deg, #010918 50%, #112b4a 85%, #081d37 100%) !important;
+  background: linear-gradient(145deg, #010918 50%, var(--panel-color-light) 85%, #081d37 100%) !important;
   border-right: 1px solid rgba(59,130,246,0.12) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
@@ -88,14 +91,14 @@ section {
   border-radius: 14px !important;
   overflow: hidden !important;
   border: .0625rem solid #5a6874 !important;
-  background: #112b4a !important;
+  background: var(--panel-color-light) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
 .small-panel-color {
-background-color: #0c1a316d !important;
+background-color: var(--small-panel-color) !important;
 }
 
 /* Inner cards */
@@ -103,7 +106,7 @@ background-color: #0c1a316d !important;
 [class*="bg-\[#0a0a0a\]"],
 [class*="bg-\[#0d0d0d\]"],
 .bg-zinc-950 {
-  background: #112b4a !important;
+  background: var(--panel-color-light) !important;
   border: .0625rem solid #5a6874 !important;
   border-radius: 8px !important;
   backdrop-filter: blur(12px) !important;

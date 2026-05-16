@@ -1381,11 +1381,11 @@ function ExplorerTabs({ assets, selected, setSelected }) {
           <button
             key={a.symbol}
             onClick={() => setSelected(a.symbol)}
-            className={cls(
+            className={cls( 
               "min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition",
               selected === a.symbol
                 ? "border-amber-400 bg-zinc-950 text-zinc-100"
-                : "border-zinc-900 bg-[#080808] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                : "border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
             )}
           >
             {a.symbol}
@@ -3065,7 +3065,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
         <Panel title={t("panels.sleeveDetail")}>
           <div className="grid gap-4 md:grid-cols-3">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="border border-zinc-900 bg-[#080808] p-4">
+              <div key={sleeve.key} className="border border-zinc-900 small-panel-color p-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm uppercase tracking-[0.22em] text-zinc-400">{sleeve.title}</div>
                   <div className={cls('text-sm font-semibold', macroTone(sleeve.score))}>
@@ -3332,7 +3332,7 @@ function CorrelationView({ assets, openGuide }) {
         <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-4 md:grid-cols-2">
             {[...alignedPairs.slice(0, 2), ...opposedPairs.slice(0, 2)].map((pair) => (
-              <div key={`${pair.key}-chart`} className="border border-zinc-900 bg-zinc-950 p-4">
+              <div key={`${pair.key}-chart`} className="border border-zinc-900 small-panel-color p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
@@ -3369,7 +3369,7 @@ function CorrelationView({ assets, openGuide }) {
         <Panel title={t("panels.topAlignedPairs")}>
           <div className="space-y-3">
             {alignedPairs.map((pair) => (
-              <div key={pair.key} className="border border-zinc-900 bg-[#080808] p-3">
+              <div key={pair.key} className="border border-zinc-900 small-panel-color p-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
                   <div className={cls('text-sm', relationshipTone(pair.distance))}>{pair.relationship}</div>
@@ -3387,7 +3387,7 @@ function CorrelationView({ assets, openGuide }) {
         <Panel title={t("panels.topOpposedPairs")}>
           <div className="space-y-3">
             {opposedPairs.map((pair) => (
-              <div key={pair.key} className="border border-zinc-900 bg-[#080808] p-3">
+              <div key={pair.key} className="border border-zinc-900 small-panel-color p-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
                   <div className={cls('text-sm', relationshipTone(pair.distance))}>{pair.relationship}</div>
@@ -4047,7 +4047,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-1.5 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em]"
+              className="flex items-center gap-1.5 border border-zinc-800 small-panel-color px-3 py-1.5 text-[10px] uppercase tracking-[0.22em]"
             >
               <Download size={11} />
               Export PDF
@@ -4179,7 +4179,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             }
           >
             <div className="grid gap-4 xl:grid-cols-2">
-              <div className="border border-zinc-900 bg-zinc-950 p-4">
+              <div className="border border-zinc-900 small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
                   Positioning Bias
                 </div>
@@ -4196,7 +4196,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                 </div>
               </div>
 
-              <div className="border border-zinc-900 bg-zinc-950 p-4">
+              <div className="border border-zinc-900 small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
                   Seasonal Curve
                 </div>
