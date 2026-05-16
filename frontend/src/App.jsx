@@ -3946,12 +3946,12 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-1.5 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
+              className="flex items-center gap-1.5 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em]"
             >
               <Download size={11} />
               Export PDF
             </button>
-            <span className="text-blue-400 text-xs uppercase tracking-[0.22em]">deep analysis</span>
+            <GuideButton sectionKey="explorer" openGuide={openGuide} />
           </div>
         }
       >
@@ -4450,7 +4450,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </Panel>
       ) : (<>
 
-      <Panel title="ranked live signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
+      <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
             
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Metric label="Tracked Signals" value={engine.counts.total} />
@@ -5321,7 +5321,7 @@ Red months = historically funds are positioned short.
   },
   {
     key: "signals",
-    title: "ranked live signal",
+    title: "Ranked Live Signal",
     icon: "⚡",
     color: "#f87171",
     summary: "Ranked list of active COT signals with quality scoring and lifecycle tracking.",
@@ -5425,9 +5425,19 @@ Use alignment as a regime confidence indicator alongside Macro Composite.`
   },
 ]
 
-function GuideView({ setActive }) {
-  const [openSection, setOpenSection] = useState(null)
+function GuideView({ setActive, initialSection = null }) {
+  const [openSection, setOpenSection] = useState(initialSection)
   const [openBlock, setOpenBlock]     = useState(null)
+
+  React.useEffect(() => {
+    if (initialSection) {
+      setOpenSection(initialSection)
+      setTimeout(() => {
+        const el = document.getElementById(`guide-section-${initialSection}`)
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+      }, 150)
+    }
+  }, [initialSection])
 
   const toggle = (sectionKey, blockIdx) => {
     const id = `${sectionKey}-${blockIdx}`
@@ -5460,7 +5470,7 @@ function GuideView({ setActive }) {
       {GUIDE_SECTIONS.map((section) => {
         const isOpen = openSection === section.key
         return (
-          <div key={section.key} className="border border-zinc-900 bg-[#0a0a0a] overflow-hidden"
+          <div key={section.key} id={`guide-section-${section.key}`} className="border border-zinc-900 bg-[#0a0a0a] overflow-hidden"
             style={{ borderRadius: "14px", borderColor: isOpen ? `${section.color}25` : undefined }}>
 
             {/* Section header — clickable */}
@@ -5787,7 +5797,8 @@ useEffect(() => {
   watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
   history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
-	correlation: <CorrelationView assets={assets} />, seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
+  correlation: <CorrelationView assets={assets} openGuide={openGuide}/>,
+  seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} />, 
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	guide: <GuideView setActive={setActive} initialSection={guideSection} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
