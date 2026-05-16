@@ -3043,8 +3043,8 @@ function MacroView({ assets, aiLanguage, openGuide }) {
             ))}
           </div>
 
-          <div className="mt-5 border-t border-zinc-900 pt-4 text-sm leading-7 text-zinc-300">
-            <span className="text-zinc-500">Verdict:</span> {macroVerdict(growthScore, inflationScore, policyScore, t)}
+          <div className="mt-5 pt-4 text-sm leading-7 text-blue-400">
+            <span className="text-rose-400">Verdict:</span> {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
         <MacroContextPanel aiLanguage={aiLanguage} />
