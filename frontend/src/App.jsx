@@ -1471,37 +1471,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
       collapsed ? 'w-0' : 'w-60'
     )}>
  
-      {/* Nav items — scrollable middle section */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 pt-4 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon
-          const isActive = active === item.key
-          return (
-            <button
-              key={item.key}
-              onClick={() => setActive(item.key)}
-              title={collapsed ? t(item.labelKey) : undefined}
-              className={cls(
-                'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
-                collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
-                isActive
-                ? 'border-blue-500 bg-blue-500/10 text-blue-300'
-                : 'border-transparent text-slate-500 hover:bg-blue-500/5 hover:text-slate-300'
-              )}
-            >
-              <Icon size={16} className="shrink-0" />
-              <span className={cls(
-                'whitespace-nowrap transition-all duration-200',
-                collapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'
-              )}>
-                {t(item.labelKey)}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
- 
-      {/* Logo — fixed at bottom */}
+       {/* Logo — fixed at bottom */}
       <div className={cls(
         'shrink-0 border-t border-zinc-900 transition-all duration-300',
         collapsed ? 'px-0 py-4 flex justify-center' : 'px-4 py-4'
@@ -1536,6 +1506,36 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
           </div>
         )}
       </div>
+      
+      {/* Nav items — scrollable middle section */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 pt-4 space-y-0.5">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon
+          const isActive = active === item.key
+          return (
+            <button
+              key={item.key}
+              onClick={() => setActive(item.key)}
+              title={collapsed ? t(item.labelKey) : undefined}
+              className={cls(
+                'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
+                collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
+                isActive
+                ? 'border-blue-500 bg-blue-500/10 text-blue-300'
+                : 'border-transparent text-slate-500 hover:bg-blue-500/5 hover:text-slate-300'
+              )}
+            >
+              <Icon size={16} className="shrink-0" />
+              <span className={cls(
+                'whitespace-nowrap transition-all duration-200',
+                collapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'
+              )}>
+                {t(item.labelKey)}
+              </span>
+            </button>
+          )
+        })}
+      </nav>
     </aside>
   )
 }
