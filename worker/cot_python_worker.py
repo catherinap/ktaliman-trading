@@ -82,9 +82,8 @@ ASSET_MAP = {
     'COPPER- #1 - COMMODITY EXCHANGE INC.':                    {'symbol': 'COPPER',   'name': 'Copper',             'sector': 'METALS'},
     'PLATINUM - NEW YORK MERCANTILE EXCHANGE':                  {'symbol': 'PLATINUM', 'name': 'Platinum',           'sector': 'METALS'},
     'PALLADIUM - NEW YORK MERCANTILE EXCHANGE':                 {'symbol': 'PALLADIUM','name': 'Palladium',          'sector': 'METALS'},
-    'CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE':  {'symbol': 'WTI', 'name': 'Crude Oil', 'sector': 'COMMODITIES'},
-    'CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE':        {'symbol': 'WTI', 'name': 'Crude Oil', 'sector': 'COMMODITIES'},
-    'WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE':  {'symbol': 'WTI', 'name': 'Crude Oil', 'sector': 'COMMODITIES'},
+    'CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE': {'symbol': 'WTI', 'name': 'Crude Oil WTI', 'sector': 'COMMODITIES'},
+    'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE':           {'symbol': 'WTI', 'name': 'Crude Oil WTI', 'sector': 'COMMODITIES'},
     'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE':              {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
     'HENRY HUB - NEW YORK MERCANTILE EXCHANGE':                 {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
     'COFFEE C - ICE FUTURES U.S.':                             {'symbol': 'COFFEE',   'name': 'Coffee',             'sector': 'COMMODITIES'},
@@ -113,14 +112,11 @@ def to_float(value):
     except Exception:
         return 0.0
 
-
 def lookup_asset(market: str):
-    market = str(market).strip().strip('"')
-    if 'ICE FUTURES EUROPE' in market.upper():
-        return None
-    normalized = normalize_market_name(market)
+    """Exact match only — no fuzzy normalization."""
+    market = str(market).strip().strip('"').strip()
     for key, asset in ASSET_MAP.items():
-        if normalize_market_name(key) == normalized:
+        if key.strip() == market:
             return asset
     return None
 
