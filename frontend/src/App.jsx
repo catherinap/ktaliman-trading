@@ -1801,21 +1801,17 @@ function ImpactBadge({ impact }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en" }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
   const news     = workspaceData?.news     || []
 
-  // ── Top active signals ───────────────────────────────────────────────────
   const topSignals = useMemo(() => {
     if (!assets.length) return []
     const engine = buildSignalEngine(assets, [], null)
-    return engine.signals
-      .filter((s) => s.state === "active")
-      .slice(0, 5)
+    return engine.signals.filter((s) => s.state === "active").slice(0, 6)
   }, [assets])
 
-  // ── Macro sleeve scores (same logic as MacroView) ────────────────────────
   const sleeveScores = useMemo(() => {
     const result = {}
     Object.entries(MACRO_SLEEVES).forEach(([key, config]) => {
@@ -1831,322 +1827,400 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
     { funds_percentile_3y: sleeveScores.policy },
   ])
 
-  // ── Alert feed ───────────────────────────────────────────────────────────
   const alertFeed = useMemo(() => {
     if (!assets.length) return []
     const engine = buildSignalEngine(assets, [], null)
     return engine.alerts.slice(0, 5)
   }, [assets])
 
+  // ── Large circular signal card ─────────────────────────────────────────────
+  const SignalCircleCard = ({ signal }) => {
+    const score  = signal.priorityScore ?? 0
+    const pct    = Math.max(0, Math.min(100, score)) / 100
+    const isLong = signal.direction === "long"
+    const isShort= signal.direction === "short"
+    const color  = isLong ? "#4ade80" : isShort ? "#f87171" : "#94a3b8"
+    const bgColor= isLong ? "rgba(74,222,128,0.06)" : isShort ? "rgba(248,113,113,0.06)" : "rgba(255,255,255,0.03)"
+    const borderC= isLong ? "rgba(74,222,128,0.18)" : isShort ? "rgba(248,113,113,0.18)" : "rgba(255,255,255,0.07)"
+    const size = 100, r = 38, cx = 50, cy = 50
+    const circ = 2 * Math.PI * r
+    const dash = circ * pct
+
+    return (
+      <button onClick={() => { setSelected(signal.symbol); setActive("explorer") }}
+        style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          padding: "14px 10px 12px",
+          background: bgColor, border: `1px solid ${borderC}`,
+          borderRadius: "14px", cursor: "pointer",
+          transition: "filter 0.15s, border-color 0.15s", width: "100%",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(1.15)"; e.currentTarget.style.borderColor = color + "40" }}
+        onMouseLeave={(e) => { e.currentTarget.style.filter = "brightness(1)"; e.currentTarget.style.borderColor = borderC }}
+      >
+        <div style={{ position: "relative", width: size, height: size }}>
+          <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
+              strokeDasharray={`${dash} ${circ - dash}`}
+              style={{ filter: `drop-shadow(0 0 5px ${color}60)`, transition: "stroke-dasharray 0.6s ease" }}
+            />
+          </svg>
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "12px", color, lineHeight: 1, marginBottom: "1px" }}>
+              {isLong ? "↑" : isShort ? "↓" : "→"}
+            </span>
+            <span style={{ fontSize: "20px", fontWeight: "700", color, lineHeight: 1 }}>
+              {Math.round(score)}
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: "8px", textAlign: "center" }}>
+          <div style={{ fontSize: "12px", fontWeight: "600", color: "#f1f5f9", lineHeight: 1.2 }}>
+            {signal.asset}
+          </div>
+          <div style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.14em",
+            color: "rgba(148,163,184,0.45)", marginTop: "3px" }}>
+            {signal.symbol} · {signal.sector}
+          </div>
+        </div>
+        <div style={{ marginTop: "6px", textAlign: "center" }}>
+          <div style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.2em",
+            fontWeight: "600", color }}>
+            {isLong ? "Long" : isShort ? "Short" : "Neutral"}
+          </div>
+          <div style={{ fontSize: "10px", color: "rgba(148,163,184,0.35)", marginTop: "2px" }}>
+            COT {formatPercentile(signal.percentile)}
+          </div>
+        </div>
+      </button>
+    )
+  }
+
+  const HeatmapCard = ({ a }) => {
+  const pct = a.funds_percentile_3y
+  const wow = a.funds_index_wow_change
+  const dir = a.funds_index_direction
+  const color  = pct >= 65 ? "#4ade80" : pct <= 35 ? "#f87171" : "#94a3b8"
+  const wowClr = wow > 0 ? "#4ade80" : wow < 0 ? "#f87171" : "#64748b"
+  const bg = pct >= 90 ? "rgba(248,113,113,0.18)" : pct >= 65 ? "rgba(74,222,128,0.1)"
+           : pct <= 10 ? "rgba(74,222,128,0.18)"  : pct <= 35 ? "rgba(248,113,113,0.1)"
+           : "rgba(255,255,255,0.03)"
+  const border = pct >= 90 ? "rgba(248,113,113,0.4)" : pct >= 65 ? "rgba(74,222,128,0.25)"
+               : pct <= 10 ? "rgba(74,222,128,0.4)"  : pct <= 35 ? "rgba(248,113,113,0.25)"
+               : "rgba(255,255,255,0.08)"
+  const arrow = dir === "rising" ? "↑" : dir === "falling" ? "↓" : "→"
+
+  return (
+    <button onClick={() => { setSelected(a.symbol); setActive("explorer") }}
+      title={a.name}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "flex-start",
+        padding: "4px 5px", borderRadius: "10px",
+        background: bg, border: `1px solid ${border}`,
+        cursor: "pointer", transition: "filter 0.15s", width: "100%",
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.15)"}
+      onMouseLeave={(e) => e.currentTarget.style.filter = "brightness(1)"}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <span style={{ fontSize: "8px", color: "rgba(148,163,184,0.6)", textTransform: "uppercase",
+          letterSpacing: "0.12em", lineHeight: 1 }}>{a.symbol}</span>
+        {wow != null && (
+          <span style={{ fontSize: "6px", color: wowClr, lineHeight: 1, fontWeight: 600 }}>
+            {arrow}{Math.abs(wow).toFixed(1)}
+          </span>
+        )}
+      </div>
+      <span style={{ fontSize: "12px", fontWeight: "700", color, lineHeight: 1.1, marginTop: "4px" }}>
+        {pct != null ? pct.toFixed(0) : "—"}
+      </span>
+      <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", marginTop: "4px",
+        textTransform: "uppercase", letterSpacing: "0.1em" }}>
+        {a.flow_state || "Neutral"}
+      </span>
+    </button>
+  )
+}
+
+  // ── News importance highlight ──────────────────────────────────────────────
+  const newsItemStyle = (item) => {
+    const imp = (item.importance || item.category || "").toLowerCase()
+    if (imp === "high" || imp === "critical") return {
+      borderLeft: "2px solid rgba(248,113,113,0.5)",
+      background: "rgba(248,113,113,0.04)",
+    }
+    return {}
+  }
+
   return (
     <div className="space-y-4">
 
-      {/* ── Row 1: AI Briefing + Macro Snapshot ─────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
 
-        <MacroContextPanel aiLanguage={aiLanguage} />
+        {/* LEFT col: Macro Context + Macro Regime stacked */}
+        <div className="space-y-4">
+          <MacroContextPanel aiLanguage={aiLanguage} />
 
-        {/* AI Weekly Briefing */}
-        <AIAnalysisPanel
-          type="macro"
-          data={{
-            growth_score:    sleeveScores.growth,
-            inflation_score: sleeveScores.inflation,
-            policy_score:    sleeveScores.policy,
-            composite:       macroComposite,
-            growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
-            inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
-            policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
-          }}
-          aiLanguage={aiLanguage}
-          title={aiLanguage === "uk" ? "AI — Weekly Briefing" : "AI — Weekly Briefing"}
-        />
-    
-        {/* Macro Snapshot */}
-        <section className="border bg-[#0f1629]" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em] text-slate-500" style={{ borderColor: 'var(--border-subtle)' }}>
-            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-              {t("panels.macroRegime")}
-            </span>
-            <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
-              {macroLabel(macroComposite, t)}
-            </span>
-          </div>
-          <div className="p-4">
-            {/* Three sleeves */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { key: "growth",    label: "Growth",    color: "text-emerald-400" },
-                { key: "inflation", label: "Inflation", color: "text-blue-400" },
-                { key: "policy",    label: "Policy",    color: "text-sky-400" },
-              ].map(({ key, label, color }) => {
-                const score = sleeveScores[key]
-                return (
-                  <div key={key} className="border border-zinc-900 bg-[#080808] p-3">
-                    <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>
-                      {label}
+          <section className="border border-zinc-900 bg-[#0a0a0a]">
+            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+              <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+                {t("panels.macroRegime")}
+              </span>
+              <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
+                {macroLabel(macroComposite, t)}
+              </span>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { key: "growth",    label: "Growth",    color: "text-emerald-400" },
+                  { key: "inflation", label: "Inflation", color: "text-blue-400" },
+                  { key: "policy",    label: "Policy",    color: "text-sky-400" },
+                ].map(({ key, label, color }) => {
+                  const score = sleeveScores[key]
+                  return (
+                    <div key={key} className="border border-zinc-900 bg-[#080808] p-3" style={{ borderRadius: "10px" }}>
+                      <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
+                      <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
+                        {score != null ? score.toFixed(1) : "n/a"}
+                      </div>
+                      <div className="mt-1 text-[10px] text-zinc-600">{macroLabel(score, t)}</div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <div className={cls("h-full rounded-full", macroTone(score).replace("text-", "bg-"))}
+                          style={{ width: `${Math.max(2, score ?? 0)}%`, transition: "width 0.6s ease" }} />
+                      </div>
                     </div>
-                    <div className={cls("mt-2 text-xl font-semibold", macroTone(score))}>
-                      {score != null ? formatPercentile(score) : "n/a"}
-                    </div>
-                    <div className="mt-1 text-[11px] text-zinc-600">
-                      {macroLabel(score, t)}
-                    </div>
-                    {/* Mini bar */}
-                    <div className="mt-2 h-1 overflow-hidden bg-zinc-900">
-                      <div
-                        className={cls("h-full", macroTone(score).replace("text-", "bg-"))}
-                        style={{ width: `${Math.max(4, score ?? 0)}%` }}
-                      />
-                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-3 border border-zinc-900 bg-zinc-950 p-3" style={{ borderRadius: "10px" }}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-[0.2em] text-zinc-600">Composite</span>
+                  <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
+                    {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
+                  </span>
+                </div>
+                <div className="mt-1.5 text-xs leading-5 text-zinc-500">
+                  {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* RIGHT col: Alert Feed + AI Briefing (fills remaining height) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <section className="border border-zinc-900 bg-[#0a0a0a]" style={{ flexShrink: 0 }}>
+            <div className="border-b border-zinc-900 px-4 py-3">
+              <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Alert Feed</span>
+            </div>
+            <div className="divide-y divide-zinc-900">
+              {alertFeed.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
+              ) : alertFeed.map((alert) => (
+                <div key={alert.id} className="px-4 py-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
+                    <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
+                      alertImpactTone(alert.impact))}>
+                      {alert.impact}
+                    </span>
                   </div>
-                )
-              })}
+                  <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
+                </div>
+              ))}
             </div>
+          </section>
 
-            {/* Composite + Verdict */}
-            <div className="mt-3 border border-zinc-900 bg-zinc-950 p-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="uppercase tracking-[0.2em] text-zinc-500">Composite</span>
-                <span className={cls("font-semibold", macroTone(macroComposite))}>
-                  {macroComposite != null ? formatPercentile(macroComposite) : "n/a"}
-                </span>
-              </div>
-              <div className="mt-2 text-sm leading-6 text-zinc-400">
-                {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
-              </div>
-            </div>
-          </div>
-        </section>
+          {/* AI Briefing fills remaining space + expands with content */}
+          <AIAnalysisPanel
+            type="macro"
+            data={{
+              growth_score:     sleeveScores.growth,
+              inflation_score:  sleeveScores.inflation,
+              policy_score:     sleeveScores.policy,
+              composite:        macroComposite,
+              growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+              inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+              policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+            }}
+            aiLanguage={aiLanguage}
+            title="AI — Weekly Briefing"
+            fillHeight={true}
+          />
+        </div>
       </div>
 
-      {/* ── Row 2: Top Signals + Alert Feed ─────────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      {/* ══ ROW 2: 2 equal cols ══════════════════════════════════════════════ */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
 
-        {/* Top Active Signals */}
+        {/* LEFT: Top Active Signals — 3×2 circles */}
         <section className="border border-zinc-900 bg-[#0a0a0a]">
           <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-              {aiLanguage === "uk" ? "Топ активні сигнали" : "Top Active Signals"}
+              Top Active Signals
             </span>
-            <button
-              onClick={() => setActive("signals")}
-              className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:text-zinc-300 transition"
-            >
-              {aiLanguage === "uk" ? "Всі сигнали →" : "All signals →"}
+            <button onClick={() => setActive("signals")}
+              className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 hover:text-zinc-300 transition">
+              All →
             </button>
           </div>
-
-          <div className="divide-y divide-zinc-900">
+          <div className="p-4">
             {topSignals.length === 0 ? (
-              <div className="px-4 py-5 text-sm text-zinc-600">
-                {aiLanguage === "uk"
-                  ? "Активних сигналів немає. Перейди у вкладку Signals для повного списку."
-                  : "No active signals right now. Check the Signals tab for all candidates."}
+              <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
               </div>
-            ) : topSignals.map((signal) => (
-              <button
-                key={signal.id}
-                onClick={() => { setSelected(signal.symbol); setActive("explorer") }}
-                className="w-full px-4 py-3 text-left hover:bg-zinc-900/40 transition"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {/* Direction dot */}
-                    <div className={cls(
-                      "h-2 w-2 shrink-0 rounded-full",
-                      signal.direction === "long"  ? "bg-emerald-400" :
-                      signal.direction === "short" ? "bg-rose-400"    : "bg-zinc-600"
-                    )} />
-                    <div>
-                      <div className="text-sm text-zinc-100">{signal.asset}</div>
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-600">
-                        {signal.symbol} · {signal.sector}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <div className={cls("text-xs uppercase tracking-[0.18em]", directionTone(signal.direction))}>
-                        {directionLabel(signal.direction)}
-                      </div>
-                      <div className="text-[11px] text-zinc-600">
-                        COT {formatPercentile(signal.percentile)}
-                      </div>
-                    </div>
-                    <div className="border border-zinc-800 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-zinc-400">
-                      {formatPercentile(signal.priorityScore)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quality bar */}
-                <div className="mt-2 h-0.5 overflow-hidden bg-zinc-900">
-                  <div
-                    className={cls(
-                      "h-full",
-                      signal.direction === "long"  ? "bg-emerald-500/60" :
-                      signal.direction === "short" ? "bg-rose-500/60"    : "bg-zinc-600"
-                    )}
-                    style={{ width: `${Math.max(4, signal.entryQualityScore)}%` }}
-                  />
-                </div>
-              </button>
-            ))}
+            )}
           </div>
         </section>
 
-        {/* Alert Feed */}
+        {/* RIGHT: COT Heatmap compact */}
         <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="border-b border-zinc-900 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-              {aiLanguage === "uk" ? "Алерти" : "Alert Feed"}
+              {t("panels.cotFlowHeatmap")}
             </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-zinc-700">0</span>
+              <div style={{ width: "60px", height: "3px", borderRadius: "2px",
+                background: "linear-gradient(90deg, #f87171, rgba(148,163,184,0.3) 50%, #4ade80)" }} />
+              <span className="text-[9px] text-zinc-700">100</span>
+            </div>
           </div>
-          <div className="divide-y divide-zinc-900">
-            {alertFeed.length === 0 ? (
-              <div className="px-4 py-5 text-sm text-zinc-600">
-                {aiLanguage === "uk" ? "Алертів немає." : "No alerts right now."}
-              </div>
-            ) : alertFeed.map((alert) => (
-              <div key={alert.id} className="px-4 py-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="text-sm text-zinc-200">{alert.title}</div>
-                  <span className={cls(
-                    "shrink-0 border px-2 py-0.5 text-[10px] uppercase tracking-[0.2em]",
-                    alertImpactTone(alert.impact)
-                  )}>
-                    {alert.impact}
-                  </span>
+          <div className="px-4 py-3 space-y-3">
+            {Object.entries(heatmap || {}).map(([sector, items]) => (
+              <div key={sector}>
+                <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
+                  style={{ color: "rgba(148,163,184,0.35)" }}>{sector}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: "6px" }}>
+                  {items.map((a) => <HeatmapCard key={a.symbol} a={a} />)}
                 </div>
-                <div className="mt-1 text-xs leading-5 text-zinc-500">{alert.text}</div>
               </div>
             ))}
           </div>
         </section>
       </div>
 
-      {/* ── Row 3: COT Heatmap ───────────────────────────────────────────── */}
-      <section className="border border-zinc-900 bg-[#0a0a0a]">
-        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-            {t("panels.cotFlowHeatmap")}
-          </span>
-          <span className="text-[11px] uppercase tracking-[0.22em] text-emerald-400">live data</span>
-        </div>
-        <div className="p-4 space-y-5">
-          {Object.entries(heatmap || {}).map(([sector, items]) => (
-            <div key={sector}>
-              <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{sector}</div>
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                {items.map((a) => (
-                  <button
-                    key={a.symbol}
-                    onClick={() => { setSelected(a.symbol); setActive("explorer") }}
-                    className="border border-zinc-900 bg-[#080808] p-3 text-left hover:border-zinc-700 transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-zinc-100">{a.name}</div>
-                      <div className={cls("text-sm font-semibold", flowColor(a.funds_percentile_3y))}>
-                        {formatPercentile(a.funds_percentile_3y)}
-                      </div>
-                    </div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-zinc-500">{a.symbol}</div>
-                    <div className="mt-2 h-1 overflow-hidden bg-zinc-900">
-                      <div
-                        className={cls("h-full", flowColor(a.funds_percentile_3y).replace("text-", "bg-"))}
-                        style={{ width: `${Math.max(4, a.funds_percentile_3y ?? 0)}%` }}
-                      />
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <div className={cls("text-[11px] uppercase tracking-[0.2em]", flowColor(a.funds_percentile_3y))}>
-                        {a.flow_state || "Neutral"}
-                      </div>
-                      <MomentumBadge asset={a} size="sm" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Row 4: Calendar + News ───────────────────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-2">
+      {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
 
         {/* Economic Calendar */}
-        <section className="border border-zinc-800 bg-black/40">
-          <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-            {t("panels.economicCalendar")}
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+              {t("panels.economicCalendar")}
+            </span>
           </div>
           <div className="divide-y divide-zinc-900">
             {calendar.length === 0 ? (
-              <div className="px-5 py-5 text-sm text-zinc-500">
-                {aiLanguage === "uk" ? "Даних календаря немає." : "No calendar events available."}
-              </div>
-            ) : calendar.map((event) => (
-              <div key={event.id} className="grid grid-cols-[72px_72px_1fr_56px] gap-3 px-5 py-4 text-sm">
-                <div className="text-zinc-200">{formatClockTime(event.datetime)}</div>
-                <div className="text-zinc-500">{event.currency || event.country || ""}</div>
-                <div className="text-zinc-100">
-                  <div>{event.title || "TBD"}</div>
-                  <div className="mt-1 text-xs text-zinc-500">
-                    {event.actual    != null ? `Actual: ${event.actual}`       : "Actual: n/a"}
-                    {" · "}
-                    {event.forecast  != null ? `Forecast: ${event.forecast}`   : "Forecast: n/a"}
-                    {" · "}
-                    {event.previous  != null ? `Previous: ${event.previous}`   : "Previous: n/a"}
+              <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
+            ) : calendar.slice(0, 8).map((event) => {
+              const isHigh = (event.importance || "").toLowerCase() === "high"
+              return (
+                <div key={event.id} className="px-4 py-2.5"
+                  style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.5)", background: "rgba(248,113,113,0.03)" } : {}}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs tabular-nums text-zinc-400 shrink-0">
+                        {formatClockTime(event.datetime)}
+                      </span>
+                      <span className="text-[10px] uppercase text-zinc-600 shrink-0">
+                        {event.currency || event.country || ""}
+                      </span>
+                      <span className="text-sm text-zinc-200 truncate">{event.title || "TBD"}</span>
+                    </div>
+                    <span className={cls("text-[10px] uppercase tracking-[0.15em] shrink-0",
+                      importanceTone(event.importance))}>
+                      {event.importance || ""}
+                    </span>
                   </div>
+                  {(event.forecast != null || event.previous != null) && (
+                    <div className="mt-0.5 text-[10px] text-zinc-600 pl-0">
+                      {event.forecast != null ? `Fc ${event.forecast}` : ""}
+                      {event.previous != null ? ` · Prv ${event.previous}` : ""}
+                    </div>
+                  )}
                 </div>
-                <div className={cls("text-right uppercase", importanceTone(event.importance))}>
-                  {event.importance || "n/a"}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
 
         {/* Market News */}
-        <section className="border border-zinc-800 bg-black/40">
-          <div className="border-b border-zinc-900 px-5 py-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-            {t("panels.marketNews")}
+        <section className="border border-zinc-900 bg-[#0a0a0a]">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+              {t("panels.marketNews")}
+            </span>
           </div>
           <div className="divide-y divide-zinc-900">
             {news.length === 0 ? (
-              <div className="px-5 py-5 text-sm text-zinc-500">
-                {aiLanguage === "uk" ? "Новин немає." : "No market news available."}
-              </div>
+              <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
             ) : news.slice(0, 6).map((item) => {
-              const url   = item.url && item.url !== "#" ? item.url : null
+              const url = item.url && item.url !== "#" ? item.url : null
+              const style = newsItemStyle(item)
               return (
-                <a
-                  key={item.id}
-                  href={url || undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block px-5 py-4 transition-colors hover:bg-zinc-950/70"
+                <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
+                  className="block px-4 py-2.5 transition" style={{ textDecoration: "none", ...style }}
                   onClick={(e) => { if (!url) e.preventDefault() }}
+                  onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent" }}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em]">
-                    <span className={categoryTone(item.category)}>{item.category}</span>
-                    <span className="text-zinc-500">{item.source}</span>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className={cls("text-[9px] uppercase tracking-[0.18em]", categoryTone(item.category))}>
+                      {item.category}
+                    </span>
+                    <span className="text-[9px] text-zinc-600 shrink-0">{item.source}</span>
                   </div>
-                  <div className="text-sm leading-6 text-zinc-100">{item.title || "Untitled"}</div>
-                  <div className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">
-                    {item.summary || ""}
-                  </div>
+                  <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
                 </a>
               )
             })}
+          </div>
+        </section>
+
+        {/* Guide / Help panel */}
+        <section className="border border-zinc-900 bg-[#0a0a0a] flex flex-col">
+          <div className="border-b border-zinc-900 px-4 py-3">
+            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+              Platform Guide
+            </span>
+          </div>
+          <div className="flex flex-col gap-3 p-4 flex-1">
+            <p className="text-sm text-zinc-500 leading-6">
+              New to COT analysis? The Guide tab contains detailed instructions for reading and interpreting each section of the platform.
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { label: "How to read COT Index", key: "cot" },
+                { label: "Signal lifecycle explained", key: "signals" },
+                { label: "Macro regime framework", key: "macro" },
+              ].map((item) => (
+                <button key={item.key} onClick={() => setActive("guide")}
+                  className="w-full text-left text-s text-zinc-600 hover:text-blue-400 transition py-1"
+                  style={{ background: "none", border: "none", cursor: "pointer" }}>
+                  → {item.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setActive("guide")}
+              className="mt-auto border border-zinc-800 py-2.5 text-[11px] uppercase tracking-[0.22em] text-zinc-400 hover:border-blue-500/40 hover:text-blue-300 transition w-full"
+              style={{ borderRadius: "8px" }}
+            >
+              Open Platform Guide →
+            </button>
           </div>
         </section>
       </div>
     </div>
   )
 }
-
 function HistoricalDataView({ assets }) {
   const { t } = useTranslation()
 

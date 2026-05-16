@@ -1,45 +1,23 @@
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Renders GPT response text.
- * Converts **bold:** markdown to styled spans — no external library needed.
- */
 function renderAIText(text) {
   if (!text) return null;
-
-  // Split by lines, then process bold within each line
   return text.split("\n").map((line, i) => {
     if (!line.trim()) return <div key={i} className="h-3" />;
-
-    // Replace **text:** with styled span
     const parts = line.split(/(\*\*[^*]+\*\*)/g);
     const rendered = parts.map((part, j) => {
       if (part.startsWith("**") && part.endsWith("**")) {
-        return (
-          <span key={j} className="text-zinc-100 font-semibold">
-            {part.slice(2, -2)}
-          </span>
-        );
+        return <span key={j} className="text-zinc-100 font-semibold">{part.slice(2, -2)}</span>;
       }
       return <span key={j}>{part}</span>;
     });
-
-    return (
-      <div key={i} className="leading-7">
-        {rendered}
-      </div>
-    );
+    return <div key={i} className="leading-7">{rendered}</div>;
   });
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
 /**
  * AIAnalysisPanel
- *
  * Props:
  *   type        — "asset" | "macro" | "signals"
  *   data        — object passed to the backend prompt builder
@@ -47,6 +25,7 @@ function renderAIText(text) {
  *   title       — panel header string (optional)
  *   autoLoad    — if true, fetches on mount (default false)
  *   compact     — if true, uses smaller padding (default false)
+ *   fillHeight  — if true, section stretches to fill parent flex height
  */
 export default function AIAnalysisPanel({
   type,
@@ -55,9 +34,10 @@ export default function AIAnalysisPanel({
   title,
   autoLoad = false,
   compact = false,
+  fillHeight = false,
 }) {
   const { t } = useTranslation();
-  const [state, setState] = useState("idle"); // idle | loading | done | error
+  const [state, setState] = useState("idle");
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [lastLanguage, setLastLanguage] = useState(null);
@@ -66,19 +46,16 @@ export default function AIAnalysisPanel({
     setState("loading");
     setError("");
     setText("");
-
     try {
       const res = await fetch("/api/gpt/ai-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type, language: aiLanguage, data }),
       });
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || `HTTP ${res.status}`);
       }
-
       const json = await res.json();
       setText(json.text || "");
       setLastLanguage(aiLanguage);
@@ -89,21 +66,21 @@ export default function AIAnalysisPanel({
     }
   }, [type, aiLanguage, data]);
 
-  // Auto-load on mount if requested
   React.useEffect(() => {
     if (autoLoad) fetch_analysis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // If language changed after a result, show a "regenerate" hint
   const languageChanged = state === "done" && lastLanguage !== null && lastLanguage !== aiLanguage;
-
   const panelTitle = title || (aiLanguage === "uk" ? "AI-Аналіз" : "AI Analysis");
 
   return (
-    <section className="border border-zinc-800 bg-[#0a0a0a]">
+    <section
+      className="border border-zinc-800 bg-[#0a0a0a]"
+      style={fillHeight ? { display: "flex", flexDirection: "column", flex: 1 } : {}}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-violet-400" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
@@ -115,7 +92,6 @@ export default function AIAnalysisPanel({
             </span>
           )}
         </div>
-
         <button
           onClick={fetch_analysis}
           disabled={state === "loading"}
@@ -131,25 +107,20 @@ export default function AIAnalysisPanel({
           ].join(" ")}
         >
           {state === "loading"
-            ? aiLanguage === "uk"
-              ? "Аналізую..."
-              : "Analysing..."
+            ? aiLanguage === "uk" ? "Аналізую..." : "Analysing..."
             : languageChanged
-            ? aiLanguage === "uk"
-              ? "Оновити мову"
-              : "Update language"
+            ? aiLanguage === "uk" ? "Оновити мову" : "Update language"
             : state === "done"
-            ? aiLanguage === "uk"
-              ? "Оновити"
-              : "Refresh"
-            : aiLanguage === "uk"
-            ? "Згенерувати аналіз"
-            : "Generate analysis"}
+            ? aiLanguage === "uk" ? "Оновити" : "Refresh"
+            : aiLanguage === "uk" ? "Згенерувати аналіз" : "Generate analysis"}
         </button>
       </div>
 
-      {/* Body */}
-      <div className={compact ? "px-4 py-3" : "px-4 py-4"}>
+      {/* Body — fills remaining height when fillHeight=true */}
+      <div
+        className={compact ? "px-4 py-3" : "px-4 py-4"}
+        style={fillHeight ? { flex: 1 } : {}}
+      >
         {state === "idle" && (
           <p className="text-sm text-zinc-600">
             {aiLanguage === "uk"
@@ -157,32 +128,23 @@ export default function AIAnalysisPanel({
               : "Press the button to get an AI interpretation of current data."}
           </p>
         )}
-
         {state === "loading" && (
           <div className="space-y-2.5">
             {[100, 88, 75, 60].map((w, i) => (
-              <div
-                key={i}
-                className="h-3 animate-pulse rounded bg-zinc-800"
-                style={{ width: `${w}%` }}
-              />
+              <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
             ))}
           </div>
         )}
-
         {state === "error" && (
           <div className="border border-rose-900/50 bg-rose-950/20 p-3 text-sm text-rose-400">
-            {aiLanguage === "uk" ? "Помилка: " : "Error: "}
-            {error}
+            {aiLanguage === "uk" ? "Помилка: " : "Error: "}{error}
           </div>
         )}
-
         {state === "done" && text && (
           <div className="space-y-1 text-sm text-zinc-300">
             {renderAIText(text)}
           </div>
         )}
-
         {languageChanged && state === "done" && (
           <div className="mt-3 border-t border-zinc-900 pt-3 text-[11px] text-zinc-600">
             {aiLanguage === "uk"
