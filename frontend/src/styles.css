@@ -7,9 +7,9 @@
 /* ── Background ─────────────────────────────────────────────────────────── */
 body {
   margin: 0;
-  color: #e2e8f0;
+  color: #f2f7ff;
   min-height: 100vh;
-  background: linear-gradient(135deg, #05080f 0%, #071020 35%, #0a1838 65%, #0c1e45 100%) !important;
+  background: linear-gradient(145deg, #010918 50%, #0b1837 85%, #0d214f 100%) !important;
   background-attachment: fixed !important;
 }
 
@@ -27,7 +27,7 @@ aside {
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  background: rgba(4,7,18,0.92) !important;
+  background: linear-gradient(165deg, #01050f 15%, #040f22 55%, #07173b 85%) !important;
   border-right: 1px solid rgba(59,130,246,0.12) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
@@ -83,8 +83,8 @@ aside button:not([class*="border-blue-5"]):not([class*="border-amber-4"]):hover 
 section {
   border-radius: 14px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(255,255,255,0.07) !important;
-  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(203, 206, 247, 0.07) !important;
+  background: rgb(59 130 246 / 3%) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
@@ -95,23 +95,23 @@ section {
 [class*="bg-\[#0a0a0a\]"],
 [class*="bg-\[#0d0d0d\]"],
 .bg-zinc-950 {
-  background: rgba(255,255,255,0.04) !important;
-  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: rgb(59 130 246 / 4%) !important;
+  border: 1px solid rgba(203, 206, 247, 0.07) !important;
   border-radius: 10px !important;
   backdrop-filter: blur(12px) !important;
 }
 [class*="bg-black\\/"] {
-  background: rgba(255,255,255,0.03) !important;
+  background: rgb(59 130 246 / 3%) !important;
   backdrop-filter: blur(16px) !important;
 }
 
 /* ALL borders → subtle white */
 [class*="border-zinc-900"],
 [class*="border-zinc-800"] {
-  border-color: rgba(255,255,255,0.07) !important;
+  border: 1px solid rgba(203, 206, 247, 0.07) !important;
 }
 [class*="divide-zinc-900"] > * + * {
-  border-top-color: rgba(255,255,255,0.05) !important;
+  border-top-color: rgba(191, 193, 250, 0.05) !important;
 }
 
 /* Rounded corners on ALL bordered divs EXCEPT table cells */
