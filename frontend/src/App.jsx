@@ -3106,20 +3106,6 @@ function MacroView({ assets, aiLanguage }) {
               </div>
             ))}
           </div>
-		  <AIAnalysisPanel
-          type="macro"
-          data={{
-            growth_score: growthScore,
-            inflation_score: inflationScore,
-            policy_score: policyScore,
-            composite: macroComposite,
-            growth_assets: sleeveData.find((x) => x.key === "growth")?.members || [],
-            inflation_assets: sleeveData.find((x) => x.key === "inflation")?.members || [],
-            policy_assets: sleeveData.find((x) => x.key === "policy")?.members || [],
-          }}
-          aiLanguage={aiLanguage}
-          title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
-        />
         </Panel>
       </div>
 
