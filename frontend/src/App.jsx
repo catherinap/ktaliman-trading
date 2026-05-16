@@ -1324,7 +1324,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
         <div className="pdf-section-title">Setup Analysis</div>
         <div style={{ border: "1px solid #27272a", padding: "12px", background: "#0a0a0a", fontSize: "11px", color: "#a1a1aa", lineHeight: "1.7" }}>
           <div style={{ color: "#f4f4f5", fontWeight: "600", marginBottom: "6px" }}>{profile.setupBias}</div>
-          <div>{profile.setupSummary}</div>
+          <div className="text-sm leading-6 text-zinc-300">{profile.setupSummary}</div>
           <div style={{ marginTop: "8px", color: "#71717a" }}>{profile.contextualInterpretation}</div>
         </div>
       </div>
@@ -1506,7 +1506,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
           </div>
         )}
       </div>
-      
+
       {/* Nav items — scrollable middle section */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 pt-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
@@ -3830,6 +3830,28 @@ function Summary({ assets, setActive, setSelected, openGuide }) {
  )
 }
 
+function renderNarrative(text) {
+  if (!text) return null
+  return text.split('\n').map((line, i) => {
+    if (!line.trim()) return <div key={i} className="h-2" />
+    // **Label:** Value → uppercase bold label + value
+    const match = line.match(/^\*\*(.+?):\*\*\s*(.*)/)
+    if (match) {
+      return (
+        <div key={i} className="mb-2">
+          <span style={{ fontSize: '10px', letterSpacing: '0.2em', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+            {match[1]}
+          </span>
+          {match[2] && (
+            <div className="mt-0.5 text-sm leading-6 text-zinc-300">{match[2]}</div>
+          )}
+        </div>
+      )
+    }
+    return <div key={i} className="text-sm leading-6 text-zinc-300 mb-1">{line}</div>
+  })
+}
+
 function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, seasonalityData = [] }) {
   const { t } = useTranslation();
 
@@ -3854,68 +3876,116 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       .slice(0, 4);
   }, [sectorItems, asset]);
 
+  // ── Asset narrative engine ────────────────────────────────────────────────
+  // Replace the existing profile useMemo (line ~3837) with this version
   const profile = useMemo(() => {
     if (!asset) return null;
 
-    const pct = Number(asset.funds_percentile_3y);
-    const safePct = Number.isNaN(pct) ? 50 : pct;
-    const conviction = Math.abs(safePct - 50) * 2;
+    const pct   = Number(asset.funds_percentile_3y);
+    const safe  = Number.isNaN(pct) ? 50 : pct;
+    const wow   = asset.funds_index_wow_change;
+    const dir   = asset.funds_index_direction;
+    const mom   = asset.funds_index_momentum;
+    const accel = asset.funds_index_acceleration;
+    const avg3w = asset.funds_index_3w_avg;
+    const avg8w = asset.funds_index_8w_avg;
+    const flow  = asset.flow_state || "Neutral";
+    const name  = asset.name;
+    const sym   = asset.symbol;
+
+    const conviction = Math.abs(safe - 50) * 2;
 
     const crowding =
-      safePct >= 90 || safePct <= 10
-        ? "Extreme"
-        : safePct >= 75 || safePct <= 25
-          ? "Elevated"
-          : "Moderate";
+      safe >= 90 || safe <= 10 ? "Extreme" :
+      safe >= 75 || safe <= 25 ? "Elevated" : "Moderate";
 
+    // ── Setup Bias ────────────────────────────────────────────────────────────
     const setupBias =
-      safePct >= 65
-        ? "Bullish Context"
-        : safePct <= 35
-          ? "Bearish Context"
-          : "Balanced Context";
+      safe >= 90 ? "Long Extreme" :
+      safe >= 65 ? "Bullish Context" :
+      safe <= 10 ? "Short Extreme" :
+      safe <= 35 ? "Bearish Context" : "Balanced";
 
-    const setupSummary =
-      safePct >= 65
-        ? `${asset.name} is sitting in the upper part of its positioning range, so the current backdrop leans constructive rather than neutral.`
-        : safePct <= 35
-          ? `${asset.name} is sitting in the lower part of its positioning range, so the current backdrop leans defensive or short-biased.`
-          : `${asset.name} is in a middle positioning zone, so the setup is more balanced and needs extra confirmation.`;
+    // ── Momentum sentence ────────────────────────────────────────────────────
+    const wowAbs = wow != null ? Math.abs(wow).toFixed(1) : null;
+    let momentumLine = "";
+    if (wow != null && wowAbs !== null) {
+      const wowDir = wow > 0 ? "added" : "reduced";
+      const wowSize = Math.abs(wow) >= 10 ? "sharply" : Math.abs(wow) >= 5 ? "meaningfully" : "modestly";
+      momentumLine = `This week funds ${wowDir} exposure ${wowSize} (${wow > 0 ? "+" : ""}${wow.toFixed(1)} index points).`;
+    }
 
-    const contextualInterpretation =
-      safePct >= 90
-        ? "This is a crowded long environment. Momentum can persist, but the setup also becomes more sensitive to reversals or disappointment."
-        : safePct >= 65
-          ? "Funds are leaning long without being at the most extreme zone. This is often the healthiest area for a trend continuation thesis."
-          : safePct <= 10
-            ? "This is a crowded short environment. Pressure can continue, but the asset also becomes vulnerable to sharp short-covering moves."
-            : safePct <= 35
-              ? "Funds are leaning short, which supports a defensive read unless other evidence starts to improve."
-              : "Positioning alone is not decisive here. The asset needs price structure, macro context, or cross-asset confirmation to become more actionable.";
+    const trendLine = accel === "accelerating"
+      ? "The move is accelerating — institutional conviction is growing."
+      : accel === "decelerating"
+      ? "The move is decelerating — watch for a potential stall or reversal."
+      : accel === "stable"
+      ? "The pace of positioning change is stable."
+      : "";
+
+    const avgLine = avg3w != null && avg8w != null
+      ? `Short-term average (3w: ${avg3w.toFixed(1)}) is ${avg3w > avg8w ? "above" : "below"} the medium-term average (8w: ${avg8w.toFixed(1)}), suggesting a ${avg3w > avg8w ? "strengthening" : "weakening"} trend.`
+      : "";
+
+    // ── Setup Summary (rich, specific) ────────────────────────────────────────
+    let setupSummary = "";
+    if (safe >= 90) {
+      setupSummary = `${name} is at a 3-year positioning extreme — funds hold their largest long position of the cycle. At this level (${safe.toFixed(0)}), the setup is powerful but fragile: any macro surprise or data miss can trigger rapid liquidation. The edge belongs to those already positioned, not those entering fresh.`;
+    } else if (safe >= 65) {
+      setupSummary = `${name} sits firmly in the bullish positioning zone at ${safe.toFixed(0)} on the 3-year scale. Funds are clearly leaning long — this is the most reliable range for trend continuation trades. The setup favors dip-buyers over faders.`;
+    } else if (safe <= 10) {
+      setupSummary = `${name} is at a 3-year short extreme (${safe.toFixed(0)}). Funds are as bearish as they have been in years. While pressure can continue, this level of crowding historically creates squeeze risk — even a neutral catalyst can cause sharp covering.`;
+    } else if (safe <= 35) {
+      setupSummary = `${name} is in a bearish positioning zone at ${safe.toFixed(0)}. Funds hold a net short bias. This level supports a defensive read — the path of least resistance is downward unless positioning shows signs of improvement.`;
+    } else {
+      setupSummary = `${name} sits in a neutral zone at ${safe.toFixed(0)} — neither convincingly long nor short. This area requires additional context: macro backdrop, price structure, or cross-asset confirmation before taking a directional view.`;
+    }
+
+    // ── Contextual Interpretation (layered) ──────────────────────────────────
+    let contextualInterpretation = "";
+
+    // Part 1: positioning context
+    if (safe >= 90) {
+      contextualInterpretation += `**Crowded long.** Funds are at cycle highs. The risk here is asymmetric — upside potential is limited while downside from a positioning unwind is significant. This doesn't mean sell immediately, but it means size conservatively and have a clear exit plan.\n\n`;
+    } else if (safe >= 65) {
+      contextualInterpretation += `**Constructive positioning.** This is the sweet spot for trend trades. Funds have conviction but are not yet at extremes. Look for entries on pullbacks rather than chasing strength.\n\n`;
+    } else if (safe <= 10) {
+      contextualInterpretation += `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive surprise could trigger a sharp short-covering rally. Use tight stops if holding short.\n\n`;
+    } else if (safe <= 35) {
+      contextualInterpretation += `**Bearish positioning.** Funds lean short without being at extremes. The backdrop supports selling rallies rather than buying dips. Momentum needs to confirm before adding exposure.\n\n`;
+    } else {
+      contextualInterpretation += `**Neutral zone.** Positioning alone provides no directional edge. Conviction comes from other sources — seasonality, macro regime, or price breakout — not from COT data alone.\n\n`;
+    }
+
+    // Part 2: momentum context
+    if (trendLine) contextualInterpretation += `${trendLine} `;
+    if (momentumLine) contextualInterpretation += `${momentumLine} `;
+    if (avgLine) contextualInterpretation += `\n\n${avgLine}`;
+
+    // ── Trading commentary (actionable) ──────────────────────────────────────
+    let gptCommentary = "";
+    if (safe >= 90) {
+      gptCommentary = `**Positioning edge:** None from a fresh long entry — risk is skewed to the downside from here.\n\n**Trade approach:** If already long, trail stops and reduce size. Avoid adding. Watch for first signs of positioning deterioration (COT drops below 80) before re-evaluating.\n\n**Key risk:** Macro shock or weak data print triggers fund liquidation — can move fast and without warning at these levels.`;
+    } else if (safe >= 65) {
+      gptCommentary = `**Positioning edge:** Long bias is confirmed — use weakness as an opportunity.\n\n**Trade approach:** Buy dips within the trend. Keep stops below recent swing lows. This is not a "sell the extreme" situation yet — the bias remains intact.\n\n**Key level to watch:** If COT drops below 55, reassess the bullish bias — it may signal the trend is losing institutional support.`;
+    } else if (safe <= 10) {
+      gptCommentary = `**Positioning edge:** Squeeze potential is high — be cautious on fresh shorts.\n\n**Trade approach:** Avoid adding to shorts here. If the price breaks above resistance, it may signal the start of a covering rally. Watch for COT crossing above 15 as early confirmation.\n\n**Key risk:** Short squeeze — can be violent at these positioning extremes.`;
+    } else if (safe <= 35) {
+      gptCommentary = `**Positioning edge:** Bearish bias is supported — rallies are selling opportunities.\n\n**Trade approach:** Fade strength rather than chasing breakdown. The setup favors selling into bounces with stops above recent swing highs.\n\n**Key level to watch:** If COT rises above 45, the bearish thesis weakens — funds may be covering and the trend could be losing steam.`;
+    } else {
+      gptCommentary = `**Positioning edge:** None — neutral positioning means neither bulls nor bears have institutional backing.\n\n**Trade approach:** Keep ${sym} on the watchlist but do not force a trade. Wait for COT to move decisively above 65 or below 35 before committing.\n\n**Best use:** Use this asset for cross-asset context, not as a standalone trade.`;
+    }
 
     const checklist = [
-      { label: "COT regime agrees with bias", pass: safePct >= 65 || safePct <= 35 },
-      { label: "Flow state is directional", pass: (asset.flow_state || "Neutral") !== "Neutral" },
-      { label: "Not in the most crowded zone", pass: safePct < 90 && safePct > 10 },
-      { label: "Cross-asset confirmation needed", pass: safePct >= 65 || safePct <= 35 },
+      { label: "COT regime agrees with bias",     pass: safe >= 65 || safe <= 35 },
+      { label: "Flow state is directional",        pass: flow !== "Neutral" },
+      { label: "Not in the most crowded zone",     pass: safe < 90 && safe > 10 },
+      { label: "Momentum confirms direction",      pass: accel === "accelerating" },
     ];
 
-    const gptCommentary =
-      safePct >= 65
-        ? `Base case: treat ${asset.symbol} as a constructive asset until positioning weakens. The preferred use case is continuation or pullback logic, not blind breakout chasing.`
-        : safePct <= 35
-          ? `Base case: treat ${asset.symbol} as a defensive or short-biased asset until positioning improves. The preferred use case is weakness continuation or cautious fade planning around resistance.`
-          : `Base case: keep ${asset.symbol} on watch rather than forcing conviction. The current positioning profile is informative, but not strong enough to stand alone.`;
-
     return {
-      pct: safePct,
-      conviction,
-      crowding,
-      setupBias,
-      setupSummary,
-      contextualInterpretation,
-      checklist,
-      gptCommentary,
+      pct: safe, conviction, crowding, setupBias,
+      setupSummary, contextualInterpretation, gptCommentary, checklist,
     };
   }, [asset]);
 
@@ -4077,14 +4147,14 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 
           <div className="grid gap-4 xl:grid-cols-2">
             <Panel title={t("panels.contextualInterpretation")}>
-              <div className="text-sm leading-7 text-zinc-300">
-                {profile.contextualInterpretation}
+              <div className="space-y-1">
+                {renderNarrative(profile.contextualInterpretation)}
               </div>
             </Panel>
 
-            <Panel title={t("panels.gptCommentaryLayer")}>
-              <div className="text-sm leading-7 text-zinc-300">
-                {profile.gptCommentary}
+                        <Panel title={t("panels.gptCommentaryLayer")}>
+              <div className="space-y-1">
+                {renderNarrative(profile.gptCommentary)}
               </div>
             </Panel>
           </div>
