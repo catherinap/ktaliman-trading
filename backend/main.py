@@ -22,6 +22,7 @@ from app.routes.scheduler import router as scheduler_router
 from app.routes.signal_history import router as signal_history_router
 from app.routes.macro_context import router as macro_context_router
 from app.routes.alerts import router as alerts_router
+from app.routes.news import router as news_router
 from app.routes.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="Ktaliman Trading API")
@@ -34,20 +35,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health_router,     prefix="/api")
-app.include_router(system_router,     prefix="/api")
-app.include_router(heatmap_router,    prefix="/api")
-app.include_router(assets_router,     prefix="/api")
-app.include_router(signals_router,    prefix="/api")
-app.include_router(gpt_router,        prefix="/api")
+app.include_router(health_router,         prefix="/api")
+app.include_router(system_router,         prefix="/api")
+app.include_router(heatmap_router,        prefix="/api")
+app.include_router(assets_router,         prefix="/api")
+app.include_router(signals_router,        prefix="/api")
+app.include_router(gpt_router,            prefix="/api")
 app.include_router(workspace_router)
-app.include_router(history_router,    prefix="/api")
+app.include_router(history_router,        prefix="/api")
 app.include_router(update_router)
-app.include_router(seasonality_router, prefix="/api")
+app.include_router(seasonality_router,    prefix="/api")
 app.include_router(scheduler_router)
 app.include_router(signal_history_router, prefix="/api")
-app.include_router(macro_context_router, prefix="/api")
-app.include_router(alerts_router, prefix="/api")
+app.include_router(macro_context_router,  prefix="/api")
+app.include_router(alerts_router,         prefix="/api")
+app.include_router(news_router,           prefix="/api")
 
 
 @app.on_event("startup")

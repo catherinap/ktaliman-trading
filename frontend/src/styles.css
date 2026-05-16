@@ -121,6 +121,14 @@ button[class*="border-zinc"] {
   border-radius: 10px !important;
 }
 
+.bg-zinc-900 {
+  border-radius: 4px !important;
+}
+
+.h-1 {
+  height: 0.6rem !important;
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    ISSUE 2 — TABLE CELLS: NO border-radius
    ══════════════════════════════════════════════════════════════════════════ */

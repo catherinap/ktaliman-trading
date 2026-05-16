@@ -2178,7 +2178,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                     <span className={cls("text-[9px] uppercase tracking-[0.18em]", categoryTone(item.category))}>
                       {item.category}
                     </span>
-                    <span className="text-[9px] text-zinc-600 shrink-0">{item.source}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.05em' }}>{item.source}</span>
                   </div>
                   <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
                 </a>

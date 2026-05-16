@@ -1,3 +1,8 @@
+"""
+workspace.py — Main workspace endpoint.
+News now fetched from the internal /api/news route (RSS aggregator).
+"""
+
 from fastapi import APIRouter
 from sqlalchemy import text
 from app.db import engine
@@ -5,21 +10,6 @@ import requests
 
 router = APIRouter(prefix="/api/workspace", tags=["workspace"])
 
-MACRO_API_BASE = "http://127.0.0.1:8001"
-
-
-def fetch_macro_data(path):
-    try:
-        response = requests.get(f"{MACRO_API_BASE}{path}", timeout=5)
-        response.raise_for_status()
-        payload = response.json()
-        if isinstance(payload, dict) and payload.get("ok") is True:
-            data = payload.get("data")
-            if isinstance(data, list):
-                return data
-    except Exception:
-        pass
-    return None
 
 def pct_to_bucket(value):
     if value is None:
@@ -33,77 +23,58 @@ def pct_to_bucket(value):
 
 NORMALIZED_SELECT = """
     SELECT
-        symbol,
-        name,
-        sector,
-        source_type,
-        report_date,
-        open_interest,
-        flow_state,
-
-        CASE
-            WHEN source_type = 'TFF' THEN leveraged_funds_long
-            ELSE managed_money_long
-        END AS funds_long,
-
-        CASE
-            WHEN source_type = 'TFF' THEN leveraged_funds_short
-            ELSE managed_money_short
-        END AS funds_short,
-
-        CASE
-            WHEN source_type = 'TFF' THEN leveraged_funds_net
-            ELSE managed_money_net
-        END AS funds_net,
-
-        CASE
-            WHEN source_type = 'TFF' THEN leveraged_funds_pct_oi
-            ELSE managed_money_pct_oi
-        END AS funds_pct_oi,
-
-        CASE
-            WHEN source_type = 'TFF' THEN leveraged_funds_percentile_3y
-            ELSE managed_money_percentile_3y
-        END AS funds_percentile_3y,
-
-        CASE
-            WHEN source_type = 'TFF' THEN dealer_intermediary_long
-            ELSE swap_dealers_long
-        END AS dealer_long,
-
-        CASE
-            WHEN source_type = 'TFF' THEN dealer_intermediary_short
-            ELSE swap_dealers_short
-        END AS dealer_short,
-
-        CASE
-            WHEN source_type = 'TFF' THEN dealer_intermediary_net
-            ELSE swap_dealers_net
-        END AS dealer_net,
-
-        CASE
-            WHEN source_type = 'TFF' THEN dealer_intermediary_pct_oi
-            ELSE swap_dealers_pct_oi
-        END AS dealer_pct_oi,
-
-        CASE
-            WHEN source_type = 'TFF' THEN dealer_intermediary_percentile_3y
-            ELSE swap_dealers_percentile_3y
-        END AS dealer_percentile_3y
+        symbol, name, sector, source_type, report_date, open_interest, flow_state,
+        CASE WHEN source_type = 'TFF' THEN leveraged_funds_long  ELSE managed_money_long  END AS funds_long,
+        CASE WHEN source_type = 'TFF' THEN leveraged_funds_short ELSE managed_money_short END AS funds_short,
+        CASE WHEN source_type = 'TFF' THEN leveraged_funds_net   ELSE managed_money_net   END AS funds_net,
+        CASE WHEN source_type = 'TFF' THEN leveraged_funds_pct_oi ELSE managed_money_pct_oi END AS funds_pct_oi,
+        CASE WHEN source_type = 'TFF' THEN leveraged_funds_percentile_3y ELSE managed_money_percentile_3y END AS funds_percentile_3y,
+        CASE WHEN source_type = 'TFF' THEN dealer_intermediary_long  ELSE swap_dealers_long  END AS dealer_long,
+        CASE WHEN source_type = 'TFF' THEN dealer_intermediary_short ELSE swap_dealers_short END AS dealer_short,
+        CASE WHEN source_type = 'TFF' THEN dealer_intermediary_net   ELSE swap_dealers_net   END AS dealer_net,
+        CASE WHEN source_type = 'TFF' THEN dealer_intermediary_pct_oi ELSE swap_dealers_pct_oi END AS dealer_pct_oi,
+        CASE WHEN source_type = 'TFF' THEN dealer_intermediary_percentile_3y ELSE swap_dealers_percentile_3y END AS dealer_percentile_3y
     FROM cot_analytics
 """
+
+
+def fetch_news_internal(limit: int = 8) -> list:
+    """Fetch news from internal /api/news (RSS aggregator)."""
+    try:
+        r = requests.get(
+            "http://localhost:8000/api/news",
+            params={"limit": limit},
+            timeout=8,
+        )
+        if r.ok:
+            data = r.json()
+            return data.get("items", [])
+    except Exception:
+        pass
+    return []
+
+
+def fetch_calendar_external(limit: int = 10) -> list:
+    """Fetch economic calendar from external service if available."""
+    try:
+        r = requests.get("http://127.0.0.1:8001/api/economic-calendar", timeout=5)
+        if r.ok:
+            payload = r.json()
+            if isinstance(payload, dict) and payload.get("ok"):
+                data = payload.get("data", [])
+                if isinstance(data, list):
+                    return data[:limit]
+    except Exception:
+        pass
+    return []
 
 
 @router.get("")
 def get_workspace():
     with engine.connect() as conn:
         latest = conn.execute(
-            text("""
-                SELECT MAX(report_date) AS latest_report_date
-                FROM cot_analytics
-            """)
+            text("SELECT MAX(report_date) AS latest_report_date FROM cot_analytics")
         ).mappings().first()
-
         latest_report_date = latest["latest_report_date"]
 
         if latest_report_date is None:
@@ -111,27 +82,20 @@ def get_workspace():
                 "macro_regime": {
                     "title": "No Data",
                     "tag": "Awaiting worker update",
-                    "growth": "No COT data available yet.",
-                    "inflation": "No COT data available yet.",
-                    "policy": "No COT data available yet.",
                     "verdict": "Run the worker to populate cot_analytics."
                 },
                 "releases": [],
                 "calendar": [],
-                "news": []
+                "news": [],
             }
 
         rows = conn.execute(
-            text(f"""
-                {NORMALIZED_SELECT}
-                WHERE report_date = :report_date
-                ORDER BY sector, symbol
-            """),
+            text(f"{NORMALIZED_SELECT} WHERE report_date = :report_date ORDER BY sector, symbol"),
             {"report_date": latest_report_date},
         ).mappings().all()
 
     by_symbol = {row["symbol"]: row for row in rows}
-    by_name = {row["name"]: row for row in rows}
+    by_name   = {row["name"]:   row for row in rows}
 
     usd    = by_symbol.get("USD")    or by_name.get("US Dollar Index")
     gold   = by_symbol.get("XAU")    or by_name.get("Gold")
@@ -151,20 +115,16 @@ def get_workspace():
     policy_assets    = [x for x in [usd, euro, jpy, gbp, chf] if x]
 
     def avg_percentile(items):
-        vals = [
-            float(x["funds_percentile_3y"])
-            for x in items
-            if x and x["funds_percentile_3y"] is not None
-        ]
+        vals = [float(x["funds_percentile_3y"]) for x in items if x and x["funds_percentile_3y"] is not None]
         return round(sum(vals) / len(vals), 1) if vals else None
 
-    growth_score = avg_percentile(growth_assets)
+    growth_score    = avg_percentile(growth_assets)
     inflation_score = avg_percentile(inflation_assets)
-    policy_score = avg_percentile(policy_assets)
+    policy_score    = avg_percentile(policy_assets)
 
-    growth_bucket = pct_to_bucket(growth_score)
+    growth_bucket    = pct_to_bucket(growth_score)
     inflation_bucket = pct_to_bucket(inflation_score)
-    policy_bucket = pct_to_bucket(policy_score)
+    policy_bucket    = pct_to_bucket(policy_score)
 
     regime_title = "Mixed Positioning Regime"
     if inflation_bucket == "bullish" and policy_bucket == "bullish":
@@ -180,132 +140,83 @@ def get_workspace():
         names = ", ".join([r["name"] for r in refs[:3]]) if refs else "available contracts"
         score_text = "n/a" if score is None else f"{score:.1f}"
         if bucket == "bullish":
-            return f"{label} positioning is supportive, with strength concentrated in {names}. Composite percentile: {score_text}."
+            return f"{label} positioning is supportive across {names}. Composite percentile: {score_text}."
         if bucket == "bearish":
-            return f"{label} positioning is defensive, with weak sponsorship across {names}. Composite percentile: {score_text}."
-        return f"{label} positioning is balanced, with mixed signals across {names}. Composite percentile: {score_text}."
-
-    growth_text = narrative("Growth", growth_bucket, growth_score, growth_assets)
-    inflation_text = narrative("Inflation", inflation_bucket, inflation_score, inflation_assets)
-    policy_text = narrative("Policy", policy_bucket, policy_score, policy_assets)
+            return f"{label} positioning is defensive across {names}. Composite percentile: {score_text}."
+        return f"{label} positioning is balanced across {names}. Composite percentile: {score_text}."
 
     verdict_parts = []
     if growth_bucket == "bullish":
         verdict_parts.append("risk assets retain sponsorship")
     elif growth_bucket == "bearish":
         verdict_parts.append("risk appetite is fragile")
-
     if inflation_bucket == "bullish":
         verdict_parts.append("inflation-sensitive contracts remain firm")
     elif inflation_bucket == "bearish":
         verdict_parts.append("inflation pressure is fading in positioning")
-
     if policy_bucket == "bullish":
-        verdict_parts.append("USD and policy-sensitive positioning stay defensive for global liquidity")
+        verdict_parts.append("USD and policy-sensitive positioning stay defensive")
     elif policy_bucket == "bearish":
         verdict_parts.append("policy positioning is easing")
 
     verdict = (
         "Current COT backdrop suggests " + ", while ".join(verdict_parts) + "."
-        if verdict_parts else
-        "Current COT backdrop is balanced across major sleeves."
+        if verdict_parts else "Current COT backdrop is balanced across major sleeves."
     )
-    releases = [
-        {
-            "source": "SYSTEM",
-            "title": f"Latest COT report processed for {latest_report_date}",
-            "time": str(latest_report_date),
-            "impact": "High",
-        },
-        {
-            "source": "DB",
-            "title": f"{len(rows)} asset rows loaded into workspace snapshot",
-            "time": "live",
-            "impact": "Med",
-        },
-        {
-            "source": "FLOW",
-            "title": regime_title,
-            "time": "live",
-            "impact": "Med",
-        },
-    ]
 
-    eligible = [x for x in rows if x["funds_percentile_3y"] is not None]
-
-    real_calendar = fetch_macro_data("/api/economic-calendar")
-    real_news = fetch_macro_data("/api/market-news")
-
-    if real_calendar:
-        calendar = real_calendar[:12]
-    else:
-        calendar = []
-        for item in sorted(
-            eligible,
-            key=lambda x: abs(float(x["funds_percentile_3y"]) - 50),
-            reverse=True,
-        )[:3]:
+    # ── Calendar ──────────────────────────────────────────────────────────────
+    calendar = fetch_calendar_external(limit=12)
+    if not calendar:
+        eligible = [x for x in rows if x["funds_percentile_3y"] is not None]
+        for item in sorted(eligible, key=lambda x: abs(float(x["funds_percentile_3y"]) - 50), reverse=True)[:4]:
             pct = float(item["funds_percentile_3y"])
-            importance = "high" if pct >= 85 or pct <= 15 else "medium"
+            calendar.append({
+                "id":         f'cal-{item["symbol"]}',
+                "datetime":   None,
+                "country":    item["sector"] or "",
+                "currency":   item["symbol"] or "",
+                "title":      f'{item["name"]} COT at {pct:.0f}th percentile',
+                "importance": "high" if pct >= 85 or pct <= 15 else "medium",
+                "actual":     round(pct, 1),
+                "forecast":   None,
+                "previous":   item.get("flow_state"),
+                "source":     "COT",
+            })
 
-            calendar.append(
-                {
-                    "id": f'cal-{item["symbol"]}',
-                    "datetime": None,
-                    "country": item["sector"] or "",
-                    "currency": item["symbol"] or "",
-                    "title": f'{item["name"]} positioning at {pct:.1f} percentile',
-                    "importance": importance,
-                    "actual": round(pct, 1),
-                    "forecast": None,
-                    "previous": item.get("flow_state"),
-                    "source": "Workspace",
-                }
-            )
+    # ── News — from RSS aggregator ────────────────────────────────────────────
+    news = fetch_news_internal(limit=10)
 
-    if real_news:
-        news = real_news[:12]
-    else:
-        news = []
-
-        for item in sorted(eligible, key=lambda x: float(x["funds_percentile_3y"]))[:2]:
-            news.append(
-                {
-                    "id": f'news-weak-{item["symbol"]}',
-                    "published_at": None,
-                    "source": "Workspace",
-                    "title": f'{item["name"]} in weak positioning territory',
-                    "summary": f'{item["name"]} is in weak positioning territory with flow state "{item["flow_state"]}".',
-                    "url": None,
-                    "category": "flows",
-                    "image": "",
-                }
-            )
-
-        for item in sorted(eligible, key=lambda x: float(x["funds_percentile_3y"]), reverse=True)[:2]:
-            news.append(
-                {
-                    "id": f'news-strong-{item["symbol"]}',
-                    "published_at": None,
-                    "source": "Workspace",
-                    "title": f'{item["name"]} in strong positioning territory',
-                    "summary": f'{item["name"]} is in strong positioning territory with flow state "{item["flow_state"]}".',
-                    "url": None,
-                    "category": "flows",
-                    "image": "",
-                }
-            )
+    # Fallback: generate from COT data if news service not available
+    if not news:
+        eligible = [x for x in rows if x["funds_percentile_3y"] is not None]
+        for item in sorted(eligible, key=lambda x: abs(float(x["funds_percentile_3y"]) - 50), reverse=True)[:6]:
+            pct = float(item["funds_percentile_3y"])
+            direction = "bullish extreme" if pct >= 85 else "bearish extreme" if pct <= 15 else "notable positioning"
+            news.append({
+                "id":           f'news-cot-{item["symbol"]}',
+                "source":       "COT Flow",
+                "category":     "FLOW",
+                "title":        f'{item["name"]} at {direction} ({pct:.0f})',
+                "summary":      f'Funds are positioned at {pct:.1f} percentile in {item["name"]}. Flow state: {item.get("flow_state", "n/a")}.',
+                "url":          "#",
+                "published_at": str(latest_report_date),
+                "importance":   "high" if pct >= 85 or pct <= 15 else "medium",
+            })
 
     return {
         "macro_regime": {
-            "title": regime_title,
-            "tag": "COT live composite",
-            "growth": growth_text,
-            "inflation": inflation_text,
-            "policy": policy_text,
-            "verdict": verdict,
+            "title":     regime_title,
+            "tag":       "COT live composite",
+            "growth":    narrative("Growth",    growth_bucket,    growth_score,    growth_assets),
+            "inflation": narrative("Inflation", inflation_bucket, inflation_score, inflation_assets),
+            "policy":    narrative("Policy",    policy_bucket,    policy_score,    policy_assets),
+            "verdict":   verdict,
         },
-        "releases": releases,
+        "releases": [
+            {"source": "CFTC",  "title": f"COT report processed — {latest_report_date}", "time": str(latest_report_date), "impact": "High"},
+            {"source": "DB",    "title": f"{len(rows)} assets loaded",                   "time": "live",                  "impact": "Med"},
+            {"source": "FLOW",  "title": regime_title,                                   "time": "live",                  "impact": "Med"},
+        ],
         "calendar": calendar,
-        "news": news[:4],
+        "news":     news[:10],
     }
