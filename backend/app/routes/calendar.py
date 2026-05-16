@@ -1,16 +1,10 @@
 """
-calendar.py — Economic Calendar aggregator.
-
-Strategy:
-  1. Finnhub free API — full calendar with forecast/actual (set FINNHUB_API_KEY)
-  2. Fallback — official RSS (BLS, Fed, ECB) — filtered to future/recent only
-  3. Last resort — hardcoded FOMC dates
-
-Cache: 30 minutes.
+calendar.py — Economic Calendar aggregator with impact/country filters.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from datetime import datetime, timezone, timedelta
+from typing import Optional
 import feedparser
 import requests
 import os
@@ -22,7 +16,7 @@ router = APIRouter()
 
 _cache: dict = {"items": [], "fetched_at": 0}
 _cache_lock = threading.Lock()
-CACHE_TTL = 1800  # 30 minutes
+CACHE_TTL = 1800
 
 HIGH_KEYWORDS = [
     "federal funds", "fomc", "interest rate decision", "rate decision",
@@ -35,6 +29,8 @@ MEDIUM_KEYWORDS = [
     "housing starts", "durable goods", "trade balance", "industrial production",
     "consumer confidence", "jolts", "adp employment",
 ]
+
+ALLOWED_COUNTRIES = ("US", "EU", "GB", "JP", "CN", "DE", "FR", "CA", "AU")
 
 
 def classify_importance(title: str, summary: str = "") -> str:
@@ -57,19 +53,26 @@ def parse_date(entry):
     return None
 
 
-def is_recent_or_future(dt_iso, days_past: int = 1) -> bool:
-    """Return True if event is in the future or within days_past days ago."""
+def is_today_or_future(dt_iso) -> bool:
+    if not dt_iso:
+        return True
+    try:
+        dt = datetime.fromisoformat(str(dt_iso).replace("Z", "+00:00"))
+        return dt.date() >= datetime.now(timezone.utc).date()
+    except Exception:
+        return True
+
+
+def is_rss_recent(dt_iso) -> bool:
     if not dt_iso:
         return False
     try:
-        dt = datetime.fromisoformat(dt_iso.replace("Z", "+00:00"))
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days_past)
-        return dt >= cutoff
+        dt = datetime.fromisoformat(str(dt_iso).replace("Z", "+00:00"))
+        return dt >= datetime.now(timezone.utc) - timedelta(days=2)
     except Exception:
         return False
 
 
-# ── Source 1: Finnhub ─────────────────────────────────────────────────────────
 def fetch_finnhub_calendar() -> list:
     api_key = os.getenv("FINNHUB_API_KEY", "")
     if not api_key:
@@ -94,7 +97,7 @@ def fetch_finnhub_calendar() -> list:
             country = ev.get("country", "")
             if not title:
                 continue
-            if country and country not in ("US", "EU", "GB", "JP", "CN", "DE", "FR", "CA", "AU"):
+            if country and country not in ALLOWED_COUNTRIES:
                 continue
             importance = ev.get("impact", "").lower()
             if importance not in ("high", "medium", "low"):
@@ -106,6 +109,10 @@ def fetch_finnhub_calendar() -> list:
                     dt_iso = datetime.fromisoformat(date_str.replace("Z", "+00:00")).isoformat()
                 except Exception:
                     dt_iso = date_str
+
+            if not is_today_or_future(dt_iso):
+                continue
+
             items.append({
                 "id":         f"fh-{ev.get('id', title[:20])}",
                 "datetime":   dt_iso,
@@ -119,23 +126,16 @@ def fetch_finnhub_calendar() -> list:
                 "source":     "Finnhub",
             })
 
-        # Keep only today and future
-        items = [i for i in items if is_recent_or_future(i["datetime"], days_past=0)]
-
-        items.sort(key=lambda x: (
-            0 if x["importance"] == "high" else 1 if x["importance"] == "medium" else 2,
-            x["datetime"] or ""
-        ))
+        items.sort(key=lambda x: (x.get("datetime") or "9999"))
         return items
     except Exception:
         return []
 
 
-# ── Source 2: Official RSS (fallback only) ────────────────────────────────────
 RSS_SOURCES = [
-    {"url": "https://www.bls.gov/feed/bls_latest.rss",               "source": "BLS",             "currency": "USD", "country": "US"},
+    {"url": "https://www.bls.gov/feed/bls_latest.rss",                "source": "BLS",             "currency": "USD", "country": "US"},
     {"url": "https://www.federalreserve.gov/feeds/press_monetary.xml", "source": "Federal Reserve", "currency": "USD", "country": "US"},
-    {"url": "https://www.ecb.europa.eu/rss/press.html",               "source": "ECB",             "currency": "EUR", "country": "EU"},
+    {"url": "https://www.ecb.europa.eu/rss/press.html",                "source": "ECB",             "currency": "EUR", "country": "EU"},
 ]
 
 
@@ -151,8 +151,7 @@ def fetch_rss_calendar() -> list:
                 if not title:
                     continue
                 dt_iso = parse_date(entry)
-                # Skip items without date or older than 1 day
-                if not is_recent_or_future(dt_iso, days_past=1):
+                if not is_rss_recent(dt_iso):
                     continue
                 items.append({
                     "id":         f"rss-{src['source'].lower().replace(' ', '-')}-{i}",
@@ -172,7 +171,6 @@ def fetch_rss_calendar() -> list:
     return items
 
 
-# ── Source 3: Hardcoded FOMC dates ────────────────────────────────────────────
 FOMC_DATES = [
     "2025-01-29", "2025-03-19", "2025-05-07", "2025-06-18",
     "2025-07-30", "2025-09-17", "2025-10-29", "2025-12-10",
@@ -202,7 +200,6 @@ def get_fomc_events() -> list:
     return items
 
 
-# ── Aggregator ────────────────────────────────────────────────────────────────
 def fetch_all_calendar() -> list:
     items = fetch_finnhub_calendar()
     rss   = fetch_rss_calendar()
@@ -216,10 +213,7 @@ def fetch_all_calendar() -> list:
     else:
         items = rss + fomc
 
-    items.sort(key=lambda x: (
-        0 if x["importance"] == "high" else 1 if x["importance"] == "medium" else 2,
-        x.get("datetime") or "9999"
-    ))
+    items.sort(key=lambda x: (x.get("datetime") or "9999"))
 
     seen, deduped = set(), []
     for item in items:
@@ -230,7 +224,7 @@ def fetch_all_calendar() -> list:
     return deduped
 
 
-def get_calendar_cached(limit: int = 20) -> list:
+def get_calendar_cached() -> list:
     global _cache
     now = time.time()
     with _cache_lock:
@@ -239,18 +233,36 @@ def get_calendar_cached(limit: int = 20) -> list:
                 _cache = {"items": fetch_all_calendar(), "fetched_at": now}
             except Exception:
                 pass
-    return _cache["items"][:limit]
+    return _cache["items"]
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
 @router.get("/calendar")
-def get_calendar(limit: int = 20):
-    items = get_calendar_cached(limit=limit)
+def get_calendar(
+    limit:   int           = Query(20, ge=1, le=100),
+    impact:  Optional[str] = Query(None, description="high, medium, low or comma-separated combo"),
+    country: Optional[str] = Query(None, description="US, GB, EU, JP, ... comma-separated"),
+):
+    all_items = get_calendar_cached()
+    items = all_items
+
+    if impact and impact.lower() != "all":
+        allowed = {i.strip().lower() for i in impact.split(",")}
+        items = [i for i in items if i.get("importance", "").lower() in allowed]
+
+    if country and country.lower() != "all":
+        allowed = {c.strip().upper() for c in country.split(",")}
+        items = [i for i in items if i.get("country", "").upper() in allowed]
+
     return {
         "ok":    True,
-        "count": len(items),
-        "items": items,
-        "hint":  "Add FINNHUB_API_KEY to .env.local for full calendar with forecasts. Free at finnhub.io",
+        "count": len(items[:limit]),
+        "total": len(all_items),
+        "filters": {
+            "impact":  impact or "all",
+            "country": country or "all",
+        },
+        "available_countries": sorted({i.get("country", "") for i in all_items if i.get("country")}),
+        "items": items[:limit],
     }
 
 

@@ -102,6 +102,18 @@ NEWS_SOURCES = [
         "category": "FOREX",
         "priority": 3,
     },
+    {
+    "name": "Bloomberg Markets",
+    "url": "https://feeds.bloomberg.com/markets/news.rss",
+    "category": "MARKETS",
+    "priority": 1,
+},
+{
+    "name": "Bloomberg Technology",
+    "url": "https://feeds.bloomberg.com/technology/news.rss",
+    "category": "MARKETS",
+    "priority": 2,
+},
 ]
 
 # Keywords that make news HIGH importance

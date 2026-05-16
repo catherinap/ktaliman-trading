@@ -1818,6 +1818,8 @@ function ImpactBadge({ impact }) {
 
 function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide, timezone = "Europe/Copenhagen" }) {
   const { t } = useTranslation()
+  const [calImpact, setCalImpact] = React.useState("all")
+  const [calCountry, setCalCountry] = React.useState("all")
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
   const news     = workspaceData?.news     || []
@@ -2126,15 +2128,50 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
 {/* Economic Calendar */}
 <section className="border border-zinc-900 bg-[#0a0a0a]">
-  <div className="border-b border-zinc-900 px-4 py-3">
+ <div className="border-b border-zinc-900 px-4 py-3 shrink-0">
+  <div className="flex items-center justify-between gap-2 flex-wrap">
     <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
       {t("panels.economicCalendar")}
     </span>
+    <div className="flex items-center gap-1.5">
+      {/* Impact filter */}
+      {["all","high","medium"].map(v => (
+        <button key={v} onClick={() => setCalImpact(v)}
+          style={{
+            fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em',
+            textTransform: 'uppercase', padding: '2px 7px',
+            border: `1px solid ${calImpact === v ? 'rgba(248,113,113,0.5)' : 'rgba(255,255,255,0.08)'}`,
+            background: calImpact === v ? 'rgba(248,113,113,0.1)' : 'transparent',
+            color: calImpact === v ? '#f87171' : '#52525b',
+            cursor: 'pointer', borderRadius: '4px',
+          }}>
+          {v === "all" ? "All" : v === "high" ? "High" : "Med"}
+        </button>
+      ))}
+      <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.08)' }} />
+      {/* Country filter */}
+      {["all","US","EU","GB","JP"].map(v => (
+        <button key={v} onClick={() => setCalCountry(v)}
+          style={{
+            fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', padding: '2px 6px',
+            border: `1px solid ${calCountry === v ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
+            background: calCountry === v ? 'rgba(96,165,250,0.1)' : 'transparent',
+            color: calCountry === v ? '#60a5fa' : '#52525b',
+            cursor: 'pointer', borderRadius: '4px',
+          }}>
+          {v}
+        </button>
+      ))}
+    </div>
   </div>
+</div>
   <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
     {calendar.length === 0 ? (
       <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
-    ) : calendar.slice(0, 15).map((event) => {
+    ) : calendar.filter(e => calImpact === "all" || e.importance === calImpact)
+        .filter(e => calCountry === "all" || e.country === calCountry)
+        .slice(0, 20).map((event) => {
       const imp = (event.importance || "").toLowerCase()
       const isHigh = imp === "high"
       const isMed  = imp === "medium"
@@ -2249,7 +2286,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           </div>
           <div className="flex flex-col gap-3 p-4 flex-1">
             <p className="text-sm text-zinc-500 leading-6">
-              New to COT analysis? The Guide tab contains detailed instructions for reading and interpreting each section of the platform.
+              The Guide tab contains detailed instructions for reading and interpreting each section of the platform.
             </p>
             <div className="space-y-1.5">
               {[
