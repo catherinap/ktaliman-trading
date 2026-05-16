@@ -5554,7 +5554,7 @@ function GuideView({ setActive, initialSection = null }) {
   }
 
   return (
-    <div className="space-y-4 max-w-4xl">
+    <div className="space-y-4 max-w-4xl m-auto">
 
       {/* Header */}
       <div className="border border-zinc-900 bg-[#0a0a0a] p-6" style={{ borderRadius: "14px" }}>
