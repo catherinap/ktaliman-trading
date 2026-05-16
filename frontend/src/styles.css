@@ -71,10 +71,14 @@ aside button:not([class*="border-blue-5"]):not([class*="border-amber-4"]):hover 
 
 /* ── TopBar glass ───────────────────────────────────────────────────────── */
 .sticky.top-0 {
-  background: rgba(4,7,18,0.75) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(59,130,246,0.1) !important;
+  border-bottom: 1px solid rgba(59,130,246,0.5) !important;
+}
+
+.sticky.left-0,
+.sticky.top-0 {
+  background: rgba(19, 26, 52, 0.75) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -145,18 +149,19 @@ td[class*="border"] {
 
 /* Table container */
 table {
-  border-radius: 0 !important;
-  overflow: hidden;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  border: .0625rem solid #5a6874 !important;
+
 }
 
 /* Table overflow fix — крайні ячейки не вилазять */
 .overflow-x-auto {
   border-radius: 14px !important;
-  overflow: hidden !important;
+
 }
 
 thead th {
-  background: rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, 0.07) !important;
 }
 
