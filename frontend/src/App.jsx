@@ -1985,7 +1985,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                 ].map(({ key, label, color }) => {
                   const score = sleeveScores[key]
                   return (
-                    <div key={key} className="border border-zinc-900 bg-[#080808] p-3" style={{ borderRadius: "10px" }}>
+                    <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
                       <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
                       <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
                         {score != null ? score.toFixed(1) : "n/a"}
@@ -1999,7 +1999,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   )
                 })}
               </div>
-              <div className="mt-3 border border-zinc-900 bg-zinc-950 p-3" style={{ borderRadius: "10px" }}>
+              <div className="mt-3 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
                 <div className="flex items-center justify-between text-xs">
                   <span className="uppercase tracking-[0.2em] text-zinc-600">Composite</span>
                   <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
@@ -2016,6 +2016,22 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
         {/* RIGHT col: Alert Feed + AI Briefing (fills remaining height) */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {/* AI Briefing fills remaining space + expands with content */}
+          <AIAnalysisPanel
+            type="macro"
+            data={{
+              growth_score:     sleeveScores.growth,
+              inflation_score:  sleeveScores.inflation,
+              policy_score:     sleeveScores.policy,
+              composite:        macroComposite,
+              growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+              inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+              policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+            }}
+            aiLanguage={aiLanguage}
+            title="AI — Weekly Briefing"
+            fillHeight={true}
+          />  
           <section className="border border-zinc-900 bg-[#0a0a0a]" style={{ flexShrink: 0 }}>
             <div className="border-b border-zinc-900 px-4 py-3">
               <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Alert Feed</span>
@@ -2037,23 +2053,6 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               ))}
             </div>
           </section>
-
-          {/* AI Briefing fills remaining space + expands with content */}
-          <AIAnalysisPanel
-            type="macro"
-            data={{
-              growth_score:     sleeveScores.growth,
-              inflation_score:  sleeveScores.inflation,
-              policy_score:     sleeveScores.policy,
-              composite:        macroComposite,
-              growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
-              inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
-              policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
-            }}
-            aiLanguage={aiLanguage}
-            title="AI — Weekly Briefing"
-            fillHeight={true}
-          />
         </div>
       </div>
 
@@ -2824,12 +2823,12 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   }
 
   const itemBg = (item) => {
-    if (!item?.alert) return "border-zinc-900 bg-[#080808]"
+    if (!item?.alert) return "border-zinc-900 small-panel-color "
     const r = item?.regime
     if (r === "inverted" || r === "fear" || r === "extreme_fear")
       return "border-rose-900/40 bg-rose-950/15"
     if (r === "flat" || r === "complacent" || r === "strengthening")
-      return "border-amber-900/40 bg-amber-950/15"
+      return "border-amber-900/40 bg-rose-500/10"
     return "border-emerald-900/40 bg-emerald-950/15"
   }
 
@@ -2955,7 +2954,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
 
           {/* Last fetch time */}
           {lastFetch && (
-            <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-700">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-400">
               {aiLanguage === "uk" ? "Оновлено: " : "Updated: "}
               {lastFetch.toLocaleTimeString()}
             </div>
@@ -3051,24 +3050,6 @@ function MacroView({ assets, aiLanguage, openGuide }) {
         <MacroContextPanel aiLanguage={aiLanguage} />
 
         <div className="grid gap-4 xl:grid-cols-2">
-          <div className="border border-zinc-900 bg-[#080808] p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Sleeve Dispersion</div>
-            <div className="mt-2 text-2xl text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
-            <div className="mt-1 text-sm text-zinc-500">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
-          </div>
-
-          <div className="border border-zinc-900 bg-[#080808] p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Macro Phase</div>
-            <div className="mt-2 text-2xl text-zinc-100">{macroPhase(macroComposite, t)}</div>
-            <div className="mt-1 text-sm text-zinc-500">Composite regime state</div>
-          </div>
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="border border-zinc-900 bg-zinc-950 p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Narrative Summary</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
-          </div>
 
           <div className="border border-zinc-900 bg-zinc-950 p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Interpretation</div>
@@ -3078,11 +3059,6 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           <div className="border border-zinc-900 bg-zinc-950 p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Trading Relevance</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
-          </div>
-
-          <div className="border border-zinc-900 bg-zinc-950 p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What To Watch</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
           </div>
         </div>
 
@@ -3104,7 +3080,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
 
                 <div className="mt-4 space-y-3">
                   {sleeve.members.length ? sleeve.members.map((a) => (
-                    <div key={a.symbol} className="border-t border-zinc-900 pt-3 first:border-t-0 first:pt-0">
+                    <div key={a.symbol} className="pt-3 first:border-t-0 first:pt-0">
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-zinc-100">{a.name}</div>
                         <div className={cls('text-sm', flowColor(a.funds_percentile_3y))}>
@@ -3139,16 +3115,38 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
         />
 
+          <div className="border border-zinc-900 bg-zinc-950 p-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What To Watch</div>
+            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
+        </div>
+        
         <Panel title={t("panels.compositeScores")}>
           <div className="space-y-3">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="flex items-center justify-between border-b border-zinc-900 pb-3 text-sm last:border-b-0">
-                <span className="text-zinc-500">{sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})</span>
+              <div key={sleeve.key} className="flex items-center justify-between pb-3 text-sm last:border-b-0">
+                <span className="text-zinc-200">{sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})</span>
                 <span className={cls(macroTone(sleeve.score))}>{formatPercentile(sleeve.score)}</span>
               </div>
             ))}
           </div>
         </Panel>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <div className="border border-zinc-900 bg-[#080808] p-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Sleeve Dispersion</div>
+            <div className="mt-2 text-2xl text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
+            <div className="mt-1 text-sm text-zinc-500">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
+          </div>
+
+          <div className="border border-zinc-900 bg-[#080808] p-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Macro Phase</div>
+            <div className="mt-2 text-2xl text-zinc-100">{macroPhase(macroComposite, t)}</div>
+            <div className="mt-1 text-sm text-zinc-500">Composite regime state</div>
+          </div>
+        </div>
+          <div className="border border-zinc-900 bg-zinc-950 p-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Narrative Summary</div>
+            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
+          </div>
       </div>
     </div>
   )
