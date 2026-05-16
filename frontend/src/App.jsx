@@ -3834,16 +3834,28 @@ function renderNarrative(text) {
   if (!text) return null
   return text.split('\n').map((line, i) => {
     if (!line.trim()) return <div key={i} className="h-2" />
-    // **Label:** Value → uppercase bold label + value
     const match = line.match(/^\*\*(.+?):\*\*\s*(.*)/)
     if (match) {
       return (
-        <div key={i} className="mb-2">
-          <span style={{ fontSize: '10px', letterSpacing: '0.2em', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+        <div key={i} className="mb-3">
+          <div style={{ fontSize: '10px', letterSpacing: '0.2em', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>
             {match[1]}
-          </span>
+          </div>
           {match[2] && (
-            <div className="mt-0.5 text-sm leading-6 text-zinc-300">{match[2]}</div>
+            <div className="text-sm leading-6 text-zinc-300">{match[2]}</div>
+          )}
+        </div>
+      )
+    }
+    const parts = line.split(/(\*\*[^*]+\*\*)/g)
+    const hasBold = parts.some(p => p.startsWith('**') && p.endsWith('**'))
+    if (hasBold) {
+      return (
+        <div key={i} className="text-sm leading-6 text-zinc-300 mb-1">
+          {parts.map((part, j) =>
+            part.startsWith('**') && part.endsWith('**')
+              ? <strong key={j} style={{ color: '#e2e8f0', fontWeight: 600 }}>{part.slice(2, -2)}</strong>
+              : <span key={j}>{part}</span>
           )}
         </div>
       )
