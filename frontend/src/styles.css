@@ -256,6 +256,10 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
   border-radius: 10px !important;
 }
 
+.metric-card > div {
+    border: .0625rem solid #5a6874 !important;
+    background: #082a71 !important;
+}
 /* Gap between panels */
 .space-y-4>*+* {
   margin-top: 1rem !important;
@@ -280,3 +284,6 @@ th.sticky left-0 {
   outline-offset: 2px;
 }
 
+.accent-color {
+  color: #082a71 !important;
+}

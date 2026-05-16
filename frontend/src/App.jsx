@@ -1521,7 +1521,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
                 collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
                 isActive
-                ? 'border-blue-500 bg-blue-500/10 text-blue-300'
+                ? 'border-blue-500 bg-blue-500/10 text-blue-50'
                 : 'border-transparent text-slate-500 hover:bg-blue-500/5 hover:text-slate-300'
               )}
             >
@@ -2422,7 +2422,7 @@ function HistoricalDataView({ assets }) {
       <div className="space-y-4">
 
         {/* Range selector */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-900">
+        <div className="flex items-center justify-between px-4 py-3">
           <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Chart Range</span>
         </div>
 
@@ -2545,7 +2545,7 @@ function HistoricalDataView({ assets }) {
             Historical COT Data
           </span>
           {data && (
-            <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-600">
+            <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-300">
               {data.total_rows} weeks · {data.name} · {normalizeSector(data.sector)}
             </span>
           )}
@@ -2604,7 +2604,7 @@ function HistoricalDataView({ assets }) {
       </div>
     </div>
 
-          <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+          <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-300">
             {filteredRows.length} rows
           </div>
         </div>
@@ -2640,10 +2640,10 @@ function HistoricalDataView({ assets }) {
       {!loading && !error && chartData.length > 0 && (
         <section className="border border-zinc-900 bg-[#0a0a0a]">
           <div className="border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            <span className="text-[12px] uppercase tracking-[0.25em] text-zinc-200">
               Charts — {data?.name}
             </span>
-            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-300">
               {chartData.length} weeks shown
             </span>
           </div>
@@ -3220,13 +3220,13 @@ function CorrelationView({ assets, openGuide }) {
     <div className="space-y-4">
       <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
         <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-4 metric-card">
             <Metric label="Universe" value={universeAssets.length} />
             <Metric label="Pairs" value={pairs.length} />
             <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
             <Metric label="Dispersion" value={formatPercentile(avgDistance)} />
           </div>
-          <div className="border border-zinc-900 bg-zinc-950 p-4 text-sm leading-7 text-zinc-300">
+          <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
             <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Quick Guide</div>
             <div className="mt-3 text-zinc-100">This is not price correlation in the classic statistical sense.</div>
             <div className="mt-2">Here correlation means how similar current COT positioning is across assets. Small percentile gaps mean stronger alignment. Large gaps mean a more conflicted macro map.</div>
@@ -3237,27 +3237,27 @@ function CorrelationView({ assets, openGuide }) {
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Panel title={t("panels.crossAssetPositioningMap")} right={<span className="text-xs uppercase tracking-[0.22em] text-zinc-500">live percentile relationships</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Small gap</div>
               <div className="mt-2">Assets are being positioned in a similar way. Their macro message is closer.</div>
             </div>
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Large gap</div>
               <div className="mt-2">Assets are expressing different or opposing positioning conditions.</div>
             </div>
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Why it matters</div>
               <div className="mt-2">When several markets confirm each other, trade conviction is easier. When they disagree, be more selective.</div>
             </div>
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            <div className="border border-zinc-900 bg-zinc-950 p-4">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Narrative Summary</div>
+            <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 ">Narrative Summary</div>
               <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.summary}</div>
               <div className="mt-3 text-sm text-zinc-500">Same-sector pairs: {sameSectorPairs} · Cross-sector pairs: {crossSectorPairs}</div>
             </div>
-            <div className="border border-zinc-900 bg-zinc-950 p-4">
+            <div className="border border-zinc-900 small-panel-color p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Interpretation</div>
               <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.interpretation}</div>
             </div>
@@ -3292,27 +3292,39 @@ function CorrelationView({ assets, openGuide }) {
         </Panel>
 
         <div className="space-y-4">
-          <Panel title={quickGuide.title}>
+          <Panel title={quickGuide.title} >
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
               <div>{quickGuide.summary}</div>
-              <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">{quickGuide.takeaway}</div>
+              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{quickGuide.takeaway}</div>
             </div>
           </Panel>
 
           <Panel title={t("panels.regimeHealth")}>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-              <div className="border border-zinc-900 bg-[#080808] p-4">
+              <div className="border border-zinc-900 small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Alignment State</div>
                 <div className="mt-2 text-lg text-zinc-100">{dispersionLabel(avgDistance, t)}</div>
                 <div className="mt-1 text-sm text-zinc-500">Average gap between assets</div>
               </div>
-              <div className="border border-zinc-900 bg-[#080808] p-4">
+              <div className="border border-zinc-900 small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Cross-Asset Bias</div>
                 <div className="mt-2 text-lg text-zinc-100">{crossSectorPairs > sameSectorPairs ? 'Cross-Sector' : 'Same-Sector'}</div>
                 <div className="mt-1 text-sm text-zinc-500">Dominant relationship structure</div>
               </div>
             </div>
           </Panel>
+
+          <div className="border border-zinc-900 bg-zinc-950 p-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Trading Relevance</div>
+            <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
+          </div>
+          
+          
+        <div className="border border-zinc-900 bg-zinc-950 p-4">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What To Watch</div>
+          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
+          </div>
+          
         </div>
       </div>
 
@@ -3341,11 +3353,11 @@ function CorrelationView({ assets, openGuide }) {
             ))}
           </div>
           <div className="space-y-4">
-            <div className="border border-zinc-900 bg-[#080808] p-4 text-sm leading-7 text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What these charts mean</div>
               <div className="mt-3">{chartExplanation}</div>
             </div>
-            <div className="border border-zinc-900 bg-zinc-950 p-4 text-sm leading-7 text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">How to use them</div>
               <div className="mt-3">Use aligned pairs as confirmation tools. If one asset gives you a directional idea, check whether a related asset is sitting in a similar percentile state. Use opposed pairs as warning signs that the macro message may be split.</div>
             </div>
@@ -3389,17 +3401,6 @@ function CorrelationView({ assets, openGuide }) {
             ))}
           </div>
         </Panel>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Trading Relevance</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
-        </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What To Watch</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-        </div>
       </div>
     </div>
   )
@@ -3481,12 +3482,12 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
     <div className="space-y-4">
       <Panel title={t("panels.seasonality")} right={<GuideButton sectionKey="seasonality" openGuide={openGuide} />}>
         <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 metric-card">
             <Metric label="Current Month" value={currentMonth} />
             <Metric label="Seasonal Breadth" value={formatPercentile(narrative.breadth)} />
             <Metric label="Supportive Windows" value={`${supportiveCount}/${rows.length || 0}`} />
           </div>
-          <div className="border border-zinc-900 bg-zinc-950 p-4 text-sm leading-7 text-zinc-300">
+          <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
             <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Quick Guide</div>
             <div className="mt-3 text-zinc-100">Seasonality is a calendar tendency.</div>
             <div className="mt-2">It asks a simple question: does this asset usually behave better, worse, or mixed in this month compared with the rest of the year?</div>
@@ -3497,15 +3498,15 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
       <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-zinc-500">12 month map</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">How to read green</div>
               <div className="mt-2">Green means the calendar month has been more supportive for that asset.</div>
             </div>
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">How to read red</div>
               <div className="mt-2">Red means that month has historically been less supportive or weaker.</div>
             </div>
-            <div className="border border-zinc-900 bg-[#080808] p-3 text-sm text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Amber outline</div>
               <div className="mt-2">The outlined column marks the current month, so you know where to focus first.</div>
             </div>
@@ -3551,7 +3552,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
          <Panel title={t("panels.currentMonthRanking")} right={<span className="text-xs uppercase tracking-[0.22em] text-zinc-500">{currentMonth}</span>}>
             <div className="space-y-3">
               {topRanked.map((row) => (
-                <div key={row.symbol} className="border border-zinc-900 bg-[#080808] p-4">
+                <div key={row.symbol} className="border border-zinc-900 small-panel-color p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="text-base text-zinc-100">{row.name}</div>
@@ -3577,7 +3578,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
           <Panel title={simpleGuide.title}>
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
               <div>{simpleGuide.summary}</div>
-              <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">{simpleGuide.takeaway}</div>
+              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{simpleGuide.takeaway}</div>
             </div>
           </Panel>
         </div>
@@ -3587,7 +3588,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
         <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-4 md:grid-cols-3">
             {chartRows.map((row) => (
-              <div key={`${row.symbol}-spark`} className="border border-zinc-900 bg-zinc-950 p-4">
+              <div key={`${row.symbol}-spark`} className="border border-zinc-900 small-panel-color p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm text-zinc-100">{row.name}</div>
@@ -3606,11 +3607,11 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
             ))}
           </div>
           <div className="space-y-4">
-            <div className="border border-zinc-900 bg-[#080808] p-4 text-sm leading-7 text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What these charts mean</div>
               <div className="mt-3">{chartExplanation}</div>
             </div>
-            <div className="border border-zinc-900 bg-zinc-950 p-4 text-sm leading-7 text-zinc-300">
+            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">How to use them</div>
               <div className="mt-3">First look at the outlined current month in the heatmap. Then check whether the current month score sits near the upper or lower area of the sparkline. If the current month is strong and COT is also supportive, the setup is easier to trust.</div>
             </div>
@@ -4062,7 +4063,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             setSelected={setSelected}
           />
 
-          <div className="flex flex-wrap items-end justify-between gap-4 border-t border-zinc-900 pt-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="text-2xl text-zinc-100">{asset.name}</div>
               <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-zinc-500">
@@ -4079,7 +4080,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-4 metric-card">
             <Metric label="Funds Net" value={formatNumber(asset.funds_net)} />
             <Metric label="Dealer Net" value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
@@ -4148,7 +4149,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             <Panel title={t("panels.summary")}>
               <div className="space-y-3 text-sm leading-7 text-zinc-300">
                 <div>{profile.setupSummary}</div>
-                <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">
+                <div className="border border-zinc-900 p-3 text-blue-400 small-panel-color">
                   Conviction score: {formatPercentile(profile.conviction)} · Crowding: {profile.crowding}
                 </div>
               </div>
@@ -4230,7 +4231,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
               {profile.checklist.map((item, idx) => (
                 <div
                   key={`${item.label}-${idx}`}
-                  className="flex items-start gap-3 border border-zinc-900 bg-[#080808] p-3"
+                  className="flex items-start gap-3 border border-zinc-900 small-panel-color p-3"
                 >
                   <div
                     className={cls(
@@ -4281,7 +4282,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   <button
                     key={peer.symbol}
                     onClick={() => setSelected(peer.symbol)}
-                    className="w-full border border-zinc-900 bg-[#080808] p-3 text-left hover:border-zinc-700"
+                    className="w-full border border-zinc-900 small-panel-color p-3 text-left hover:border-zinc-700"
                   >
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-zinc-100">{peer.name}</div>
@@ -4552,7 +4553,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
       <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
             
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 metric-card">
           <Metric label="Tracked Signals" value={engine.counts.total} />
           <Metric label="Active" value={engine.counts.active} />
           <Metric label="Aging" value={engine.counts.aging} />
@@ -4628,7 +4629,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   setSelected(signal.symbol)
                   setActive('explorer')
                 }}
-                className="w-full border border-zinc-900 bg-[#080808] p-4 text-left transition hover:border-zinc-700"
+                className="w-full border border-zinc-900 small-panel-color p-4 text-left transition hover:border-zinc-700"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -4699,7 +4700,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           >
             <div className="space-y-3">
               {activeAlerts.length ? activeAlerts.map((alert) => (
-                <div key={alert.id} className="border border-zinc-900 bg-[#080808] p-4">
+                <div key={alert.id} className="border border-zinc-900 small-panel-color p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm text-zinc-100">{alert.title}</div>
@@ -4739,7 +4740,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
               <div>This phase computes signal lifecycle directly from live positioning context without persistent backend history.</div>
               <div>Signal age is inferred from current percentile extremity rather than stored event timestamps.</div>
-              <div className="border border-zinc-900 bg-zinc-950 p-3 text-zinc-400">
+              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">
                 Next phase can persist prior signal states and generate true transition alerts between weekly updates.
               </div>
             </div>
@@ -5186,15 +5187,15 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
       {/* Key metrics */}
       <div className="grid grid-cols-3 gap-2">
         {/* COT Index */}
-        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
-          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Index</div>
+        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Index</div>
           <div className={cls("mt-1 text-base font-semibold tabular-nums", flowColor(idx))}>
             {idx != null ? idx.toFixed(1) : "n/a"}
           </div>
         </div>
         {/* Momentum */}
-        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
-          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Momentum</div>
+        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Momentum</div>
           <div className={cls(
             "mt-1 text-sm font-medium",
             asset.funds_index_direction === "rising"  ? "text-emerald-400" :
@@ -5206,8 +5207,8 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
           </div>
         </div>
         {/* Flow State */}
-        <div className="border border-zinc-900 bg-zinc-950 p-2 text-center">
-          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-600">Flow</div>
+        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+          <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Flow</div>
           <div className={cls("mt-1 text-[10px] uppercase tracking-[0.14em]", flowColor(idx))}>
             {asset.flow_state || "Neutral"}
           </div>
