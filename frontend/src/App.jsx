@@ -2232,8 +2232,7 @@ function HistoricalDataView({ assets }) {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState("")
   const [yearFilter, setYearFilter]   = useState("all")
-  const [chartRange, setChartRange]   = useState("3Y") // 1Y | 2Y | 3Y | All
-  const [cotWindow, setCotWindow]     = useState("3y") // 3y | 5y | 10y
+  const [cotWindow, setCotWindow] = useState("3y") // 3y | 5y | 10y
 
   // ── Import recharts dynamically ────────────────────────────────────────────
   const [recharts, setRecharts] = useState(null)
@@ -2276,10 +2275,14 @@ function HistoricalDataView({ assets }) {
 
     const now = new Date()
     const cutoff = new Date(now)
-    if      (chartRange === "1Y") cutoff.setFullYear(now.getFullYear() - 1)
-    else if (chartRange === "2Y") cutoff.setFullYear(now.getFullYear() - 2)
-    else if (chartRange === "3Y") cutoff.setFullYear(now.getFullYear() - 3)
-    else                          cutoff.setFullYear(2000) // All
+    if
+      (cotWindow === "3y") cutoff.setFullYear(now.getFullYear() - 3)
+    else if
+      (cotWindow === "5y") cutoff.setFullYear(now.getFullYear() - 5)
+    else if
+      (cotWindow === "10y") cutoff.setFullYear(now.getFullYear() - 10)
+    else
+       cutoff.setFullYear(2000)
 
     return sorted
       .filter((r) => new Date(r.date) >= cutoff)
@@ -2296,7 +2299,7 @@ function HistoricalDataView({ assets }) {
         // Open Interest (thousands)
         oi:          r.open_interest != null ? Math.round(r.open_interest / 1000) : null,
       }))
-  }, [data, chartRange])
+  }, [data, cotWindow])
 
   // ── Table rows — sorted DESC, filtered by year ────────────────────────────
   const filteredRows = useMemo(() => {
@@ -2422,22 +2425,6 @@ function HistoricalDataView({ assets }) {
         {/* Range selector */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-900">
           <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">Chart Range</span>
-          <div className="flex gap-1">
-            {["1Y","2Y","3Y","All"].map((r) => (
-              <button
-                key={r}
-                onClick={() => setChartRange(r)}
-                className={cls(
-                  "border px-3 py-1 text-[11px] uppercase tracking-[0.2em] transition",
-                  chartRange === r
-                    ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
-                    : "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* ── Chart 1: Net Position ────────────────────────────────────── */}
