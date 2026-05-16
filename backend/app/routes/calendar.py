@@ -1,17 +1,10 @@
 """
 calendar.py — Economic Calendar aggregator.
 
-Strategy (no paid APIs needed):
-  1. Finnhub free API — full economic calendar with forecast/actual
-     Get free key at: https://finnhub.io/register (free, no credit card)
-     Set FINNHUB_API_KEY in .env.local
-
-  2. Fallback — parse key events from official RSS:
-     - BLS releases (CPI, NFP, PPI)
-     - Fed press releases (FOMC statements)
-     - ECB RSS (rate decisions)
-
-  3. Last resort — hardcoded FOMC dates (always accurate)
+Strategy:
+  1. Finnhub free API — full calendar with forecast/actual (set FINNHUB_API_KEY)
+  2. Fallback — official RSS (BLS, Fed, ECB) — filtered to future/recent only
+  3. Last resort — hardcoded FOMC dates
 
 Cache: 30 minutes.
 """
@@ -64,6 +57,18 @@ def parse_date(entry):
     return None
 
 
+def is_recent_or_future(dt_iso, days_past: int = 1) -> bool:
+    """Return True if event is in the future or within days_past days ago."""
+    if not dt_iso:
+        return False
+    try:
+        dt = datetime.fromisoformat(dt_iso.replace("Z", "+00:00"))
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_past)
+        return dt >= cutoff
+    except Exception:
+        return False
+
+
 # ── Source 1: Finnhub ─────────────────────────────────────────────────────────
 def fetch_finnhub_calendar() -> list:
     api_key = os.getenv("FINNHUB_API_KEY", "")
@@ -113,6 +118,10 @@ def fetch_finnhub_calendar() -> list:
                 "previous":   ev.get("prev"),
                 "source":     "Finnhub",
             })
+
+        # Keep only today and future
+        items = [i for i in items if is_recent_or_future(i["datetime"], days_past=0)]
+
         items.sort(key=lambda x: (
             0 if x["importance"] == "high" else 1 if x["importance"] == "medium" else 2,
             x["datetime"] or ""
@@ -122,11 +131,11 @@ def fetch_finnhub_calendar() -> list:
         return []
 
 
-# ── Source 2: Official RSS ────────────────────────────────────────────────────
+# ── Source 2: Official RSS (fallback only) ────────────────────────────────────
 RSS_SOURCES = [
-    {"url": "https://www.bls.gov/feed/bls_latest.rss",              "source": "BLS",             "currency": "USD", "country": "US"},
-    {"url": "https://www.federalreserve.gov/feeds/press_monetary.xml","source": "Federal Reserve", "currency": "USD", "country": "US"},
-    {"url": "https://www.ecb.europa.eu/rss/press.html",              "source": "ECB",             "currency": "EUR", "country": "EU"},
+    {"url": "https://www.bls.gov/feed/bls_latest.rss",               "source": "BLS",             "currency": "USD", "country": "US"},
+    {"url": "https://www.federalreserve.gov/feeds/press_monetary.xml", "source": "Federal Reserve", "currency": "USD", "country": "US"},
+    {"url": "https://www.ecb.europa.eu/rss/press.html",               "source": "ECB",             "currency": "EUR", "country": "EU"},
 ]
 
 
@@ -141,9 +150,13 @@ def fetch_rss_calendar() -> list:
                 summary = " ".join(summary.split())[:150]
                 if not title:
                     continue
+                dt_iso = parse_date(entry)
+                # Skip items without date or older than 1 day
+                if not is_recent_or_future(dt_iso, days_past=1):
+                    continue
                 items.append({
-                    "id":         f"rss-{src['source'].lower().replace(' ','-')}-{i}",
-                    "datetime":   parse_date(entry),
+                    "id":         f"rss-{src['source'].lower().replace(' ', '-')}-{i}",
+                    "datetime":   dt_iso,
                     "country":    src["country"],
                     "currency":   src["currency"],
                     "title":      title,
@@ -161,10 +174,10 @@ def fetch_rss_calendar() -> list:
 
 # ── Source 3: Hardcoded FOMC dates ────────────────────────────────────────────
 FOMC_DATES = [
-    "2025-01-29","2025-03-19","2025-05-07","2025-06-18",
-    "2025-07-30","2025-09-17","2025-10-29","2025-12-10",
-    "2026-01-28","2026-03-18","2026-04-29","2026-06-17",
-    "2026-07-29","2026-09-16","2026-10-28","2026-12-09",
+    "2025-01-29", "2025-03-19", "2025-05-07", "2025-06-18",
+    "2025-07-30", "2025-09-17", "2025-10-29", "2025-12-10",
+    "2026-01-28", "2026-03-18", "2026-04-29", "2026-06-17",
+    "2026-07-29", "2026-09-16", "2026-10-28", "2026-12-09",
 ]
 
 
@@ -173,7 +186,7 @@ def get_fomc_events() -> list:
     items = []
     for ds in FOMC_DATES:
         d = datetime.fromisoformat(ds).date()
-        if today - timedelta(days=3) <= d <= today + timedelta(days=90):
+        if today <= d <= today + timedelta(days=90):
             items.append({
                 "id":         f"fomc-{ds}",
                 "datetime":   f"{ds}T19:00:00+00:00",
@@ -217,7 +230,7 @@ def fetch_all_calendar() -> list:
     return deduped
 
 
-def get_calendar_cached(limit: int = 15) -> list:
+def get_calendar_cached(limit: int = 20) -> list:
     global _cache
     now = time.time()
     with _cache_lock:
@@ -231,7 +244,7 @@ def get_calendar_cached(limit: int = 15) -> list:
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 @router.get("/calendar")
-def get_calendar(limit: int = 15):
+def get_calendar(limit: int = 20):
     items = get_calendar_cached(limit=limit)
     return {
         "ok":    True,

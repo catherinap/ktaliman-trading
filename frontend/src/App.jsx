@@ -175,6 +175,19 @@ function formatClockTime(isoString) {
   }
 }
 
+function formatEventDateTime(isoString, tz = "Europe/Copenhagen") {
+  if (!isoString) return { time: "TBD", date: "", day: "" }
+  try {
+    const d = new Date(isoString)
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: tz })
+    const date = d.toLocaleDateString([], { day: "2-digit", month: "short", timeZone: tz })
+    const day  = d.toLocaleDateString([], { weekday: "short", timeZone: tz }).toUpperCase()
+    return { time, date, day }
+  } catch {
+    return { time: "TBD", date: "", day: "" }
+  }
+}
+
 function importanceTone(level) {
   const v = String(level || "").toLowerCase();
   if (v === "high") return "text-rose-400";
@@ -1803,7 +1816,7 @@ function ImpactBadge({ impact }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide }) {
+function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide, timezone = "Europe/Copenhagen" }) {
   const { t } = useTranslation()
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
@@ -2111,48 +2124,88 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
       {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
       <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
 
-        {/* Economic Calendar */}
-        <section className="border border-zinc-900 bg-[#0a0a0a]">
-          <div className="border-b border-zinc-900 px-4 py-3">
-            <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-              {t("panels.economicCalendar")}
-            </span>
-          </div>
-          <div className="divide-y divide-zinc-900">
-            {calendar.length === 0 ? (
-              <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
-            ) : calendar.slice(0, 8).map((event) => {
-              const isHigh = (event.importance || "").toLowerCase() === "high"
-              return (
-                <div key={event.id} className="px-4 py-2.5"
-                  style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.5)", background: "rgba(248,113,113,0.03)" } : {}}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs tabular-nums text-zinc-400 shrink-0">
-                        {formatClockTime(event.datetime)}
-                      </span>
-                      <span className="text-[10px] uppercase text-zinc-600 shrink-0">
-                        {event.currency || event.country || ""}
-                      </span>
-                      <span className="text-sm text-zinc-200 truncate">{event.title || "TBD"}</span>
-                    </div>
-                    <span className={cls("text-[10px] uppercase tracking-[0.15em] shrink-0",
-                      importanceTone(event.importance))}>
-                      {event.importance || ""}
+{/* Economic Calendar */}
+<section className="border border-zinc-900 bg-[#0a0a0a]">
+  <div className="border-b border-zinc-900 px-4 py-3">
+    <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+      {t("panels.economicCalendar")}
+    </span>
+  </div>
+  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+    {calendar.length === 0 ? (
+      <div className="px-4 py-4 text-sm text-zinc-500">No calendar events.</div>
+    ) : calendar.slice(0, 15).map((event) => {
+      const imp = (event.importance || "").toLowerCase()
+      const isHigh = imp === "high"
+      const isMed  = imp === "medium"
+      const hasData = event.actual != null || event.forecast != null || event.previous != null
+      return (
+        <div key={event.id} className="px-3 py-2.5"
+          style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
+               : isMed  ? { borderLeft: "2px solid rgba(251,191,36,0.4)",  background: "rgba(251,191,36,0.02)" }
+               :           { borderLeft: "2px solid transparent" }}>
+
+          {/* Row 1: time + currency + title + importance */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {(() => {
+                const { time, date, day } = formatEventDateTime(event.datetime, timezone)
+                return (
+                  <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em' }}>
+                      {day} {date}
+                    </span>
+                    <span className="text-[11px] tabular-nums text-zinc-400 font-mono">
+                      {time}
                     </span>
                   </div>
-                  {(event.forecast != null || event.previous != null || event.actual != null) && (
-                    <div className="mt-0.5 flex gap-3 text-[10px] text-zinc-600">
-                      {event.actual   != null && <span className="text-emerald-400">Act {event.actual}</span>}
-                      {event.forecast != null && <span>Fc {event.forecast}</span>}
-                      {event.previous != null && <span>Prv {event.previous}</span>}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })()}
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#60a5fa',
+                letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0 }}>
+                {event.currency || event.country || ""}
+              </span>
+              <span className="text-sm text-zinc-100 leading-5" style={{ fontWeight: 500 }}>
+                {event.title || "TBD"}
+              </span>
+            </div>
+            <span style={{
+              fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em',
+              textTransform: 'uppercase', flexShrink: 0, paddingTop: '2px',
+              color: isHigh ? '#f87171' : isMed ? '#fbbf24' : '#52525b'
+            }}>
+              {event.importance || ""}
+            </span>
           </div>
-        </section>
+
+          {/* Row 2: actual / forecast / previous */}
+          {hasData && (
+            <div className="flex items-center gap-3 mt-1.5 pl-0">
+              {event.actual != null && (
+                <div className="flex items-center gap-1">
+                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Act</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
+                </div>
+              )}
+              {event.forecast != null && (
+                <div className="flex items-center gap-1">
+                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Fc</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.forecast}</span>
+                </div>
+              )}
+              {event.previous != null && (
+                <div className="flex items-center gap-1">
+                  <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Prv</span>
+                  <span style={{ fontSize: '12px', fontWeight: 400, color: '#71717a', fontVariantNumeric: 'tabular-nums' }}>{event.previous}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    })}
+  </div>
+</section>
 
         {/* Market News */}
         <section className="border border-zinc-900 bg-[#0a0a0a]">
@@ -2161,10 +2214,10 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               {t("panels.marketNews")}
             </span>
           </div>
-          <div className="divide-y divide-zinc-900">
+          <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
             {news.length === 0 ? (
               <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
-            ) : news.slice(0, 6).map((item) => {
+            ) : news.map((item) => {
               const url = item.url && item.url !== "#" ? item.url : null
               const style = newsItemStyle(item)
               return (
@@ -5895,7 +5948,7 @@ setWorkspaceData({
 }, []);
 
   const view = { 
-  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide}/>, 
+  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide} timezone={appSettings.timezone || "Europe/Copenhagen"}/>, 
   macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide}/>, 
   summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} openGuide={openGuide}/>,
   watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
