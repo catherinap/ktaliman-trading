@@ -2231,8 +2231,9 @@ function HistoricalDataView({ assets }) {
   const [data, setData]         = useState(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState("")
-  const [yearFilter, setYearFilter] = useState("all")
-  const [chartRange, setChartRange] = useState("3Y") // 1Y | 2Y | 3Y | All
+  const [yearFilter, setYearFilter]   = useState("all")
+  const [chartRange, setChartRange]   = useState("3Y") // 1Y | 2Y | 3Y | All
+  const [cotWindow, setCotWindow]     = useState("3y") // 3y | 5y | 10y
 
   // ── Import recharts dynamically ────────────────────────────────────────────
   const [recharts, setRecharts] = useState(null)
@@ -2246,12 +2247,12 @@ function HistoricalDataView({ assets }) {
     setLoading(true)
     setError("")
     setData(null)
-    fetch(`/api/history/${selectedSymbol}`)
+    fetch(`/api/history/${selectedSymbol}?window=${cotWindow}`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [selectedSymbol])
+  }, [selectedSymbol, cotWindow])
 
   // ── Sorted assets ──────────────────────────────────────────────────────────
   const sortedAssets = useMemo(() =>
@@ -2584,6 +2585,38 @@ function HistoricalDataView({ assets }) {
               minWidth="120px"
             />
           </div>
+          <div>
+      <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">COT Index Window</div>
+      <div className="flex gap-1">
+        {[
+          { value: "3y",  label: "3Y"  },
+          { value: "5y",  label: "5Y"  },
+          { value: "10y", label: "10Y" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setCotWindow(opt.value)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "12px",
+              fontWeight: "600",
+              cursor: "pointer",
+              border: cotWindow === opt.value
+                ? "1px solid rgba(59,130,246,0.5)"
+                : "1px solid rgba(255,255,255,0.1)",
+              background: cotWindow === opt.value
+                ? "rgba(59,130,246,0.2)"
+                : "rgba(10,16,40,0.6)",
+              color: cotWindow === opt.value ? "#93c5fd" : "rgba(148,163,184,0.7)",
+              transition: "all 0.15s",
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
 
           <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-600">
             {filteredRows.length} rows
