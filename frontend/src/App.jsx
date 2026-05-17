@@ -6845,33 +6845,21 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', paddingBottom: '0' }}>
+        <div className="flex flex-wrap gap-2" style={{ paddingBottom: '16px' }}>
           {GUIDE_SECTIONS.map(sec => {
             const isActive = activeKey === sec.key
             const label = typeof sec.title === 'object' ? sec.title[lang] : sec.title
             return (
-              <button key={sec.key} onClick={() => setActiveKey(sec.key)} style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '7px 14px',
-                flexShrink: 0,
-                background: 'transparent',
-                border: 'none',
-                borderBottom: isActive ? `2px solid ${sec.color}` : '2px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                marginBottom: '-1px',
-              }}>
-                <span style={{ fontSize: '13px', opacity: isActive ? 1 : 0.5 }}>{sec.icon}</span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: isActive ? 600 : 400,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: isActive ? '#f1f5f9' : 'rgba(148,163,184,0.55)',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {label}
-                </span>
+              <button key={sec.key} onClick={() => setActiveKey(sec.key)}
+                className={`min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
+                  isActive
+                    ? 'border-blue-400 bg-zinc-950 text-zinc-100'
+                    : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                }`}
+                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>{sec.icon}</span>
+                <span>{label}</span>
               </button>
             )
           })}
