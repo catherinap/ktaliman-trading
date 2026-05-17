@@ -197,9 +197,14 @@ function importanceTone(level) {
 
 function categoryTone(category) {
   const v = String(category || "").toLowerCase();
-  if (v === "forex") return "text-cyan-300";
-  if (v === "crypto") return "text-violet-300";
-  return "text-zinc-300";
+  if (v === "policy")  return "text-rose-300";
+  if (v === "macro")   return "text-amber-300";
+  if (v === "markets") return "text-blue-300";
+  if (v === "forex")   return "text-cyan-300";
+  if (v === "crypto")  return "text-violet-300";
+  if (v === "cot")     return "text-emerald-300";
+  if (v === "finance") return "text-sky-300";
+  return "text-blue-200";
 }
 
 function signalLabel(percentile) {
@@ -1820,8 +1825,9 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
   const { t } = useTranslation()
   const [calImpact, setCalImpact] = React.useState("all")
   const [calCountry, setCalCountry] = React.useState("all")
-  const [newsCategory, setNewsCategory] = React.useState("all")
-  const [newsSource, setNewsSource] = React.useState("all")
+  const [newsCategory,  setNewsCategory]  = React.useState("all")
+  const [newsSource,    setNewsSource]    = React.useState("all")
+  const [newsImportance, setNewsImportance] = React.useState("all")
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
   const news     = workspaceData?.news     || []
@@ -2129,7 +2135,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
         </div>
 
         {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900 bg-[#0a0a0a]">
@@ -2252,82 +2258,94 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           </section>
 
 {/* Market News */}
-<section className="border border-zinc-900 bg-[#0a0a0a] flex flex-col" style={{ minHeight: 0 }}>
-  <div className="border-b border-zinc-900 px-3 py-2.5 shrink-0">
-  <div className="flex items-center justify-between gap-2">
-    <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-      {t("panels.marketNews")}
-    </span>
-    <div className="flex items-center gap-2">
-      <select
-        value={newsCategory}
-        onChange={e => setNewsCategory(e.target.value)}
-        style={{ fontSize: '11px', padding: '3px 8px', minWidth: '110px' }}
-      >
+<section className="border border-zinc-900 bg-[#0a0a0a]">
+  <div className="border-b border-zinc-900 px-3 py-2.5">
+    <div className="flex items-center justify-between gap-2 mb-2">
+      <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+        {t("panels.marketNews")}
+      </span>
+    </div>
+    <div className="flex items-center gap-2 flex-wrap">
+      <select value={newsCategory} onChange={e => setNewsCategory(e.target.value)}
+        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '100px' }}>
         <option value="all">All Categories</option>
         <option value="POLICY">Policy</option>
         <option value="MACRO">Macro</option>
         <option value="MARKETS">Markets</option>
         <option value="FOREX">Forex</option>
+        <option value="FINANCE">Finance</option>
         <option value="COT">COT</option>
         <option value="CRYPTO">Crypto</option>
       </select>
-      <select
-        value={newsSource}
-        onChange={e => setNewsSource(e.target.value)}
-        style={{ fontSize: '11px', padding: '3px 8px', minWidth: '130px' }}
-      >
+      <select value={newsSource} onChange={e => setNewsSource(e.target.value)}
+        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '110px' }}>
         <option value="all">All Sources</option>
-        <option value="Federal Reserve">Federal Reserve</option>
+        <option value="Federal Reserve">Fed Reserve</option>
         <option value="ECB">ECB</option>
         <option value="CFTC">CFTC</option>
         <option value="BLS">BLS</option>
-        <option value="Bloomberg">Bloomberg</option>
         <option value="ForexLive">ForexLive</option>
         <option value="MarketWatch">MarketWatch</option>
         <option value="Investing.com">Investing.com</option>
         <option value="Yahoo Finance">Yahoo Finance</option>
       </select>
+      <select value={newsImportance} onChange={e => setNewsImportance(e.target.value)}
+        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '80px' }}>
+        <option value="all">All Priority</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
     </div>
   </div>
-</div>
-  <div className="divide-y divide-zinc-900 overflow-y-auto flex-1" style={{ minHeight: 0 }}>
+  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
     {news.length === 0 ? (
-      <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
-    ) : news
+      <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
+    ) : [...news]
         .filter(item => newsCategory === "all" || item.category === newsCategory)
         .filter(item => newsSource === "all" || item.source === newsSource)
+        .filter(item => newsImportance === "all" || item.importance === newsImportance)
+        .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""))
         .map((item) => {
           const url = item.url && item.url !== "#" ? item.url : null
-          const style = newsItemStyle(item)
+          const isHigh = item.importance === "high"
           const pubDate = item.published_at ? new Date(item.published_at) : null
           const dateStr = pubDate ? pubDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""
           const timeStr = pubDate ? pubDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""
           return (
             <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
-              className="block px-3 py-2.5 transition" style={{ textDecoration: "none", ...style }}
-              onClick={(e) => { if (!url) e.preventDefault() }}
-              onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)" }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent" }}
+              className="block px-3 py-2.5 transition"
+              style={{
+                textDecoration: "none",
+                borderLeft: isHigh ? "2px solid rgba(248,113,113,0.6)" : "2px solid transparent",
+                background: isHigh ? "rgba(248,113,113,0.04)" : "transparent",
+              }}
+              onClick={e => { if (!url) e.preventDefault() }}
+              onMouseEnter={e => { e.currentTarget.style.background = isHigh ? "rgba(248,113,113,0.07)" : "rgba(96,165,250,0.04)" }}
+              onMouseLeave={e => { e.currentTarget.style.background = isHigh ? "rgba(248,113,113,0.04)" : "transparent" }}
             >
-              <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between gap-2 mb-0.5">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={cls("text-[9px] uppercase tracking-[0.18em] shrink-0", categoryTone(item.category))}>
+                  <span className={cls("text-[9px] uppercase tracking-[0.18em] shrink-0 font-semibold", categoryTone(item.category))}>
                     {item.category}
                   </span>
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.04em', flexShrink: 0 }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#93c5fd', letterSpacing: '0.04em', flexShrink: 0 }}>
                     {item.source}
                   </span>
                 </div>
                 {dateStr && (
-                  <span style={{ fontSize: '10px', color: '#52525b', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <span style={{ fontSize: '10px', color: '#60a5fa', whiteSpace: 'nowrap', flexShrink: 0, opacity: 0.7 }}>
                     {dateStr} {timeStr}
                   </span>
                 )}
               </div>
-              <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
+              <div className="text-sm leading-5" style={{ color: '#e2e8f0', fontWeight: 500 }}>
+                {item.title || "Untitled"}
+              </div>
               {item.summary && item.summary !== item.title && (
-                <div className="text-xs leading-4 text-zinc-500 mt-0.5 line-clamp-2">{item.summary}</div>
+                <div className="text-xs leading-4 mt-0.5" style={{ color: '#64748b' }}>
+                  {item.summary.slice(0, 120)}{item.summary.length > 120 ? '…' : ''}
+                </div>
               )}
             </a>
           )
