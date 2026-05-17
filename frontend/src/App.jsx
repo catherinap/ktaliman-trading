@@ -6829,7 +6829,7 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
   const activeSection = GUIDE_SECTIONS.find(s => s.key === activeKey) || GUIDE_SECTIONS[0]
  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#09090b' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
  
       {/* Header */}
       <div style={{
@@ -6856,7 +6856,7 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
         <div style={{
           width: '200px',
           flexShrink: 0,
-          borderRight: '1px solid rgba(255,255,255,0.06)',
+          borderRight: '1px solid rgba(90,104,116,0.5)',
           overflowY: 'auto',
           padding: '12px 0',
         }}>
@@ -6866,7 +6866,7 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
                 display: 'flex', alignItems: 'center', gap: '10px',
                 width: '100%', textAlign: 'left',
                 padding: '9px 16px',
-                background: activeKey === sec.key ? 'rgba(255,255,255,0.05)' : 'transparent',
+                background: activeKey === sec.key ? 'rgba(59,130,246,0.12)' : 'transparent',
                 borderLeft: activeKey === sec.key ? `2px solid ${sec.color}` : '2px solid transparent',
                 border: 'none', cursor: 'pointer',
                 transition: 'background 0.15s',
@@ -6906,8 +6906,8 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
           {activeSection.blocks.map((block, bi) => (
             <div key={bi} style={{
               marginBottom: '28px',
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.05)',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(90,104,116,0.5)', 
               borderRadius: '8px',
               padding: '20px 22px',
             }}>
