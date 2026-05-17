@@ -2298,7 +2298,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
       </select>
     </div>
   </div>
-  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+  <div className="divide-y divide-zinc-900" style={{ maxHeight: '395px', overflowY: 'auto' }}>
     {news.length === 0 ? (
       <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
     ) : [...news]
