@@ -1540,7 +1540,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
                 collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-3',
                 isActive
                 ? 'border-blue-500 bg-blue-500/10 text-blue-50'
-                : 'border-transparent text-slate-500 hover:bg-blue-500/5 hover:text-slate-300'
+                : 'border-transparent hover:bg-blue-500/15 hover:text-slate-200'
               )}
             >
               <Icon size={16} className="shrink-0" />
@@ -1745,7 +1745,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
   const { t } = useTranslation()
  
   return (
-    <div className="sticky top-0 z-20 flex items-center justify-between border-b px-4 py-3 text-xs uppercase tracking-[0.24em] text-slate-500" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+    <div className="sticky top-0 z-20 flex items-center justify-between border-b px-4 py-3 text-xs uppercase tracking-[0.24em]" style={{ background: 'var(--bg-surface)', borderColor: 'var(--panels-border)' }}>
  
       {/* Left: burger + page title */}
       <div className="flex items-center gap-3">
@@ -1794,8 +1794,8 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
 
 function Panel({ title, children, right }) {
   return (
-    <section className="border bg-[#0f1629]" style={{ borderColor: 'var(--border-subtle)' }}>
-    <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em] text-slate-500" style={{ borderColor: 'var(--border-subtle)' }}>
+    <section className="border bg-[#0f1629]" style={{ borderColor: 'var(--panels-border)' }}>
+    <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]" style={{ borderColor: 'var(--panels-border)' }}>
         <span>{title}</span>
         {right ? <div>{right}</div> : null}
       </div>
@@ -1806,7 +1806,7 @@ function Panel({ title, children, right }) {
 
 function Metric({ label, value }) {
   return (
-    <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)', borderRadius: '10px' }}>
+    <div className="border p-3" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--panels-border)', borderRadius: '10px' }}>
       <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">{label}</div>
       <div className="mt-2 text-zinc-100">{value}</div>
     </div>
@@ -2194,32 +2194,32 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
                       {/* Row 1: time + currency + title + importance */}
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div class="calendar-row flex items-center gap-2 min-w-0 flex-1">
                           {(() => {
                             const { time, date, day } = formatEventDateTime(event.datetime, timezone);
                             return (
                               <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em' }}>
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#60a5fa', letterSpacing: '0.08em' }}>
                                   {day} {date}
                                 </span>
-                                <span className="text-[11px] tabular-nums text-zinc-400 font-mono">
+                                <span className="text-[11px] tabular-nums font-mono" style={{ color: '#60a5fa' }}>
                                   {time}
                                 </span>
                               </div>
                             );
                           })()}
-                          <span style={{
-                            fontSize: '10px', fontWeight: 700, color: '#60a5fa',
+                          <span className="text-blue-400 ml-14" style={{
+                            fontSize: '14px', fontWeight: 700,
                             letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0
                           }}>
                             {event.currency || event.country || ""}
                           </span>
-                          <span className="text-sm text-zinc-100 leading-5" style={{ fontWeight: 500 }}>
+                          <span className="text-sm text-zinc-100 leading-5 m-auto" style={{ fontWeight: 500 }}>
                             {event.title || "TBD"}
                           </span>
                         </div>
                         <span style={{
-                          fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em',
+                          fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em',
                           textTransform: 'uppercase', flexShrink: 0, paddingTop: '2px',
                           color: isHigh ? '#f87171' : isMed ? '#fbbf24' : '#52525b'
                         }}>
@@ -2229,23 +2229,23 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
                       {/* Row 2: actual / forecast / previous */}
                       {hasData && (
-                        <div className="flex items-center gap-3 mt-1.5 pl-0">
+                        <div className="flex items-center gap-3 mt-1.5 pl-0 justify-center">
                           {event.actual != null && (
                             <div className="flex items-center gap-1">
-                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Act</span>
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#2563eb' }}>Act</span>
+                              <span style={{ fontSize: '14px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
                             </div>
                           )}
                           {event.forecast != null && (
                             <div className="flex items-center gap-1">
-                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Fc</span>
-                              <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.forecast}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#2563eb' }}>Fc</span>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.forecast}</span>
                             </div>
                           )}
                           {event.previous != null && (
                             <div className="flex items-center gap-1">
-                              <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#52525b' }}>Prv</span>
-                              <span style={{ fontSize: '12px', fontWeight: 400, color: '#71717a', fontVariantNumeric: 'tabular-nums' }}>{event.previous}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#2563eb' }}>Prv</span>
+                              <span style={{ fontSize: '14px', fontWeight: 400, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>{event.previous}</span>
                             </div>
                           )}
                         </div>
@@ -2312,7 +2312,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
       />
     </div>
   </div>
-  <div className="divide-y divide-zinc-900" style={{ maxHeight: '395px', overflowY: 'auto' }}>
+  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
     {news.length === 0 ? (
       <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
     ) : [...news]
@@ -2353,11 +2353,11 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   </span>
                 )}
               </div>
-              <div className="text-sm leading-5" style={{ color: '#e2e8f0', fontWeight: 500 }}>
+              <div className="text-sm leading-5" style={{ color: '#e2e8f0', fontWeight: 400 }}>
                 {item.title || "Untitled"}
               </div>
               {item.summary && item.summary !== item.title && (
-                <div className="text-xs leading-4 mt-0.5" style={{ color: '#64748b' }}>
+                <div className="text-xs leading-4 mt-0.5" style={{ color: '#7191bd' }}>
                   {item.summary.slice(0, 120)}{item.summary.length > 120 ? '…' : ''}
                 </div>
               )}
@@ -7273,7 +7273,7 @@ setWorkspaceData({
   history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
   correlation: <CorrelationView assets={assets} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
-seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
+  seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	guide: <GuideView setActive={setActive} initialSection={guideSection} uiLanguage={uiLanguage} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 

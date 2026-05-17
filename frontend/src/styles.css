@@ -2,8 +2,9 @@
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   -panel-color-dark: #091027a1;
-  --panel-color-light: #112b4a;
+  --panel-color-light: #385d8b33;
   --small-panel-color: #0c1a316d;
+  --panels-border: rgba(255, 255, 255, 0.08);
 }
 * { box-sizing: border-box; }
 
@@ -12,7 +13,7 @@ body {
   margin: 0;
   color: #f2f7ff;
   min-height: 100vh;
-  background: linear-gradient(145deg, #010918 50%, var(--panel-color-light) 85%, #081d37 100%) !important;
+  background: linear-gradient(145deg, #010918 50%, 85%, #0b2d56 100%) !important;
   background-attachment: fixed !important;
 }
 
@@ -88,17 +89,17 @@ table .sticky.top-0 {
    GLASS PANELS
    ═══════════════════════════════════════════════════════════════════════════ */
 section {
-  border-radius: 14px !important;
+  background-color: rgb(15 22 41 / var(--tw-bg-opacity, 1)) !important;
+  border-radius: 8px !important;
   overflow: hidden !important;
-  border: .0625rem solid #5a6874 !important;
-  background: var(--panel-color-light) !important;
+  border:.0625rem solid rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
 .small-panel-color {
-background-color: var(--small-panel-color) !important;
+background-color: var(--panel-color-light) !important;
 }
 
 /* Inner cards */
@@ -106,8 +107,7 @@ background-color: var(--small-panel-color) !important;
 [class*="bg-\[#0a0a0a\]"],
 [class*="bg-\[#0d0d0d\]"],
 .bg-zinc-950 {
-  background: var(--panel-color-light) !important;
-  border: .0625rem solid #5a6874 !important;
+  background-color: rgb(15 22 41 / var(--tw-bg-opacity, 1) ) !important;
   border-radius: 8px !important;
   backdrop-filter: blur(12px) !important;
 }
@@ -119,7 +119,7 @@ background-color: var(--small-panel-color) !important;
 /* ALL borders → subtle white */
 [class*="border-zinc-900"],
 [class*="border-zinc-800"] {
-  border: .0625rem solid #5a6874 !important;
+  border: .0625rem solid rgba(255, 255, 255, 0.08) !important;
 }
 [class*="divide-zinc-900"] > * + * {
   border-top-color: rgba(191, 193, 250, 0.05) !important;
@@ -158,7 +158,7 @@ td[class*="border"] {
 table {
   border-radius: 14px !important;
   overflow: hidden !important;
-  border: .0625rem solid #5a6874 !important;
+  border: .0625rem solid rgba(255, 255, 255, 0.08) !important;
 
 }
 
@@ -279,6 +279,12 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 /* No border-radius on sticky table cells */
 th.sticky left-0 {
   border-radius: 0 !important;
+}
+
+.calendar-row > * {
+  flex-shrink: 2;
+
+  justify-content: space-around;
 }
 
 /* ── Focus ──────────────────────────────────────────────────────────────── */
