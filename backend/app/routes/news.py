@@ -94,7 +94,7 @@ NEWS_SOURCES = [
         "name": "Cointelegraph",
         "url": "https://cointelegraph.com/rss",
         "category": "CRYPTO",
-        "priority": 4,
+        "priority": 2,
     },
     {
         "name": "ForexLive",
@@ -106,13 +106,31 @@ NEWS_SOURCES = [
     "name": "Bloomberg Markets",
     "url": "https://feeds.bloomberg.com/markets/news.rss",
     "category": "MARKETS",
-    "priority": 1,
+    "priority": 2,
 },
 {
     "name": "Bloomberg Technology",
     "url": "https://feeds.bloomberg.com/technology/news.rss",
     "category": "MARKETS",
+    "priority": 1,
+},
+{
+    "name": "Bloomberg Politics",
+    "url": "https://feeds.bloomberg.com/politics/news.rss",
+    "category": "POLICY",
+    "priority": 3,
+},
+{
+    "name": "Bloomberg Wealth",
+    "url": "https://feeds.bloomberg.com/wealth/news.rss",
+    "category": "MARKETS",
     "priority": 2,
+},
+{
+    "name": "Bloomberg Economics",
+    "url": "https://feeds.bloomberg.com/economics/news.rss",
+    "category": "FINANCE",
+    "priority": 3,
 },
 ]
 
