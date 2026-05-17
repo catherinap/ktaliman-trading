@@ -2139,42 +2139,41 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900 bg-[#0a0a0a]">
-            <div className="border-b border-zinc-900 px-4 py-3 shrink-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="border-b border-zinc-900 px-3 py-2.5 shrink-0">
+              <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
                   {t("panels.economicCalendar")}
                 </span>
-                <div className="flex items-center gap-1.5">
-                  {/* Impact filter */}
-                  {["all", "high", "medium"].map(v => (
-                    <button key={v} onClick={() => setCalImpact(v)}
-                      style={{
-                        fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em',
-                        textTransform: 'uppercase', padding: '2px 7px',
-                        border: `1px solid ${calImpact === v ? 'rgba(248,113,113,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                        background: calImpact === v ? 'rgba(248,113,113,0.1)' : 'transparent',
-                        color: calImpact === v ? '#f87171' : '#52525b',
-                        cursor: 'pointer', borderRadius: '4px',
-                      }}>
-                      {v === "all" ? "All" : v === "high" ? "High" : "Med"}
-                    </button>
-                  ))}
-                  <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.08)' }} />
-                  {/* Country filter */}
-                  {["all", "US", "EU", "GB", "JP"].map(v => (
-                    <button key={v} onClick={() => setCalCountry(v)}
-                      style={{
-                        fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
-                        textTransform: 'uppercase', padding: '2px 6px',
-                        border: `1px solid ${calCountry === v ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                        background: calCountry === v ? 'rgba(96,165,250,0.1)' : 'transparent',
-                        color: calCountry === v ? '#60a5fa' : '#52525b',
-                        cursor: 'pointer', borderRadius: '4px',
-                      }}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <CustomSelect
+                  value={calImpact}
+                  onChange={setCalImpact}
+                  minWidth="0"
+                  placeholder="All Impact"
+                  options={[
+                    {value:"all",    label:"All Impact"},
+                    {value:"high",   label:"High"},
+                    {value:"medium", label:"Medium"},
+                    {value:"low",    label:"Low"},
+                  ]}
+                />
+                <CustomSelect
+                  value={calCountry}
+                  onChange={setCalCountry}
+                  minWidth="0"
+                  placeholder="All Countries"
+                  options={[
+                    {value:"all", label:"All Countries"},
+                    {value:"US",  label:"US"},
+                    {value:"EU",  label:"EU"},
+                    {value:"GB",  label:"GB"},
+                    {value:"JP",  label:"JP"},
+                    {value:"CN",  label:"CN"},
+                    {value:"CA",  label:"CA"},
+                    {value:"AU",  label:"AU"},
+                  ]}
+                />
               </div>
             </div>
             <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
@@ -2266,36 +2265,51 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
       </span>
     </div>
     <div className="flex items-center gap-2 flex-wrap">
-      <select value={newsCategory} onChange={e => setNewsCategory(e.target.value)}
-        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '100px' }}>
-        <option value="all">All Categories</option>
-        <option value="POLICY">Policy</option>
-        <option value="MACRO">Macro</option>
-        <option value="MARKETS">Markets</option>
-        <option value="FOREX">Forex</option>
-        <option value="FINANCE">Finance</option>
-        <option value="COT">COT</option>
-        <option value="CRYPTO">Crypto</option>
-      </select>
-      <select value={newsSource} onChange={e => setNewsSource(e.target.value)}
-        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '110px' }}>
-        <option value="all">All Sources</option>
-        <option value="Federal Reserve">Fed Reserve</option>
-        <option value="ECB">ECB</option>
-        <option value="CFTC">CFTC</option>
-        <option value="BLS">BLS</option>
-        <option value="ForexLive">ForexLive</option>
-        <option value="MarketWatch">MarketWatch</option>
-        <option value="Investing.com">Investing.com</option>
-        <option value="Yahoo Finance">Yahoo Finance</option>
-      </select>
-      <select value={newsImportance} onChange={e => setNewsImportance(e.target.value)}
-        style={{ fontSize: '11px', padding: '3px 8px', flex: 1, minWidth: '80px' }}>
-        <option value="all">All Priority</option>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
+      <CustomSelect
+        value={newsCategory}
+        onChange={setNewsCategory}
+        minWidth="0"
+        placeholder="All Categories"
+        options={[
+          {value:"all",          label:"All Categories"},
+          {value:"POLICY",       label:"Policy"},
+          {value:"MACRO",        label:"Macro"},
+          {value:"MARKETS",      label:"Markets"},
+          {value:"FOREX",        label:"Forex"},
+          {value:"FINANCE",      label:"Finance"},
+          {value:"COT",          label:"COT"},
+          {value:"CRYPTO",       label:"Crypto"},
+        ]}
+      />
+      <CustomSelect
+        value={newsSource}
+        onChange={setNewsSource}
+        minWidth="0"
+        placeholder="All Sources"
+        options={[
+          {value:"all",              label:"All Sources"},
+          {value:"Federal Reserve",  label:"Federal Reserve"},
+          {value:"ECB",              label:"ECB"},
+          {value:"CFTC",             label:"CFTC"},
+          {value:"BLS",              label:"BLS"},
+          {value:"ForexLive",        label:"ForexLive"},
+          {value:"MarketWatch",      label:"MarketWatch"},
+          {value:"Investing.com",    label:"Investing.com"},
+          {value:"Yahoo Finance",    label:"Yahoo Finance"},
+        ]}
+      />
+      <CustomSelect
+        value={newsImportance}
+        onChange={setNewsImportance}
+        minWidth="0"
+        placeholder="All Priority"
+        options={[
+          {value:"all",    label:"All Priority"},
+          {value:"high",   label:"High"},
+          {value:"medium", label:"Medium"},
+          {value:"low",    label:"Low"},
+        ]}
+      />
     </div>
   </div>
   <div className="divide-y divide-zinc-900" style={{ maxHeight: '395px', overflowY: 'auto' }}>
