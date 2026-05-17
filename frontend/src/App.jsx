@@ -6866,7 +6866,18 @@ function renderGuideContent(text) {
 //
 function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
   const lang = uiLanguage || 'en'
-  const [activeKey, setActiveKey] = React.useState(GUIDE_SECTIONS[0].key)
+  const [activeKey, setActiveKey] = React.useState(
+    initialSection && GUIDE_SECTIONS.find(s => s.key === initialSection)
+      ? initialSection
+      : GUIDE_SECTIONS[0].key
+  )
+
+  React.useEffect(() => {
+    if (initialSection && GUIDE_SECTIONS.find(s => s.key === initialSection)) {
+      setActiveKey(initialSection)
+    }
+  }, [initialSection])
+  
   const activeSection = GUIDE_SECTIONS.find(s => s.key === activeKey) || GUIDE_SECTIONS[0]
 
   return (
