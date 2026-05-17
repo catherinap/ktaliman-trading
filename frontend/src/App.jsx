@@ -3214,7 +3214,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
   )
 }
 
-function CorrelationView({ assets, openGuide }) {
+function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
   const { t } = useTranslation();
   const universeAssets = useMemo(() => findAssetsExact(assets, CORRELATION_UNIVERSE), [assets])
   const pairs = useMemo(() => buildPositioningPairs(universeAssets), [universeAssets])
@@ -3361,6 +3361,28 @@ function CorrelationView({ assets, openGuide }) {
             </div>
           </Panel>
 
+          <AIAnalysisPanel
+            type="correlation"
+            data={{
+              avg_alignment: avgAlignment,
+              avg_distance: avgDistance,
+              same_sector_pairs: sameSectorPairs,
+              cross_sector_pairs: crossSectorPairs,
+              aligned_pairs: alignedPairs.slice(0, 5).map(p => ({
+                left: p.left?.name, right: p.right?.name,
+                leftPct: p.leftPct, rightPct: p.rightPct,
+                distance: p.distance, relationship: p.relationship
+              })),
+              opposed_pairs: opposedPairs.slice(0, 5).map(p => ({
+                left: p.left?.name, right: p.right?.name,
+                leftPct: p.leftPct, rightPct: p.rightPct,
+                distance: p.distance, relationship: p.relationship
+              })),
+            }}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
+          />
+
           <Panel title={t("panels.regimeHealth")}>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
               <div className="border border-zinc-900 small-panel-color p-4">
@@ -3385,8 +3407,7 @@ function CorrelationView({ assets, openGuide }) {
         <div className="border border-zinc-900 bg-zinc-950 p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">What To Watch</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-          </div>
-          
+          </div>         
         </div>
       </div>
 
@@ -3467,8 +3488,7 @@ function CorrelationView({ assets, openGuide }) {
     </div>
   )
 }
-function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
-  const { t } = useTranslation();
+function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en" }) {  const { t } = useTranslation();
   const rows = useMemo(() => {
     if (!seasonalityData || seasonalityData.length === 0) return []
     return [...seasonalityData].sort((a, b) => b.current - a.current)
@@ -3611,6 +3631,27 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [] }) {
         </Panel>
 
         <div className="space-y-4">
+          <AIAnalysisPanel
+            type="seasonality"
+            data={{
+              current_month: currentMonth,
+              supportive_count: supportiveCount,
+              headwind_count: headwindCount,
+              total_assets: rows.length,
+              top_assets: rows.slice(0, 6).map(r => ({
+                name: r.name, symbol: r.symbol,
+                current: r.current,
+                cot_index: r.cot_index ?? null
+              })),
+              bottom_assets: [...rows].reverse().slice(0, 4).map(r => ({
+                name: r.name, symbol: r.symbol,
+                current: r.current,
+                cot_index: r.cot_index ?? null
+              })),
+            }}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI — Сезонний аналіз" : "AI — Seasonal Analysis"}
+          />
          <Panel title={t("panels.currentMonthRanking")} right={<span className="text-xs uppercase tracking-[0.22em] text-zinc-500">{currentMonth}</span>}>
             <div className="space-y-3">
               {topRanked.map((row) => (
@@ -7135,8 +7176,8 @@ setWorkspaceData({
   watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
   history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
-  correlation: <CorrelationView assets={assets} openGuide={openGuide}/>,
-  seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} />, 
+  correlation: <CorrelationView assets={assets} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
+seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	guide: <GuideView setActive={setActive} initialSection={guideSection} uiLanguage={uiLanguage} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
