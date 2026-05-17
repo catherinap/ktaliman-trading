@@ -1820,6 +1820,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
   const { t } = useTranslation()
   const [calImpact, setCalImpact] = React.useState("all")
   const [calCountry, setCalCountry] = React.useState("all")
+  const [newsCategory, setNewsCategory] = React.useState("all")
+  const [newsSource, setNewsSource] = React.useState("all")
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
   const news     = workspaceData?.news     || []
@@ -2249,38 +2251,89 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
             </div>
           </section>
 
-          {/* Market News */}
-          <section className="border border-zinc-900 bg-[#0a0a0a]">
-            <div className="border-b border-zinc-900 px-4 py-3">
-              <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-                {t("panels.marketNews")}
-              </span>
-            </div>
-            <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-              {news.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
-              ) : news.map((item) => {
-                const url = item.url && item.url !== "#" ? item.url : null;
-                const style = newsItemStyle(item);
-                return (
-                  <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
-                    className="block px-4 py-2.5 transition" style={{ textDecoration: "none", ...style }}
-                    onClick={(e) => { if (!url) e.preventDefault(); } }
-                    onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; } }
-                    onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent"; } }
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className={cls("text-[9px] uppercase tracking-[0.18em]", categoryTone(item.category))}>
-                        {item.category}
-                      </span>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.05em' }}>{item.source}</span>
-                    </div>
-                    <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
-                  </a>
-                );
-              })}
-            </div>
-          </section>
+{/* Market News */}
+<section className="border border-zinc-900 bg-[#0a0a0a] flex flex-col" style={{ minHeight: 0 }}>
+  <div className="border-b border-zinc-900 px-3 py-2.5 shrink-0">
+  <div className="flex items-center justify-between gap-2">
+    <span className="text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+      {t("panels.marketNews")}
+    </span>
+    <div className="flex items-center gap-2">
+      <select
+        value={newsCategory}
+        onChange={e => setNewsCategory(e.target.value)}
+        style={{ fontSize: '11px', padding: '3px 8px', minWidth: '110px' }}
+      >
+        <option value="all">All Categories</option>
+        <option value="POLICY">Policy</option>
+        <option value="MACRO">Macro</option>
+        <option value="MARKETS">Markets</option>
+        <option value="FOREX">Forex</option>
+        <option value="COT">COT</option>
+        <option value="CRYPTO">Crypto</option>
+      </select>
+      <select
+        value={newsSource}
+        onChange={e => setNewsSource(e.target.value)}
+        style={{ fontSize: '11px', padding: '3px 8px', minWidth: '130px' }}
+      >
+        <option value="all">All Sources</option>
+        <option value="Federal Reserve">Federal Reserve</option>
+        <option value="ECB">ECB</option>
+        <option value="CFTC">CFTC</option>
+        <option value="BLS">BLS</option>
+        <option value="Bloomberg">Bloomberg</option>
+        <option value="ForexLive">ForexLive</option>
+        <option value="MarketWatch">MarketWatch</option>
+        <option value="Investing.com">Investing.com</option>
+        <option value="Yahoo Finance">Yahoo Finance</option>
+      </select>
+    </div>
+  </div>
+</div>
+  <div className="divide-y divide-zinc-900 overflow-y-auto flex-1" style={{ minHeight: 0 }}>
+    {news.length === 0 ? (
+      <div className="px-4 py-4 text-sm text-zinc-500">No market news.</div>
+    ) : news
+        .filter(item => newsCategory === "all" || item.category === newsCategory)
+        .filter(item => newsSource === "all" || item.source === newsSource)
+        .map((item) => {
+          const url = item.url && item.url !== "#" ? item.url : null
+          const style = newsItemStyle(item)
+          const pubDate = item.published_at ? new Date(item.published_at) : null
+          const dateStr = pubDate ? pubDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""
+          const timeStr = pubDate ? pubDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""
+          return (
+            <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
+              className="block px-3 py-2.5 transition" style={{ textDecoration: "none", ...style }}
+              onClick={(e) => { if (!url) e.preventDefault() }}
+              onMouseEnter={(e) => { if (!style.background) e.currentTarget.style.background = "rgba(255,255,255,0.03)" }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = style.background || "transparent" }}
+            >
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={cls("text-[9px] uppercase tracking-[0.18em] shrink-0", categoryTone(item.category))}>
+                    {item.category}
+                  </span>
+                  <span style={{ fontSize: '10px', fontWeight: 600, color: '#60a5fa', letterSpacing: '0.04em', flexShrink: 0 }}>
+                    {item.source}
+                  </span>
+                </div>
+                {dateStr && (
+                  <span style={{ fontSize: '10px', color: '#52525b', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    {dateStr} {timeStr}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm leading-5 text-zinc-100">{item.title || "Untitled"}</div>
+              {item.summary && item.summary !== item.title && (
+                <div className="text-xs leading-4 text-zinc-500 mt-0.5 line-clamp-2">{item.summary}</div>
+              )}
+            </a>
+          )
+        })}
+  </div>
+</section>
         </div>
       </div></>
   )
