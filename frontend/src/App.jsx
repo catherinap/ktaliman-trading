@@ -6827,105 +6827,90 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
   const lang = uiLanguage || 'en'
   const [activeKey, setActiveKey] = React.useState(GUIDE_SECTIONS[0].key)
   const activeSection = GUIDE_SECTIONS.find(s => s.key === activeKey) || GUIDE_SECTIONS[0]
- 
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
- 
+
       {/* Header */}
       <div style={{
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        padding: '20px 24px 16px',
+        borderBottom: '1px solid rgba(90,104,116,0.5)',
+        padding: '20px 28px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: '11px', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#52525b', marginBottom: '4px' }}>
+        <div style={{ fontSize: '11px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(148,163,184,0.5)', marginBottom: '3px' }}>
           {lang === 'uk' ? 'Платформа' : 'Platform'}
         </div>
-        <div style={{ fontSize: '20px', fontWeight: 700, color: '#f4f4f5', letterSpacing: '-0.02em' }}>
+        <div style={{ fontSize: '19px', fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.02em', marginBottom: '16px' }}>
           {lang === 'uk' ? 'Посібник користувача' : 'Platform Guide'}
         </div>
-        <div style={{ fontSize: '13px', color: '#52525b', marginTop: '4px' }}>
-          {lang === 'uk'
-            ? 'Як читати та використовувати цю платформу'
-            : 'How to read and use every section of this dashboard'}
+
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', paddingBottom: '0' }}>
+          {GUIDE_SECTIONS.map(sec => {
+            const isActive = activeKey === sec.key
+            const label = typeof sec.title === 'object' ? sec.title[lang] : sec.title
+            return (
+              <button key={sec.key} onClick={() => setActiveKey(sec.key)} style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px',
+                flexShrink: 0,
+                background: 'transparent',
+                border: 'none',
+                borderBottom: isActive ? `2px solid ${sec.color}` : '2px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                marginBottom: '-1px',
+              }}>
+                <span style={{ fontSize: '13px', opacity: isActive ? 1 : 0.5 }}>{sec.icon}</span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: isActive ? 600 : 400,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: isActive ? '#f1f5f9' : 'rgba(148,163,184,0.55)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
- 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
- 
-        {/* Sidebar nav */}
-        <div style={{
-          width: '200px',
-          flexShrink: 0,
-          borderRight: '1px solid rgba(90,104,116,0.5)',
-          overflowY: 'auto',
-          padding: '12px 0',
-        }}>
-          {GUIDE_SECTIONS.map(sec => (
-            <button key={sec.key} onClick={() => setActiveKey(sec.key)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                width: '100%', textAlign: 'left',
-                padding: '9px 16px',
-                background: activeKey === sec.key ? 'rgba(59,130,246,0.12)' : 'transparent',
-                borderLeft: activeKey === sec.key ? `2px solid ${sec.color}` : '2px solid transparent',
-                border: 'none', cursor: 'pointer',
-                transition: 'background 0.15s',
-              }}>
-              <span style={{ fontSize: '15px', opacity: 0.8 }}>{sec.icon}</span>
-              <span style={{
-                fontSize: '12px', fontWeight: activeKey === sec.key ? 600 : 400,
-                color: activeKey === sec.key ? '#f4f4f5' : '#71717a',
-                lineHeight: 1.3,
-              }}>
-                {typeof sec.title === 'object' ? sec.title[lang] : sec.title}
-              </span>
-            </button>
-          ))}
+
+      {/* Content area */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+
+        {/* Section summary */}
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(148,163,184,0.7)', margin: 0, lineHeight: 1.7 }}>
+            {typeof activeSection.summary === 'object' ? activeSection.summary[lang] : activeSection.summary}
+          </p>
         </div>
- 
-        {/* Content area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
- 
-          {/* Section header */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '22px' }}>{activeSection.icon}</span>
-              <h2 style={{
-                fontSize: '18px', fontWeight: 700, color: '#f4f4f5',
-                margin: 0, letterSpacing: '-0.01em',
-              }}>
-                {typeof activeSection.title === 'object' ? activeSection.title[lang] : activeSection.title}
-              </h2>
-            </div>
-            <p style={{ fontSize: '13px', color: '#71717a', margin: 0, lineHeight: 1.6 }}>
-              {typeof activeSection.summary === 'object' ? activeSection.summary[lang] : activeSection.summary}
-            </p>
-          </div>
- 
-          {/* Blocks */}
-          {activeSection.blocks.map((block, bi) => (
-            <div key={bi} style={{
-              marginBottom: '28px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(90,104,116,0.5)', 
-              borderRadius: '8px',
-              padding: '20px 22px',
+
+        {/* Blocks */}
+        {activeSection.blocks.map((block, bi) => (
+          <div key={bi} style={{
+            marginBottom: '20px',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(90,104,116,0.4)',
+            borderRadius: '10px',
+            padding: '20px 24px',
+          }}>
+            <h3 style={{
+              fontSize: '12px', fontWeight: 600, color: activeSection.color,
+              margin: '0 0 14px 0', letterSpacing: '0.08em', textTransform: 'uppercase',
             }}>
-              <h3 style={{
-                fontSize: '13px', fontWeight: 600, color: activeSection.color,
-                margin: '0 0 14px 0', letterSpacing: '0.02em',
-              }}>
-                {typeof block.title === 'object' ? block.title[lang] : block.title}
-              </h3>
-              <div>
-                {renderGuideContent(
-                  typeof block.content === 'object' ? block.content[lang] : block.content
-                )}
-              </div>
+              {typeof block.title === 'object' ? block.title[lang] : block.title}
+            </h3>
+            <div>
+              {renderGuideContent(
+                typeof block.content === 'object' ? block.content[lang] : block.content
+              )}
             </div>
-          ))}
- 
-        </div>
+          </div>
+        ))}
+
       </div>
     </div>
   )
