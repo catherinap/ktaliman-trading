@@ -3375,155 +3375,362 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
   const { t } = useTranslation();
   const universeAssets = useMemo(() => findAssetsExact(assets, CORRELATION_UNIVERSE), [assets])
   const pairs = useMemo(() => buildPositioningPairs(universeAssets), [universeAssets])
-  const alignedPairs = useMemo(() => [...pairs].sort((a, b) => a.distance - b.distance).slice(0, 8), [pairs])
-  const opposedPairs = useMemo(() => [...pairs].sort((a, b) => b.distance - a.distance).slice(0, 8), [pairs])
-  const avgAlignment = useMemo(() => !pairs.length ? null : pairs.reduce((sum, pair) => sum + pair.alignment, 0) / pairs.length, [pairs])
-  const avgDistance = useMemo(() => !pairs.length ? null : pairs.reduce((sum, pair) => sum + pair.distance, 0) / pairs.length, [pairs])
-  const sameSectorPairs = useMemo(() => pairs.filter((pair) => pair.sameSector).length, [pairs])
-  const crossSectorPairs = useMemo(() => pairs.filter((pair) => !pair.sameSector).length, [pairs])
- const narrative = useMemo(
-  () =>
-    buildCorrelationNarrative(
-      {
-        avgDistance,
-        avgAlignment,
-        alignedPairs,
-        opposedPairs,
-        sameSectorPairs,
-        crossSectorPairs,
-      },
-      t
-    ),
-  [avgDistance, avgAlignment, alignedPairs, opposedPairs, sameSectorPairs, crossSectorPairs, t]
-);
+  const alignedPairs = useMemo(() => [...pairs].sort((a, b) => a.distance - b.distance).slice(0, 6), [pairs])
+  const opposedPairs = useMemo(() => [...pairs].sort((a, b) => b.distance - a.distance).slice(0, 6), [pairs])
+  const avgAlignment  = useMemo(() => !pairs.length ? null : pairs.reduce((s, p) => s + p.alignment, 0) / pairs.length, [pairs])
+  const avgDistance   = useMemo(() => !pairs.length ? null : pairs.reduce((s, p) => s + p.distance,  0) / pairs.length, [pairs])
+  const sameSectorPairs  = useMemo(() => pairs.filter((p) => p.sameSector).length,  [pairs])
+  const crossSectorPairs = useMemo(() => pairs.filter((p) => !p.sameSector).length, [pairs])
 
-  const quickGuide = useMemo(() => {
-    if (avgDistance == null) {
-      return {
-        title: 'How to read this',
-        summary: 'Correlation here means positioning similarity, not classical rolling price correlation.',
-        takeaway: 'Small gaps mean two assets are being positioned in a similar way by funds. Large gaps mean they are currently telling different stories.',
-      }
-    }
-    if (avgDistance >= 60) {
-      return {
-        title: 'Plain-English read',
-        summary: 'The market is fragmented right now. Different assets are carrying very different positioning profiles instead of moving as one macro block.',
-        takeaway: 'This usually favors selective ideas and relative-value thinking, not broad all-in risk-on or risk-off assumptions.',
-      }
-    }
-    if (avgDistance >= 40) {
-      return {
-        title: 'Plain-English read',
-        summary: 'The market has mixed alignment. Some assets are traveling together, but others are clearly out of sync.',
-        takeaway: 'This is a confirmation environment. Cross-check one market with another before trusting a macro theme.',
-      }
-    }
-    return {
-      title: 'Plain-English read',
-      summary: 'The market is fairly synchronized. A lot of assets are expressing a similar positioning message.',
-      takeaway: 'This can strengthen macro conviction because confirmation across assets is cleaner.',
-    }
-  }, [avgDistance])
+  const narrative = useMemo(
+    () => buildCorrelationNarrative({ avgDistance, avgAlignment, alignedPairs, opposedPairs, sameSectorPairs, crossSectorPairs }, t),
+    [avgDistance, avgAlignment, alignedPairs, opposedPairs, sameSectorPairs, crossSectorPairs, t]
+  )
 
-  const chartExplanation = useMemo(() => {
-    const topAligned = alignedPairs[0]
-    const topOpposed = opposedPairs[0]
-    if (!topAligned || !topOpposed) {
-      return 'The mini pair charts compare the current percentile position of two assets. When the two points sit close together, positioning is aligned. When the gap is large, the assets are expressing different positioning regimes.'
+  const alignmentLabel = avgDistance == null ? '—'
+    : avgDistance >= 60 ? 'Fragmented'
+    : avgDistance >= 40 ? 'Mixed'
+    : avgDistance >= 20 ? 'Aligned'
+    : 'Highly Synchronized'
+
+  const alignmentColor = avgDistance == null ? '#94a3b8'
+    : avgDistance >= 60 ? '#f87171'
+    : avgDistance >= 40 ? '#fbbf24'
+    : '#4ade80'
+
+  const cellColor = (distance) => {
+    if (distance == null) return { bg: 'transparent', text: '#52525b' }
+    if (distance <= 12)  return { bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' }
+    if (distance <= 25)  return { bg: 'rgba(74,222,128,0.10)',  text: '#86efac' }
+    if (distance <= 40)  return { bg: 'rgba(148,163,184,0.06)', text: '#64748b' }
+    if (distance <= 60)  return { bg: 'rgba(251,191,36,0.10)',  text: '#fbbf24' }
+    if (distance <= 75)  return { bg: 'rgba(248,113,113,0.15)', text: '#f87171' }
+    return                      { bg: 'rgba(248,113,113,0.25)', text: '#ef4444' }
+  }
+
+  const shortName = (name) => {
+    const map = {
+      'Gold': 'XAU', 'Silver': 'XAG', 'Copper': 'HG', 'Platinum': 'PL',
+      'WTI Crude': 'WTI', 'Natural Gas': 'GAS',
+      'S&P 500': 'SPX', 'Nasdaq': 'NDX', 'Dow Jones': 'DJI', 'Russell 2000': 'RTY',
+      'Euro': 'EUR', 'Japanese Yen': 'JPY', 'British Pound': 'GBP',
+      'Swiss Franc': 'CHF', 'Australian Dollar': 'AUD', 'Canadian Dollar': 'CAD',
+      'Mexican Peso': 'MXN', 'US Dollar Index': 'DXY',
+      'Corn': 'ZC', 'Soybeans': 'ZS', 'Wheat': 'ZW',
     }
-    return `Right now the cleanest alignment is ${topAligned.left.name} versus ${topAligned.right.name}, while the biggest split is ${topOpposed.left.name} versus ${topOpposed.right.name}. Read each mini chart as a simple distance check between the two current positioning states.`
-  }, [alignedPairs, opposedPairs])
+    return map[name] || name.split(' ')[0].slice(0, 4).toUpperCase()
+  }
+
+  const markerColor = (pct) =>
+    pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
+
+  const distanceMap = useMemo(() => {
+    const m = {}
+    for (const p of pairs) {
+      m[`${p.left.name}|${p.right.name}`] = p.distance
+      m[`${p.right.name}|${p.left.name}`] = p.distance
+    }
+    return m
+  }, [pairs])
+
+  // ── Positioning Scale component ────────────────────────────────────────────
+  // Shows two colored markers on a 0–100 track with zone backgrounds
+  const PositioningScale = ({ leftPct, rightPct, leftName, rightName }) => {
+    const lc = markerColor(leftPct)
+    const rc = markerColor(rightPct)
+    const gap = Math.abs(leftPct - rightPct)
+
+    return (
+      <div style={{ padding: '8px 0 4px' }}>
+        {/* Zone track */}
+        <div style={{ position: 'relative', height: '6px', borderRadius: '3px', overflow: 'visible',
+          background: 'linear-gradient(90deg, rgba(248,113,113,0.25) 0%, rgba(248,113,113,0.08) 35%, rgba(148,163,184,0.08) 35%, rgba(148,163,184,0.08) 65%, rgba(74,222,128,0.08) 65%, rgba(74,222,128,0.25) 100%)',
+        }}>
+          {/* Zone dividers */}
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '35%', width: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '65%', width: '1px', background: 'rgba(255,255,255,0.08)' }} />
+
+          {/* Gap fill between markers */}
+          {(() => {
+            const minP = Math.min(leftPct, rightPct)
+            const maxP = Math.max(leftPct, rightPct)
+            return (
+              <div style={{
+                position: 'absolute', top: '1px', bottom: '1px',
+                left: `${minP}%`, width: `${maxP - minP}%`,
+                background: gap <= 25
+                  ? 'rgba(74,222,128,0.15)'
+                  : gap >= 60
+                  ? 'rgba(248,113,113,0.15)'
+                  : 'rgba(251,191,36,0.10)',
+                borderRadius: '2px',
+              }} />
+            )
+          })()}
+
+          {/* Left marker */}
+          <div style={{
+            position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
+            left: `${leftPct}%`,
+            width: '12px', height: '12px', borderRadius: '50%',
+            background: lc,
+            border: '2px solid rgba(0,0,0,0.5)',
+            boxShadow: `0 0 8px ${lc}99, 0 0 3px ${lc}`,
+            zIndex: 2,
+          }} />
+
+          {/* Right marker */}
+          <div style={{
+            position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
+            left: `${rightPct}%`,
+            width: '12px', height: '12px', borderRadius: '50%',
+            background: rc,
+            border: '2px solid rgba(0,0,0,0.5)',
+            boxShadow: `0 0 8px ${rc}99, 0 0 3px ${rc}`,
+            zIndex: 2,
+          }} />
+        </div>
+
+        {/* Labels row */}
+        <div style={{ position: 'relative', height: '18px', marginTop: '6px' }}>
+          <div style={{
+            position: 'absolute',
+            left: `${leftPct}%`,
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: lc, letterSpacing: '0.08em' }}>
+              {Math.round(leftPct)}
+            </div>
+            <div style={{ fontSize: '8px', color: '#52525b', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              {shortName(leftName)}
+            </div>
+          </div>
+          <div style={{
+            position: 'absolute',
+            left: `${rightPct}%`,
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: rc, letterSpacing: '0.08em' }}>
+              {Math.round(rightPct)}
+            </div>
+            <div style={{ fontSize: '8px', color: '#52525b', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              {shortName(rightName)}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
+
+      {/* ── HEADER ── */}
       <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
-        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="grid gap-4 md:grid-cols-4 metric-card">
-            <Metric label="Universe" value={universeAssets.length} />
-            <Metric label="Pairs" value={pairs.length} />
+        <div className="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+          <div className="grid gap-3 md:grid-cols-4 metric-card">
+            <Metric label="Universe"      value={universeAssets.length} />
+            <Metric label="Pairs"         value={pairs.length} />
             <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
-            <Metric label="Dispersion" value={formatPercentile(avgDistance)} />
+            <Metric label="Avg Distance"  value={formatPercentile(avgDistance)} />
           </div>
-          <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Quick Guide</div>
-            <div className="mt-3 text-zinc-100">This is not price correlation in the classic statistical sense.</div>
-            <div className="mt-2">Here correlation means how similar current COT positioning is across assets. Small percentile gaps mean stronger alignment. Large gaps mean a more conflicted macro map.</div>
+          <div className="flex items-center gap-4 border border-zinc-900 small-panel-color p-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-1">Market Alignment</div>
+              <div className="text-lg font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
+              <div className="text-[10px] text-zinc-600 mt-0.5">{sameSectorPairs} same · {crossSectorPairs} cross-sector</div>
+            </div>
+            <div className="flex-1">
+              <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div style={{
+                  width: `${Math.max(4, 100 - (avgDistance ?? 50))}%`,
+                  height: '100%', borderRadius: '9999px',
+                  background: alignmentColor,
+                  boxShadow: `0 0 8px ${alignmentColor}80`,
+                }} />
+              </div>
+              <div className="flex justify-between text-[9px] uppercase tracking-[0.12em] text-zinc-600 mt-1">
+                <span>Fragmented</span><span>Synchronized</span>
+              </div>
+            </div>
           </div>
+        </div>
+        <div className="mt-2 text-[10px] text-zinc-600 border-t border-zinc-900 pt-2">
+          COT positioning similarity — not price correlation. Green = funds positioned alike. Red = opposite bets.
         </div>
       </Panel>
 
-      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <Panel title={t("panels.crossAssetPositioningMap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">live percentile relationships</span>}>
-          <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <div className=" small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Small gap</div>
-              <div className="mt-2">Assets are being positioned in a similar way. Their macro message is closer.</div>
-            </div>
-            <div className=" small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Large gap</div>
-              <div className="mt-2">Assets are expressing different or opposing positioning conditions.</div>
-            </div>
-            <div className=" small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Why it matters</div>
-              <div className="mt-2">When several markets confirm each other, trade conviction is easier. When they disagree, be more selective.</div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-2">
-            <div className="small-panel-color p-4">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 ">Narrative Summary</div>
-              <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.summary}</div>
-              <div className="mt-3 text-sm text-slate-200">Same-sector pairs: {sameSectorPairs} · Cross-sector pairs: {crossSectorPairs}</div>
-            </div>
-            <div className="small-panel-color p-4">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
-              <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.interpretation}</div>
-            </div>
-          </div>
-
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-zinc-900 text-[11px] uppercase tracking-[0.22em] text-slate-200">
-                <tr>
-                  <th className="pb-3 pr-4 font-medium">Asset</th>
-                  <th className="pb-3 pr-4 font-medium">Sector</th>
-                  <th className="pb-3 pr-4 font-medium">Percentile</th>
-                  <th className="pb-3 pr-4 font-medium">Flow</th>
-                  <th className="pb-3 pr-4 font-medium">Regime</th>
-                  <th className="pb-3 font-medium">Signal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {universeAssets.map((a) => (
-                  <tr key={a.symbol} className="border-b border-zinc-950">
-                    <td className="py-3 pr-4 text-zinc-100">{a.name}</td>
-                    <td className="py-3 pr-4 text-slate-200">{normalizeSector(a.sector)}</td>
-                    <td className={cls('py-3 pr-4', flowColor(a.funds_percentile_3y))}>{formatPercentile(a.funds_percentile_3y)}</td>
-                    <td className="py-3 pr-4 text-zinc-400">{a.flow_state || 'Neutral'}</td>
-                    <td className="py-3 pr-4 text-zinc-400">{regimeLabel(a.funds_percentile_3y, t)}</td>
-                    <td className="py-3 text-zinc-400">{signalLabel(a.funds_percentile_3y, t)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-
+      {/* ── MAIN GRID ── */}
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-4">
-          <Panel title={quickGuide.title} >
-            <div className="space-y-3 text-sm leading-7 text-zinc-300">
-              <div>{quickGuide.summary}</div>
-              <div className="small-panel-color p-3 text-zinc-400">{quickGuide.takeaway}</div>
+
+          {/* HEATMAP — fixed spacing */}
+          <Panel title="Correlation Matrix">
+            <div className="overflow-x-auto">
+              <table style={{ borderCollapse: 'collapse', fontSize: '11px', width: '100%' }}>
+                <thead>
+                  <tr>
+                    {/* Empty corner — no minWidth */}
+                    <th style={{ padding: '2px 4px 4px 0', width: '38px' }} />
+                    {universeAssets.map(a => (
+                      <th key={a.symbol} style={{
+                        padding: '2px 3px 6px', textAlign: 'center',
+                        color: '#64748b', fontWeight: 600,
+                        fontSize: '9px', letterSpacing: '0.08em',
+                        textTransform: 'uppercase', whiteSpace: 'nowrap',
+                      }}>
+                        {shortName(a.name)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {universeAssets.map((rowAsset) => (
+                    <tr key={rowAsset.symbol}>
+                      {/* Row label — tight padding */}
+                      <td style={{
+                        padding: '2px 6px 2px 0',
+                        color: '#94a3b8', fontWeight: 600,
+                        fontSize: '9px', whiteSpace: 'nowrap',
+                        letterSpacing: '0.06em', textTransform: 'uppercase',
+                      }}>
+                        {shortName(rowAsset.name)}
+                      </td>
+                      {universeAssets.map((colAsset) => {
+                        if (rowAsset.symbol === colAsset.symbol) {
+                          const pct = Number(rowAsset.funds_percentile_3y)
+                          const diagColor = pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
+                          return (
+                            <td key={colAsset.symbol} style={{
+                              padding: '2px 3px', textAlign: 'center',
+                              background: 'rgba(255,255,255,0.05)',
+                              color: diagColor, fontWeight: 700,
+                              borderRadius: '3px',
+                            }}>
+                              {isNaN(pct) ? '—' : Math.round(pct)}
+                            </td>
+                          )
+                        }
+                        const dist = distanceMap[`${rowAsset.name}|${colAsset.name}`]
+                        const { bg, text } = cellColor(dist)
+                        return (
+                          <td key={colAsset.symbol}
+                            title={`${rowAsset.name} ↔ ${colAsset.name}: gap ${dist != null ? Math.round(dist) : '—'}`}
+                            style={{
+                              padding: '2px 3px', textAlign: 'center',
+                              background: bg, color: text,
+                              fontWeight: 600, borderRadius: '3px',
+                              cursor: 'default',
+                            }}
+                          >
+                            {dist != null ? Math.round(dist) : '—'}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-zinc-900 flex-wrap">
+              <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-600">Gap:</span>
+              {[
+                { label: '0–12 Aligned',   bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' },
+                { label: '13–25',          bg: 'rgba(74,222,128,0.10)',  text: '#86efac' },
+                { label: '26–60 Neutral',  bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
+                { label: '61–75',          bg: 'rgba(248,113,113,0.15)', text: '#f87171' },
+                { label: '76+ Opposed',    bg: 'rgba(248,113,113,0.25)', text: '#ef4444' },
+              ].map(({ label, bg, text }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: bg, border: `1px solid ${text}40` }} />
+                  <span style={{ fontSize: '9px', color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+                </div>
+              ))}
             </div>
           </Panel>
 
+          {/* TOP PAIRS — positioning scale */}
+          <div className="grid gap-4 md:grid-cols-2">
+
+            {/* Aligned */}
+            <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px rgba(74,222,128,0.8)' }} />
+                <span className="text-[10px] uppercase tracking-[0.25em] text-emerald-400 font-semibold">Top Aligned</span>
+              </div>
+              <div className="space-y-4">
+                {alignedPairs.map((pair) => (
+                  <div key={pair.key}>
+                    {/* Pair names + gap badge */}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-zinc-200">
+                        {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
+                      </span>
+                      <span style={{
+                        fontSize: '10px', fontWeight: 700,
+                        color: '#4ade80', letterSpacing: '0.08em',
+                        background: 'rgba(74,222,128,0.08)',
+                        border: '1px solid rgba(74,222,128,0.2)',
+                        padding: '1px 6px', borderRadius: '4px',
+                      }}>
+                        gap {Math.round(pair.distance)}
+                      </span>
+                    </div>
+                    <PositioningScale
+                      leftPct={pair.leftPct} rightPct={pair.rightPct}
+                      leftName={pair.left.name} rightName={pair.right.name}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Opposed */}
+            <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)' }} />
+                <span className="text-[10px] uppercase tracking-[0.25em] text-rose-400 font-semibold">Top Opposed</span>
+              </div>
+              <div className="space-y-4">
+                {opposedPairs.map((pair) => (
+                  <div key={pair.key}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-zinc-200">
+                        {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
+                      </span>
+                      <span style={{
+                        fontSize: '10px', fontWeight: 700,
+                        color: '#f87171', letterSpacing: '0.08em',
+                        background: 'rgba(248,113,113,0.08)',
+                        border: '1px solid rgba(248,113,113,0.2)',
+                        padding: '1px 6px', borderRadius: '4px',
+                      }}>
+                        gap {Math.round(pair.distance)}
+                      </span>
+                    </div>
+                    <PositioningScale
+                      leftPct={pair.leftPct} rightPct={pair.rightPct}
+                      leftName={pair.left.name} rightName={pair.right.name}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── RIGHT ── */}
+        <div className="space-y-4">
           <AIAnalysisPanel
             type="correlation"
             data={{
-              avg_alignment: avgAlignment,
-              avg_distance: avgDistance,
-              same_sector_pairs: sameSectorPairs,
+              avg_alignment:      avgAlignment,
+              avg_distance:       avgDistance,
+              same_sector_pairs:  sameSectorPairs,
               cross_sector_pairs: crossSectorPairs,
               aligned_pairs: alignedPairs.slice(0, 5).map(p => ({
                 left: p.left?.name, right: p.right?.name,
@@ -3539,112 +3746,25 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             aiLanguage={aiLanguage}
             title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
           />
-
-          <Panel title={t("panels.regimeHealth")}>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-              <div className="small-panel-color p-4">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Alignment State</div>
-                <div className="mt-2 text-lg text-zinc-100">{dispersionLabel(avgDistance, t)}</div>
-                <div className="mt-1 text-sm text-slate-200">Average gap between assets</div>
-              </div>
-              <div className="small-panel-color p-4">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Cross-Asset Bias</div>
-                <div className="mt-2 text-lg text-zinc-100">{crossSectorPairs > sameSectorPairs ? 'Cross-Sector' : 'Same-Sector'}</div>
-                <div className="mt-1 text-sm text-slate-200">Dominant relationship structure</div>
-              </div>
-            </div>
-          </Panel>
-
-          <div className=".default-bg bg-zinc-950 p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
+            <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
           </div>
-          
-          
-        <div className=".default-bg bg-zinc-950 p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-          </div>         
-        </div>
-      </div>
-
-      <Panel title={t("panels.pairCharts")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">visual explanation</span>}>
-        <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="grid gap-4 md:grid-cols-2">
-            {[...alignedPairs.slice(0, 2), ...opposedPairs.slice(0, 2)].map((pair) => (
-              <div key={`${pair.key}-chart`} className="border border-zinc-900 small-panel-color p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">{pair.relationship}</div>
-                  </div>
-                  <span className={cls('inline-flex items-center border px-2 py-1 text-[10px] uppercase tracking-[0.22em]', sectorBadgeTone(pair.sameSector))}>{pair.sectorLabel}</span>
-                </div>
-                <div className="mt-4">
-                  <PairAlignmentSpark left={pair.leftPct} right={pair.rightPct} />
-                </div>
-                <div className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-200">Gap intensity</div>
-                <div className="mt-2"><PairDistanceBar distance={pair.distance} /></div>
-                <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-200">
-                  <span>{formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}</span>
-                  <span>Gap {formatPercentile(pair.distance)}</span>
-                </div>
-              </div>
-            ))}
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
+            <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
           </div>
-          <div className="space-y-4">
-            <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What these charts mean</div>
-              <div className="mt-3">{chartExplanation}</div>
-            </div>
-            <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to use them</div>
-              <div className="mt-3">Use aligned pairs as confirmation tools. If one asset gives you a directional idea, check whether a related asset is sitting in a similar percentile state. Use opposed pairs as warning signs that the macro message may be split.</div>
-            </div>
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
+            <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
           </div>
         </div>
-      </Panel>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Panel title={t("panels.topAlignedPairs")}>
-          <div className="space-y-3">
-            {alignedPairs.map((pair) => (
-              <div key={pair.key} className="border border-zinc-900 small-panel-color p-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
-                  <div className={cls('text-sm', relationshipTone(pair.distance))}>{pair.relationship}</div>
-                </div>
-                <div className="mt-2"><PairDistanceBar distance={pair.distance} /></div>
-                <div className="mt-2 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-200">
-                  <span>{formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}</span>
-                  <span>gap {formatPercentile(pair.distance)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel title={t("panels.topOpposedPairs")}>
-          <div className="space-y-3">
-            {opposedPairs.map((pair) => (
-              <div key={pair.key} className="border border-zinc-900 small-panel-color p-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-zinc-100">{pair.left.name} ↔ {pair.right.name}</div>
-                  <div className={cls('text-sm', relationshipTone(pair.distance))}>{pair.relationship}</div>
-                </div>
-                <div className="mt-2"><PairDistanceBar distance={pair.distance} /></div>
-                <div className="mt-2 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-200">
-                  <span>{formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}</span>
-                  <span>gap {formatPercentile(pair.distance)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
       </div>
     </div>
   )
 }
+
+
 function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en" }) {  const { t } = useTranslation();
   const rows = useMemo(() => {
     if (!seasonalityData || seasonalityData.length === 0) return []
