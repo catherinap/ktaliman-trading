@@ -2211,9 +2211,9 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               ) : [...calendar]
                   .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || ""))
                   .reverse()
-                  .filter(e => calImpact === "all" || (e.importance || "").toLowerCase() === calImpact.toLowerCase())
+                  .filter(e => calImpact === "all" || e.importance === calImpact)
                   .filter(e => calCountry === "all" || (e.country || "").toUpperCase() === calCountry.toUpperCase())
-                  .map((event) => {
+                  .map((event, idx) => {
                   const imp = (event.importance || "").toLowerCase();
                   const isHigh = imp === "high";
                   const isMed  = imp === "medium";
@@ -2221,14 +2221,14 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   const actColor = actualColor(event.title, event.actual, event.forecast);
                   const isPast = event.datetime ? new Date(event.datetime) < new Date() : false;
                   return (
-                    <div key={event.id} className="px-3 py-2.5"
+                    <div key={`${event.id}-${idx}`} className="px-3 py-2.5"
                       style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
                         : isMed ? { borderLeft: "2px solid rgba(251,191,36,0.4)", background: "rgba(251,191,36,0.02)" }
                           : { borderLeft: "2px solid transparent" }}>
 
                       {/* Row 1: time + currency + title + importance */}
                       <div className="flex items-start justify-between gap-2">
-                        <div class="calendar-row flex items-center gap-2 min-w-0 flex-1">
+                        <div className="calendar-row flex items-center gap-2 min-w-0 flex-1">
                           {(() => {
                             const { time, date, day } = formatEventDateTime(event.datetime, timezone);
                             return (
@@ -7262,8 +7262,8 @@ setWorkspaceData({
       setMacroFeedLoading(true);
 
       const [calendarRes, newsRes] = await Promise.all([
-	   fetch("http://localhost:8001/api/economic-calendar"),
-	   fetch("http://localhost:8001/api/market-news"),
+        fetch("/api/calendar?limit=80"),
+        fetch("/api/news?limit=200"),
 	  ]);
 
       const calendarJson = await calendarRes.json();
