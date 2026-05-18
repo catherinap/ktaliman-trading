@@ -4402,36 +4402,9 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
         </div>
 
         {/* Asset title row */}
-        <div className="flex flex-wrap items-end justify-between gap-3 border-t border-zinc-900 pt-3">
+        <div className="pt-2">
           <div>
             <div className="text-xl font-semibold text-zinc-100">{asset.name}</div>
-            <div className="mt-0.5 text-[11px] uppercase tracking-[0.22em] text-slate-300">
-              {asset.symbol} · {normalizeSector(asset.sector)} ·{' '}
-              <span className={flowColor(profile.pct)}>{profile.setupBias}</span>
-              {' · '}
-              <span className="text-zinc-500">Conviction {formatPercentile(profile.conviction)}</span>
-              {' · '}
-              <span className="text-zinc-500">Crowding {profile.crowding}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Quick COT badge */}
-            <div style={{
-              padding: '4px 12px', fontSize: '13px', fontWeight: 700,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)',
-              color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8',
-              boxShadow: profile.pct >= 65
-                ? '0 0 12px rgba(74,222,128,0.25)'
-                : profile.pct <= 35
-                ? '0 0 12px rgba(248,113,113,0.25)'
-                : 'none',
-            }}>
-              {formatPercentile(profile.pct)}
-            </div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-              {asset.flow_state || 'Neutral'}
-            </div>
           </div>
         </div>
       </Panel>
@@ -4508,6 +4481,10 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                 <div className="text-center text-[10px] uppercase tracking-[0.18em] text-zinc-500 mt-0.5">
                   {regimeLabel(profile.pct, t)} · {signalLabel(profile.pct, t)}
                 </div>
+                <div className="flex justify-between gap-2 text-[10px] uppercase">
+                  <span className="text-zinc-500">Conviction {formatPercentile(profile.conviction)}</span>
+                  {' · '}
+                  <span className="text-zinc-500">Crowding {profile.crowding}</span></div>
               </div>
 
               {/* Bias bar + summary */}

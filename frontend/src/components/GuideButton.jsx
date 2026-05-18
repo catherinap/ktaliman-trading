@@ -25,7 +25,7 @@ export default function GuideButton({ sectionKey, openGuide, label }) {
         display: "inline-flex",
         alignItems: "center",
         gap: "5px",
-        padding: "4px 10px",
+        padding: "6px 10px",
         borderRadius: "6px",
         cursor: "pointer",
         background: "rgba(59,130,246,0.07)",
