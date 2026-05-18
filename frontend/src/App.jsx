@@ -179,7 +179,7 @@ function formatEventDateTime(isoString, tz = "Europe/Copenhagen") {
   if (!isoString) return { time: "TBD", date: "", day: "" }
   try {
     const d = new Date(isoString)
-    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: tz })
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: tz, hour12: false })
     const date = d.toLocaleDateString([], { day: "2-digit", month: "short", timeZone: tz })
     const day  = d.toLocaleDateString([], { weekday: "short", timeZone: tz }).toUpperCase()
     return { time, date, day }
@@ -2208,9 +2208,11 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
             <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
               {calendar.length === 0 ? (
                 <div className="px-4 py-4 text-sm text-slate-200">No calendar events.</div>
-              ) : calendar.filter(e => calImpact === "all" || e.importance === calImpact)
-                .filter(e => calCountry === "all" || e.country === calCountry)
-                .slice(0, 20).map((event) => {
+              ) : [...calendar]
+                  .filter(e => calImpact === "all" || e.importance === calImpact)
+                  .filter(e => calCountry === "all" || e.country === calCountry)
+                  .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || "")).reverse()
+                  .map((event) => {
                   const imp = (event.importance || "").toLowerCase();
                   const isHigh = imp === "high";
                   const isMed  = imp === "medium";
@@ -7201,7 +7203,7 @@ useEffect(() => {
   fetch('/api/signals'),
   fetch('/api/workspace'),
   fetch('/api/seasonality'),
-  fetch('/api/calendar?limit=15'),
+  fetch('/api/calendar?limit=80'),
   fetch('/api/news?limit=200'),
 ])
 
