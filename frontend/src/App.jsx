@@ -1452,16 +1452,16 @@ function ExplorerTabs({ assets, selected, setSelected }) {
 function BiasBar({ value = 50 }) {
   const safe = Math.max(0, Math.min(100, Number(value) || 0))
   const color = safe >= 65 ? '#34d399' : safe <= 35 ? '#fb7185' : '#f59e0b'
-  const glow  = safe >= 65
-    ? '0 0 8px rgba(52,211,153,0.7), 0 0 2px rgba(52,211,153,1)'
+  const glow = safe >= 65
+    ? '0 0 8px rgba(52,211,153,0.8)'
     : safe <= 35
-    ? '0 0 8px rgba(251,113,133,0.7), 0 0 2px rgba(251,113,133,1)'
-    : '0 0 8px rgba(245,158,11,0.7), 0 0 2px rgba(245,158,11,1)'
+    ? '0 0 8px rgba(251,113,133,0.8)'
+    : '0 0 8px rgba(245,158,11,0.8)'
   return (
-    <div className="h-2 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+    <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '9999px'}}>
       <div style={{
         width: `${Math.max(6, safe)}%`,
-        height: '100%',
+        height: '8px',
         background: color,
         borderRadius: '9999px',
         boxShadow: glow,
@@ -1476,62 +1476,38 @@ function GaugeArc({ value = 50 }) {
   const circumference = Math.PI * radius;
   const progress = (safe / 100) * circumference;
   const tone = safe >= 65 ? "#34d399" : safe <= 35 ? "#fb7185" : "#f59e0b";
-  const filterId = `glow-${safe}`;
+  const glowId = `glow-${Math.round(safe)}`;
 
   return (
-    <div className="mx-auto flex w-full max-w-[220px] justify-center overflow-hidden">
-      <svg
-        viewBox="0 0 120 70"
-        className="h-24 w-[120px]"
-        aria-hidden="true"
-      >
+    <div className="mx-auto flex w-full max-w-[220px] justify-center" style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 120 70" className="h-24 w-[120px]" aria-hidden="true" style={{ overflow: 'visible' }}>
         <defs>
-          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feFlood floodColor={tone} floodOpacity="0.8" result="color" />
-            <feComposite in="color" in2="blur" operator="in" result="glow" />
-            <feMerge>
-              <feMergeNode in="glow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
           </filter>
         </defs>
         <g transform="translate(60 60)">
-          {/* Background arc — no filter */}
-          <circle
-            r={radius}
-            cx="0"
-            cy="0"
-            fill="none"
-            stroke="#27272a"
-            strokeWidth="10"
-            strokeLinecap="round"
+          {/* 1. Background arc */}
+          <circle r={radius} cx="0" cy="0" fill="none"
+            stroke="#27272a" strokeWidth="10" strokeLinecap="round"
             strokeDasharray={`${circumference} ${circumference * 2}`}
-            strokeDashoffset="0"
-            transform="rotate(180)"
+            strokeDashoffset="0" transform="rotate(180)"
           />
-          {/* Colored arc — glow filter only on this element */}
-          <circle
-            r={radius}
-            cx="0"
-            cy="0"
-            fill="none"
-            stroke={tone}
-            strokeWidth="10"
-            strokeLinecap="round"
+          {/* 2. Glow layer — blurred, rendered before crisp arc */}
+          <circle r={radius} cx="0" cy="0" fill="none"
+            stroke={tone} strokeWidth="10" strokeLinecap="round"
             strokeDasharray={`${progress} ${circumference * 2}`}
-            strokeDashoffset="0"
-            transform="rotate(180)"
-            filter={`url(#${filterId})`}
+            strokeDashoffset="0" transform="rotate(180)"
+            filter={`url(#${glowId})`}
+            opacity="0.6"
           />
-          <text
-            x="0"
-            y="8"
-            textAnchor="middle"
-            fill="#f4f4f5"
-            fontSize="18"
-            fontWeight="600"
-          >
+          {/* 3. Crisp colored arc on top */}
+          <circle r={radius} cx="0" cy="0" fill="none"
+            stroke={tone} strokeWidth="10" strokeLinecap="round"
+            strokeDasharray={`${progress} ${circumference * 2}`}
+            strokeDashoffset="0" transform="rotate(180)"
+          />
+          <text x="0" y="8" textAnchor="middle" fill="#f4f4f5" fontSize="18" fontWeight="600">
             {formatPercentile(safe)}
           </text>
         </g>
