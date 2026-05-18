@@ -1451,10 +1451,21 @@ function ExplorerTabs({ assets, selected, setSelected }) {
 
 function BiasBar({ value = 50 }) {
   const safe = Math.max(0, Math.min(100, Number(value) || 0))
-  const tone = safe >= 65 ? 'bg-emerald-400' : safe <= 35 ? 'bg-rose-400' : 'bg-amber-300'
+  const color = safe >= 65 ? '#34d399' : safe <= 35 ? '#fb7185' : '#f59e0b'
+  const glow  = safe >= 65
+    ? '0 0 8px rgba(52,211,153,0.7), 0 0 2px rgba(52,211,153,1)'
+    : safe <= 35
+    ? '0 0 8px rgba(251,113,133,0.7), 0 0 2px rgba(251,113,133,1)'
+    : '0 0 8px rgba(245,158,11,0.7), 0 0 2px rgba(245,158,11,1)'
   return (
-    <div className="h-2 overflow-hidden bg-zinc-900">
-      <div className={cls('h-full', tone)} style={{ width: `${Math.max(6, safe)}%` }} />
+    <div className="h-2 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div style={{
+        width: `${Math.max(6, safe)}%`,
+        height: '100%',
+        background: color,
+        borderRadius: '9999px',
+        boxShadow: glow,
+      }} />
     </div>
   )
 }
@@ -1465,6 +1476,7 @@ function GaugeArc({ value = 50 }) {
   const circumference = Math.PI * radius;
   const progress = (safe / 100) * circumference;
   const tone = safe >= 65 ? "#34d399" : safe <= 35 ? "#fb7185" : "#f59e0b";
+  const filterId = `glow-${safe}`;
 
   return (
     <div className="mx-auto flex w-full max-w-[220px] justify-center overflow-hidden">
@@ -1473,7 +1485,19 @@ function GaugeArc({ value = 50 }) {
         className="h-24 w-[120px]"
         aria-hidden="true"
       >
+        <defs>
+          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feFlood floodColor={tone} floodOpacity="0.8" result="color" />
+            <feComposite in="color" in2="blur" operator="in" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <g transform="translate(60 60)">
+          {/* Background arc — no filter */}
           <circle
             r={radius}
             cx="0"
@@ -1486,6 +1510,7 @@ function GaugeArc({ value = 50 }) {
             strokeDashoffset="0"
             transform="rotate(180)"
           />
+          {/* Colored arc — glow filter only on this element */}
           <circle
             r={radius}
             cx="0"
@@ -1497,6 +1522,7 @@ function GaugeArc({ value = 50 }) {
             strokeDasharray={`${progress} ${circumference * 2}`}
             strokeDashoffset="0"
             transform="rotate(180)"
+            filter={`url(#${filterId})`}
           />
           <text
             x="0"
