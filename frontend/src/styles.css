@@ -8,7 +8,7 @@
   --accent-color: #1637e0;
   --dots-color: #607bff;
   --accent-color-fade: #082a71;
-  --accent-alpha: #2941b92d;
+  --accent-alpha: #2d34572d;
   --accent-border: #1638e080;
   /* ── News importance colors ── */
   --news-high-border: #f87171;
@@ -326,6 +326,25 @@ th.sticky .left-0 {
 }
 
 .news-item-medium:hover {
+  background: linear-gradient(90deg, var(--news-medium-bg-hover) 0%, transparent 65%) !important;
+}
+
+/* ── Calendar event importance highlight ────────────────────────────────── */
+.cal-item-high {
+  border-left: 4px solid var(--news-high-border) !important;
+  background: linear-gradient(90deg, var(--news-high-bg) 0%, transparent 65%) !important;
+}
+
+.cal-item-high:hover {
+  background: linear-gradient(90deg, var(--news-high-bg-hover) 0%, transparent 65%) !important;
+}
+
+.cal-item-medium {
+  border-left: 3px solid var(--news-medium-border) !important;
+  background: linear-gradient(90deg, var(--news-medium-bg) 0%, transparent 65%) !important;
+}
+
+.cal-item-medium:hover {
   background: linear-gradient(90deg, var(--news-medium-bg-hover) 0%, transparent 65%) !important;
 }
 

@@ -247,7 +247,11 @@ function regimeLabel(percentile) {
 }
 
 function normalizeSector(sector) {
-  const map = { FX: 'Currencies', MET: 'Metals', IDX: 'Indices', NRG: 'Energy', SFT: 'Softs' }
+  const map = {
+  FX: 'Currencies', MET: 'Metals', METALS: 'Metals',
+  IDX: 'Indices', NRG: 'Energy', SFT: 'Softs',
+  GRAINS: 'Grains', COMMODITIES: 'Commodities', CRYPTO: 'Crypto'
+}
   return map[sector] || sector
 }
 
@@ -724,15 +728,25 @@ const MACRO_SLEEVES = {
     ],
     description: "Growth positioning tracks index-futures risk appetite.",
   },
-  inflation: {
+   inflation: {
     title: "Inflation",
     members: [
       ["Gold", "GC", "XAU"],
       ["Silver", "SI", "XAG"],
       ["Copper", "COPPER", "COPPER GRADE #1", "COPPER #1", "HG"],
       ["WTI Crude", "WTI", "Crude Oil", "Light Sweet Crude Oil", "CL"],
+      ["Natural Gas", "NATGAS", "NAT GAS", "Henry Hub"],
     ],
     description: "Inflation sleeve tracks metals and energy proxies.",
+  },
+  grains: {
+    title: "Grains",
+    members: [
+      ["Corn", "CORN", "ZC"],
+      ["Soybeans", "SOYBEANS", "ZS"],
+      ["Wheat", "WHEAT", "ZW"],
+    ],
+    description: "Grains sleeve tracks agricultural COT positioning.",
   },
   policy: {
     title: "Policy",
@@ -747,7 +761,7 @@ const MACRO_SLEEVES = {
   },
 }
 
-const CORRELATION_UNIVERSE = ['S&P 500','Nasdaq','Dow Jones','Gold','Silver','Copper','WTI Crude','USD','EUR','JPY','GBP','CHF']
+const CORRELATION_UNIVERSE = ['S&P 500','Nasdaq','Dow Jones','Russell 2000','Gold','Silver','Copper','Platinum','WTI Crude','Natural Gas','USD','EUR','JPY','GBP','CHF','Australian Dollar','Canadian Dollar','Mexican Peso','Corn','Soybeans','Wheat']
 const SEASONAL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function buildPositioningPairs(assets) {
@@ -2233,11 +2247,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   const actColor = actualColor(event.title, event.actual, event.forecast);
                   const isPast = event.datetime ? new Date(event.datetime) < new Date() : false;
                   return (
-                    <div key={`${event.id}-${idx}`} className="px-3 py-2.5"
-                      style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
-                        : isMed ? { borderLeft: "2px solid rgba(251,191,36,0.4)", background: "rgba(251,191,36,0.02)" }
-                          : { borderLeft: "2px solid transparent" }}>
-
+                    <div key={`${event.id}-${idx}`}
+                       className={isHigh ? 'cal-item-high' : isMed ? 'cal-item-medium' : ''}>
                       {/* Row 1: time + currency + title + importance */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="calendar-row flex items-center gap-2 min-w-0 flex-1">
