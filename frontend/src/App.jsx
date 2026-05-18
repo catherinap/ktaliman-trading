@@ -1461,7 +1461,7 @@ function BiasBar({ value = 50 }) {
     <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '9999px'}}>
       <div style={{
         width: `${Math.max(6, safe)}%`,
-        height: '8px',
+        height: '12px',
         background: color,
         borderRadius: '9999px',
         boxShadow: glow,
@@ -1472,7 +1472,7 @@ function BiasBar({ value = 50 }) {
 
 function GaugeArc({ value = 50 }) {
   const safe = Math.max(0, Math.min(100, Number(value) || 0));
-  const radius = 42;
+  const radius = 48;
   const circumference = Math.PI * radius;
   const progress = (safe / 100) * circumference;
   const tone = safe >= 65 ? "#34d399" : safe <= 35 ? "#fb7185" : "#f59e0b";
@@ -1489,7 +1489,7 @@ function GaugeArc({ value = 50 }) {
         <g transform="translate(60 60)">
           {/* 1. Background arc */}
           <circle r={radius} cx="0" cy="0" fill="none"
-            stroke="#27272a" strokeWidth="10" strokeLinecap="round"
+            stroke="#27272a" strokeWidth="12" strokeLinecap="round"
             strokeDasharray={`${circumference} ${circumference * 2}`}
             strokeDashoffset="0" transform="rotate(180)"
           />
@@ -1499,11 +1499,11 @@ function GaugeArc({ value = 50 }) {
             strokeDasharray={`${progress} ${circumference * 2}`}
             strokeDashoffset="0" transform="rotate(180)"
             filter={`url(#${glowId})`}
-            opacity="0.6"
+            
           />
           {/* 3. Crisp colored arc on top */}
           <circle r={radius} cx="0" cy="0" fill="none"
-            stroke={tone} strokeWidth="10" strokeLinecap="round"
+            stroke={tone} strokeWidth="12" strokeLinecap="round"
             strokeDasharray={`${progress} ${circumference * 2}`}
             strokeDashoffset="0" transform="rotate(180)"
           />
