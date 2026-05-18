@@ -195,6 +195,27 @@ function importanceTone(level) {
   return "text-slate-200";
 }
 
+// "lower is better" keywords — unemployment, inflation, etc.
+const LOWER_IS_BETTER_KEYWORDS = [
+  "unemployment", "jobless", "claims", "inflation", "cpi", "ppi",
+  "consumer price", "producer price", "trade deficit", "deficit",
+  "debt", "delinquency", "default rate", "foreclosure",
+]
+
+function actualColor(title, actual, forecast) {
+  if (actual == null || forecast == null) return '#4ade80' // no forecast = plain green
+  const t = (title || "").toLowerCase()
+  const lowerIsBetter = LOWER_IS_BETTER_KEYWORDS.some(k => t.includes(k))
+  const actualNum   = parseFloat(String(actual).replace(/[^0-9.\-]/g, ""))
+  const forecastNum = parseFloat(String(forecast).replace(/[^0-9.\-]/g, ""))
+  if (isNaN(actualNum) || isNaN(forecastNum)) return '#4ade80'
+  const betterThanForecast = lowerIsBetter
+    ? actualNum < forecastNum
+    : actualNum > forecastNum
+  if (Math.abs(actualNum - forecastNum) < 0.001) return '#facc15' // in-line = yellow
+  return betterThanForecast ? '#4ade80' : '#f87171'
+}
+
 function categoryTone(category) {
   const v = String(category || "").toLowerCase();
   if (v === "policy")  return "text-rose-300";
@@ -2188,8 +2209,9 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                 .slice(0, 20).map((event) => {
                   const imp = (event.importance || "").toLowerCase();
                   const isHigh = imp === "high";
-                  const isMed = imp === "medium";
+                  const isMed  = imp === "medium";
                   const hasData = event.actual != null || event.forecast != null || event.previous != null;
+                  const actColor = actualColor(event.title, event.actual, event.forecast);
                   return (
                     <div key={event.id} className="px-3 py-2.5"
                       style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
@@ -2237,7 +2259,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                           {event.actual != null && (
                             <div className="flex items-center gap-1">
                               <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#2563eb' }}>Act</span>
-                              <span style={{ fontSize: '14px', fontWeight: 700, color: '#4ade80', fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
+                              <span style={{ fontSize: '14px', fontWeight: 700, color: actColor, fontVariantNumeric: 'tabular-nums' }}>{event.actual}</span>
                             </div>
                           )}
                           {event.forecast != null && (
