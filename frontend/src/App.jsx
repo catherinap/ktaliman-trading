@@ -4146,7 +4146,6 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
   }, [sectorItems, asset]);
 
   // ── Asset narrative engine ────────────────────────────────────────────────
-  // Replace the existing profile useMemo (line ~3837) with this version
   const profile = useMemo(() => {
     if (!asset) return null;
 
@@ -4168,14 +4167,12 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       safe >= 90 || safe <= 10 ? "Extreme" :
       safe >= 75 || safe <= 25 ? "Elevated" : "Moderate";
 
-    // ── Setup Bias ────────────────────────────────────────────────────────────
     const setupBias =
       safe >= 90 ? "Long Extreme" :
       safe >= 65 ? "Bullish Context" :
       safe <= 10 ? "Short Extreme" :
       safe <= 35 ? "Bearish Context" : "Balanced";
 
-    // ── Momentum sentence ────────────────────────────────────────────────────
     const wowAbs = wow != null ? Math.abs(wow).toFixed(1) : null;
     let momentumLine = "";
     if (wow != null && wowAbs !== null) {
@@ -4193,56 +4190,49 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       : "";
 
     const avgLine = avg3w != null && avg8w != null
-      ? `Short-term average (3w: ${avg3w.toFixed(1)}) is ${avg3w > avg8w ? "above" : "below"} the medium-term average (8w: ${avg8w.toFixed(1)}), suggesting a ${avg3w > avg8w ? "strengthening" : "weakening"} trend.`
+      ? `Short-term average (3w: ${avg3w.toFixed(1)}) is ${avg3w > avg8w ? "above" : "below"} the medium-term average (8w: ${avg8w.toFixed(1)}) — ${avg3w > avg8w ? "strengthening trend" : "weakening momentum"}.`
       : "";
 
-    // ── Setup Summary (rich, specific) ────────────────────────────────────────
     let setupSummary = "";
     if (safe >= 90) {
-      setupSummary = `${name} is at a 3-year positioning extreme — funds hold their largest long position of the cycle. At this level (${safe.toFixed(0)}), the setup is powerful but fragile: any macro surprise or data miss can trigger rapid liquidation. The edge belongs to those already positioned, not those entering fresh.`;
+      setupSummary = `${name} is at a 3-year positioning extreme — funds hold their largest long position of the cycle at ${safe.toFixed(0)}.`;
     } else if (safe >= 65) {
-      setupSummary = `${name} sits firmly in the bullish positioning zone at ${safe.toFixed(0)} on the 3-year scale. Funds are clearly leaning long — this is the most reliable range for trend continuation trades. The setup favors dip-buyers over faders.`;
+      setupSummary = `${name} sits firmly in the bullish positioning zone at ${safe.toFixed(0)} on the 3-year scale.`;
     } else if (safe <= 10) {
-      setupSummary = `${name} is at a 3-year short extreme (${safe.toFixed(0)}). Funds are as bearish as they have been in years. While pressure can continue, this level of crowding historically creates squeeze risk — even a neutral catalyst can cause sharp covering.`;
+      setupSummary = `${name} is at a 3-year short extreme (${safe.toFixed(0)}). Funds are as bearish as they have been in years.`;
     } else if (safe <= 35) {
-      setupSummary = `${name} is in a bearish positioning zone at ${safe.toFixed(0)}. Funds hold a net short bias. This level supports a defensive read — the path of least resistance is downward unless positioning shows signs of improvement.`;
+      setupSummary = `${name} is in a bearish positioning zone at ${safe.toFixed(0)}. Funds hold a net short bias.`;
     } else {
-      setupSummary = `${name} sits in a neutral zone at ${safe.toFixed(0)} — neither convincingly long nor short. This area requires additional context: macro backdrop, price structure, or cross-asset confirmation before taking a directional view.`;
+      setupSummary = `${name} sits in a neutral zone at ${safe.toFixed(0)} — neither convincingly long nor short.`;
     }
 
-    // ── Contextual Interpretation (layered) ──────────────────────────────────
     let contextualInterpretation = "";
-
-    // Part 1: positioning context
     if (safe >= 90) {
-      contextualInterpretation += `**Crowded long.** Funds are at cycle highs. The risk here is asymmetric — upside potential is limited while downside from a positioning unwind is significant. This doesn't mean sell immediately, but it means size conservatively and have a clear exit plan.\n\n`;
+      contextualInterpretation += `**Crowded long.** Funds are at cycle highs. The risk here is asymmetric — upside is limited while downside from forced liquidation is real. `;
     } else if (safe >= 65) {
-      contextualInterpretation += `**Constructive positioning.** This is the sweet spot for trend trades. Funds have conviction but are not yet at extremes. Look for entries on pullbacks rather than chasing strength.\n\n`;
+      contextualInterpretation += `**Constructive positioning.** This is the sweet spot for trend trades. Funds are clearly positioned long but haven't reached the crowded extreme. `;
     } else if (safe <= 10) {
-      contextualInterpretation += `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive surprise could trigger a sharp short-covering rally. Use tight stops if holding short.\n\n`;
+      contextualInterpretation += `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive catalyst could spark a sharp squeeze. `;
     } else if (safe <= 35) {
-      contextualInterpretation += `**Bearish positioning.** Funds lean short without being at extremes. The backdrop supports selling rallies rather than buying dips. Momentum needs to confirm before adding exposure.\n\n`;
+      contextualInterpretation += `**Bearish positioning.** Funds lean short without being at extremes. The backdrop supports selling rallies rather than buying dips. `;
     } else {
-      contextualInterpretation += `**Neutral zone.** Positioning alone provides no directional edge. Conviction comes from other sources — seasonality, macro regime, or price breakout — not from COT data alone.\n\n`;
+      contextualInterpretation += `**Neutral zone.** Positioning alone provides no directional edge. Conviction from other sources is needed before acting. `;
     }
-
-    // Part 2: momentum context
     if (trendLine) contextualInterpretation += `${trendLine} `;
     if (momentumLine) contextualInterpretation += `${momentumLine} `;
     if (avgLine) contextualInterpretation += `\n\n${avgLine}`;
 
-    // ── Trading commentary (actionable) ──────────────────────────────────────
     let gptCommentary = "";
     if (safe >= 90) {
-      gptCommentary = `**Positioning edge:** None from a fresh long entry — risk is skewed to the downside from here.\n\n**Trade approach:** If already long, trail stops and reduce size. Avoid adding. Watch for first signs of positioning deterioration (COT drops below 80) before re-evaluating.\n\n**Key risk:** Macro shock or weak data print triggers fund liquidation — can move fast and without warning at these levels.`;
+      gptCommentary = `**Positioning edge:** None from a fresh long entry — risk is skewed to the downside from here.\n\n**Trade approach:** Avoid new longs. Consider lightening existing positions or using tight stops.\n\n**Key level to watch:** A COT Index drop below 75 would signal the crowd is starting to exit.`;
     } else if (safe >= 65) {
-      gptCommentary = `**Positioning edge:** Long bias is confirmed — use weakness as an opportunity.\n\n**Trade approach:** Buy dips within the trend. Keep stops below recent swing lows. This is not a "sell the extreme" situation yet — the bias remains intact.\n\n**Key level to watch:** If COT drops below 55, reassess the bullish bias — it may signal the trend is losing institutional support.`;
+      gptCommentary = `**Positioning edge:** Long bias is confirmed — use weakness as an opportunity.\n\n**Trade approach:** Buy dips within the trend. Keep stops below recent swing lows.\n\n**Key level to watch:** Watch for COT Index to sustain above 65 — a drop below would shift the bias.`;
     } else if (safe <= 10) {
-      gptCommentary = `**Positioning edge:** Squeeze potential is high — be cautious on fresh shorts.\n\n**Trade approach:** Avoid adding to shorts here. If the price breaks above resistance, it may signal the start of a covering rally. Watch for COT crossing above 15 as early confirmation.\n\n**Key risk:** Short squeeze — can be violent at these positioning extremes.`;
+      gptCommentary = `**Positioning edge:** Squeeze potential is high — be cautious on fresh shorts.\n\n**Trade approach:** Avoid adding shorts. Watch for any catalyst that could force covering.\n\n**Key level to watch:** A COT Index cross above 15 would be early confirmation of a squeeze forming.`;
     } else if (safe <= 35) {
-      gptCommentary = `**Positioning edge:** Bearish bias is supported — rallies are selling opportunities.\n\n**Trade approach:** Fade strength rather than chasing breakdown. The setup favors selling into bounces with stops above recent swing highs.\n\n**Key level to watch:** If COT rises above 45, the bearish thesis weakens — funds may be covering and the trend could be losing steam.`;
+      gptCommentary = `**Positioning edge:** Bearish bias is supported — rallies are selling opportunities.\n\n**Trade approach:** Fade strength rather than chasing breakdown. Short into bounces.\n\n**Key level to watch:** If COT rises back above 45, the bearish thesis weakens considerably.`;
     } else {
-      gptCommentary = `**Positioning edge:** None — neutral positioning means neither bulls nor bears have institutional backing.\n\n**Trade approach:** Keep ${sym} on the watchlist but do not force a trade. Wait for COT to move decisively above 65 or below 35 before committing.\n\n**Best use:** Use this asset for cross-asset context, not as a standalone trade.`;
+      gptCommentary = `**Positioning edge:** None — neutral positioning means neither bulls nor bears have institutional backing.\n\n**Trade approach:** Wait for a directional break above 65 or below 35 before committing.\n\n**Key level to watch:** A sustained move to either extreme zone would establish a new setup.`;
     }
 
     const checklist = [
@@ -4264,7 +4254,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
     if (real && Array.isArray(real.values) && real.values.length === 12) {
       return real.values
     }
-    return []   // порожній масив → MiniSparkline покаже порожній блок
+    return []
   }, [asset, seasonalityData, t])
 
   if (!asset || !profile) {
@@ -4276,36 +4266,34 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
   }
 
   const handleExportPDF = () => {
-  // Remove any duplicate report elements first
-  const existing = document.querySelectorAll("#asset-pdf-report")
-  existing.forEach((el, i) => {
-    if (i > 0) el.remove() // keep only first
-  })
-  const el = document.getElementById("asset-pdf-report")
-  if (el) el.style.display = "block"
-  setTimeout(() => {
-    window.print()
-    setTimeout(() => { if (el) el.style.display = "none" }, 500)
-  }, 100)
-}
- 
+    const existing = document.querySelectorAll("#asset-pdf-report")
+    existing.forEach((el, i) => { if (i > 0) el.remove() })
+    const el = document.getElementById("asset-pdf-report")
+    if (el) el.style.display = "block"
+    setTimeout(() => {
+      window.print()
+      setTimeout(() => { if (el) el.style.display = "none" }, 500)
+    }, 100)
+  }
+
   return (
     <div className="space-y-4">
-      {/* Hidden PDF report element */}
+      {/* Hidden PDF report */}
       <AssetPDFReport
         asset={asset}
         profile={profile}
         sparkProfile={sparkProfile}
         seasonalityData={seasonalityData}
       />
- 
+
+      {/* ── HEADER PANEL — compact tab bar + asset title ── */}
       <Panel
         title={t("panels.assetExplorer")}
         right={
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-1.5 border border-zinc-800 small-panel-color px-3 py-1.5 text-[10px] uppercase tracking-[0.22em]"
+              className="flex items-center gap-1.5 border border-zinc-800 small-panel-color px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition"
             >
               <Download size={11} />
               Export PDF
@@ -4314,69 +4302,118 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           </div>
         }
       >
-        <div className="space-y-4">
-          <ExplorerTabs
-            assets={assets}
-            selected={selected}
-            setSelected={setSelected}
-          />
+        {/* Compact asset selector */}
+        <div className="mb-3 -mx-1 flex flex-wrap gap-1">
+          {assets.map((a) => {
+            const isActive = a.symbol === asset.symbol
+            const pct = Number(a.funds_percentile_3y)
+            const dotColor = pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
+            return (
+              <button
+                key={a.symbol}
+                onClick={() => setSelected(a.symbol)}
+                style={{
+                  padding: '3px 9px',
+                  fontSize: '10px',
+                  fontWeight: isActive ? 700 : 400,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  border: isActive
+                    ? `1px solid rgba(96,165,250,0.6)`
+                    : '1px solid rgba(255,255,255,0.07)',
+                  background: isActive ? 'rgba(96,165,250,0.12)' : 'transparent',
+                  color: isActive ? '#93c5fd' : 'rgba(148,163,184,0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <span style={{
+                  width: '5px', height: '5px', borderRadius: '50%',
+                  background: dotColor, flexShrink: 0,
+                  boxShadow: isActive ? `0 0 5px ${dotColor}` : 'none',
+                }} />
+                {a.symbol}
+              </button>
+            )
+          })}
+        </div>
 
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <div className="text-2xl text-zinc-100">{asset.name}</div>
-              <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-200">
-                {asset.symbol} · {normalizeSector(asset.sector)} · {profile.setupBias}
-              </div>
+        {/* Asset title row */}
+        <div className="flex flex-wrap items-end justify-between gap-3 border-t border-zinc-900 pt-3">
+          <div>
+            <div className="text-xl font-semibold text-zinc-100">{asset.name}</div>
+            <div className="mt-0.5 text-[11px] uppercase tracking-[0.22em] text-slate-300">
+              {asset.symbol} · {normalizeSector(asset.sector)} ·{' '}
+              <span className={flowColor(profile.pct)}>{profile.setupBias}</span>
+              {' · '}
+              <span className="text-zinc-500">Conviction {formatPercentile(profile.conviction)}</span>
+              {' · '}
+              <span className="text-zinc-500">Crowding {profile.crowding}</span>
             </div>
-
-            <div className="text-sm text-zinc-400">
-              Selected from COT Summary or quick tabs above.
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Quick COT badge */}
+            <div style={{
+              padding: '4px 12px', fontSize: '13px', fontWeight: 700,
+              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.04)',
+              color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8',
+              boxShadow: profile.pct >= 65
+                ? '0 0 12px rgba(74,222,128,0.25)'
+                : profile.pct <= 35
+                ? '0 0 12px rgba(248,113,113,0.25)'
+                : 'none',
+            }}>
+              {formatPercentile(profile.pct)}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+              {asset.flow_state || 'Neutral'}
             </div>
           </div>
         </div>
       </Panel>
 
+      {/* ── MAIN GRID ── */}
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+
+        {/* ── LEFT COLUMN ── */}
         <div className="space-y-4">
+
+          {/* Metrics row */}
           <div className="grid gap-4 md:grid-cols-4 metric-card">
-            <Metric label="Funds Net" value={formatNumber(asset.funds_net)} />
-            <Metric label="Dealer Net" value={formatNumber(asset.dealer_net)} />
+            <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
+            <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
-            <Metric label="Flow State" value={asset.flow_state || "Neutral"} />
+            <Metric label="Flow State"    value={asset.flow_state || "Neutral"} />
           </div>
- 
+
           {/* Momentum bar */}
           <div className="border border-zinc-900 bg-[#080808] px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
-                Momentum
-              </span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Momentum</span>
               <MomentumBadge asset={asset} size="md" />
               <div className="flex items-center gap-6 text-[11px] text-slate-200">
                 {asset.funds_index_3w_avg != null && (
-                  <span>
-                    3w avg: <span className={flowColor(asset.funds_index_3w_avg)}>
-                      {asset.funds_index_3w_avg.toFixed(1)}
-                    </span>
-                  </span>
+                  <span>3w avg: <span className={flowColor(asset.funds_index_3w_avg)}>
+                    {asset.funds_index_3w_avg.toFixed(1)}
+                  </span></span>
                 )}
                 {asset.funds_index_8w_avg != null && (
-                  <span>
-                    8w avg: <span className={flowColor(asset.funds_index_8w_avg)}>
-                      {asset.funds_index_8w_avg.toFixed(1)}
-                    </span>
-                  </span>
+                  <span>8w avg: <span className={flowColor(asset.funds_index_8w_avg)}>
+                    {asset.funds_index_8w_avg.toFixed(1)}
+                  </span></span>
                 )}
                 {asset.funds_index_momentum != null && (
-                  <span>
-                    vs trend: <span className={
-                      asset.funds_index_momentum > 0 ? "text-emerald-400" :
-                      asset.funds_index_momentum < 0 ? "text-rose-400" : "text-zinc-400"
-                    }>
-                      {asset.funds_index_momentum > 0 ? "+" : ""}
-                      {asset.funds_index_momentum.toFixed(1)}
-                    </span>
-                  </span>
+                  <span>vs trend: <span className={
+                    asset.funds_index_momentum > 0 ? "text-emerald-400" :
+                    asset.funds_index_momentum < 0 ? "text-rose-400" : "text-zinc-400"
+                  }>
+                    {asset.funds_index_momentum > 0 ? "+" : ""}
+                    {asset.funds_index_momentum.toFixed(1)}
+                  </span></span>
                 )}
                 {asset.funds_index_acceleration && (
                   <span className={
@@ -4391,101 +4428,98 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             </div>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-            <Panel title={t("panels.setupBiasGauge")}>
-              <div className="space-y-3">
-                <GaugeArc value={profile.pct} />
-                <div className="text-center text-sm text-zinc-300">
+          {/* Gauge + Bias Bar — combined */}
+          <Panel title={t("panels.setupBiasGauge")}>
+            <div className="grid gap-4 md:grid-cols-2 items-center">
+              {/* Gauge with glow */}
+              <div className="flex flex-col items-center">
+                <div style={{
+                  filter: profile.pct >= 65
+                    ? 'drop-shadow(0 0 8px rgba(74,222,128,0.4))'
+                    : profile.pct <= 35
+                    ? 'drop-shadow(0 0 8px rgba(248,113,113,0.4))'
+                    : 'none',
+                }}>
+                  <GaugeArc value={profile.pct} />
+                </div>
+                <div className="mt-1 text-center text-sm font-medium text-zinc-200">
                   {profile.setupBias}
                 </div>
-                <div className="text-center text-xs uppercase tracking-[0.2em] text-slate-200">
-                  Regime: {regimeLabel(profile.pct, t)} · Signal: {signalLabel(profile.pct, t)}
+                <div className="text-center text-[10px] uppercase tracking-[0.18em] text-zinc-500 mt-0.5">
+                  {regimeLabel(profile.pct, t)} · {signalLabel(profile.pct, t)}
                 </div>
               </div>
-            </Panel>
 
-            <Panel title={t("panels.summary")}>
-              <div className="space-y-3 text-sm leading-7 text-zinc-300">
-                <div>{profile.setupSummary}</div>
-                <div className="border border-zinc-900 p-3 text-blue-400 small-panel-color">
-                  Conviction score: {formatPercentile(profile.conviction)} · Crowding: {profile.crowding}
+              {/* Bias bar + summary */}
+              <div className="space-y-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-200 mb-1">
+                  Positioning Bias
+                </div>
+                <BiasBar value={profile.pct} />
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.15em] text-zinc-500">
+                  <span>Defensive</span>
+                  <span className={flowColor(profile.pct)}>{formatPercentile(profile.pct)}</span>
+                  <span>Constructive</span>
+                </div>
+                <div className="border border-zinc-900 p-3 text-xs text-blue-400 small-panel-color mt-2">
+                  {profile.setupSummary}
                 </div>
               </div>
-            </Panel>
-          </div>
+            </div>
+          </Panel>
 
+          {/* Contextual Interpretation + GPT Commentary */}
           <div className="grid gap-4 xl:grid-cols-2">
             <Panel title={t("panels.contextualInterpretation")}>
               <div className="space-y-1">
                 {renderNarrative(profile.contextualInterpretation)}
               </div>
             </Panel>
-
-                        <Panel title={t("panels.gptCommentaryLayer")}>
+            <Panel title={t("panels.gptCommentaryLayer")}>
               <div className="space-y-1">
                 {renderNarrative(profile.gptCommentary)}
               </div>
             </Panel>
           </div>
 
+          {/* Seasonal Curve */}
           <Panel
             title={t("panels.assetCharts")}
-            right={
-              <span className="text-xs uppercase tracking-[0.22em] text-slate-200">
-                visual context
-              </span>
-            }
+            right={<span className="text-[10px] uppercase tracking-[0.22em] text-slate-200">seasonal context</span>}
           >
-            <div className="grid gap-4 xl:grid-cols-2">
-              <div className="border border-zinc-900 small-panel-color p-4">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
-                  Positioning Bias
-                </div>
-                <div className="mt-3">
-                  <BiasBar value={profile.pct} />
-                </div>
-                <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-200">
-                  <span>Defensive</span>
-                  <span>{formatPercentile(profile.pct)}</span>
-                  <span>Constructive</span>
-                </div>
-                <div className="mt-4 text-sm leading-7 text-zinc-300">
-                  This bar shows where the asset sits inside its current positioning range. Left side means weaker positioning, right side means stronger positioning.
-                </div>
+            <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">
+                Seasonal Curve
               </div>
-
-              <div className="border border-zinc-900 small-panel-color p-4">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
-                  Seasonal Curve
-                </div>
-                {sparkProfile.length === 12 ? (
-                  <>
-                    <div className="mt-3">
-                      <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-200">
-                      <span>Jan</span>
-                      <span>{SEASONAL_MONTHS[new Date().getMonth()]}</span>
-                      <span>Dec</span>
-                    </div>
-                    <div className="mt-4 text-sm leading-7 text-zinc-300">
-                      Based on average monthly COT positioning over the last 5 years.
-                      If seasonal direction and COT bias are aligned, the setup becomes easier to trust.
-                    </div>
-                  </>
-                ) : (
-                  <div className="mt-3 text-sm text-zinc-600">
-                    n/a — seasonal data not yet available for this asset.
+              {sparkProfile.length === 12 ? (
+                <>
+                  <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
+                  <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                    <span>Jan</span>
+                    <span className="text-blue-400">{SEASONAL_MONTHS[new Date().getMonth()]}</span>
+                    <span>Dec</span>
                   </div>
-                )}
-              </div>
+                  <div className="mt-3 text-xs leading-5 text-zinc-400">
+                    Average monthly COT positioning over the last 5 years.
+                    Aligned seasonal + COT direction strengthens the setup.
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-zinc-600">
+                  Seasonal data not yet available for this asset.
+                </div>
+              )}
             </div>
           </Panel>
+
         </div>
 
+        {/* ── RIGHT COLUMN ── */}
         <div className="space-y-4">
+
+          {/* Confirmation Checklist — with box-shadow on dots */}
           <Panel title={t("panels.confirmationChecklist")}>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {profile.checklist.map((item, idx) => (
                 <div
                   key={`${item.label}-${idx}`}
@@ -4494,13 +4528,21 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   <div
                     className={cls(
                       "mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full",
-                      item.pass ? "bg-emerald-400" : "bg-rose-400"
+                      item.pass ? "bg-emerald-400" : "bg-rose-400/60"
                     )}
+                    style={{
+                      boxShadow: item.pass
+                        ? '0 0 8px rgba(74,222,128,0.6), 0 0 2px rgba(74,222,128,0.9)'
+                        : '0 0 6px rgba(248,113,113,0.3)',
+                    }}
                   />
                   <div>
                     <div className="text-sm text-zinc-100">{item.label}</div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-200">
-                      {item.pass ? "Confirmed" : "Needs work"}
+                    <div className={cls(
+                      "mt-0.5 text-[10px] uppercase tracking-[0.18em]",
+                      item.pass ? "text-emerald-400" : "text-rose-400"
+                    )}>
+                      {item.pass ? "Confirmed" : "Not met"}
                     </div>
                   </div>
                 </div>
@@ -4508,63 +4550,41 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             </div>
           </Panel>
 
-          <Panel title={t("panels.setupStats")}>
-            <div className="space-y-3 text-sm text-zinc-300">
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-200">Percentile</span>
-                <span>{formatPercentile(profile.pct)}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-200">Regime</span>
-                <span>{regimeLabel(profile.pct, t)}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-200">Signal</span>
-                <span>{signalLabel(profile.pct, t)}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-200">Crowding</span>
-                <span>{profile.crowding}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-200">Conviction</span>
-                <span>{formatPercentile(profile.conviction)}</span>
-              </div>
-            </div>
-          </Panel>
-
-          <Panel title={t("panels.sectorPeers")}>
-            <div className="space-y-3">
-              {sectorPeers.length ? (
-                sectorPeers.map((peer) => (
-                  <button
-                    key={peer.symbol}
-                    onClick={() => setSelected(peer.symbol)}
-                    className="w-full border border-zinc-900 small-panel-color p-3 text-left hover:border-zinc-700"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-zinc-100">{peer.name}</div>
-                      <div className={cls("text-sm", flowColor(peer.funds_percentile_3y))}>
-                        {formatPercentile(peer.funds_percentile_3y)}
-                      </div>
-                    </div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">
-                      {signalLabel(peer.funds_percentile_3y, t)}
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="text-sm text-slate-200">No peer assets available.</div>
-              )}
-            </div>
-          </Panel>
-
+          {/* AI Asset Analysis */}
           <AIAnalysisPanel
             type="asset"
             data={asset}
             aiLanguage={aiLanguage}
             title={aiLanguage === "uk" ? "AI-Аналіз активу" : "AI Asset Analysis"}
           />
+
+          {/* Sector Peers */}
+          <Panel title={t("panels.sectorPeers")}>
+            <div className="space-y-2">
+              {sectorPeers.length ? (
+                sectorPeers.map((peer) => (
+                  <button
+                    key={peer.symbol}
+                    onClick={() => setSelected(peer.symbol)}
+                    className="w-full border border-zinc-900 small-panel-color p-3 text-left hover:border-zinc-700 transition"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-zinc-100">{peer.name}</div>
+                      <div className={cls("text-sm font-medium", flowColor(peer.funds_percentile_3y))}>
+                        {formatPercentile(peer.funds_percentile_3y)}
+                      </div>
+                    </div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-[0.18em] text-slate-300">
+                      {signalLabel(peer.funds_percentile_3y, t)}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-sm text-slate-300">No peer assets available.</div>
+              )}
+            </div>
+          </Panel>
+
         </div>
       </div>
     </div>
