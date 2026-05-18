@@ -2,10 +2,11 @@
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   -panel-color-dark: #091027a1;
-  --panel-color-light: #385d8b33;
+  --panel-color-light: #0033b451;
   --small-panel-color: #0c1a316d;
   --panels-border: rgba(255, 255, 255, 0.08);
   --accent-color: #1637e0;
+  --dots-color: #607bff;
   --accent-color-fade: #082a71;
   --accent-alpha: #1637e00d;
   --accent-border: #1638e080;
@@ -16,6 +17,7 @@
   --news-medium-border: #fbbf24;
   --news-medium-bg: rgba(251, 191, 36, 0.2);
   --news-medium-bg-hover: rgba(251, 191, 36, 0.3);
+  --box-shadow-color: rgba(1, 4, 15, 0.974);
 }
 * { box-sizing: border-box; }
 
@@ -24,7 +26,7 @@ body {
   margin: 0;
   color: #f2f7ff;
   min-height: 100vh;
-  background: linear-gradient(145deg, #010918 50%, 85%, #0b2d56 100%) !important;
+  background: linear-gradient(-40deg, #010918 20%, var(--panel-color-light) 100%, #010918 20%) !important;
   background-attachment: fixed !important;
 }
 
@@ -42,23 +44,29 @@ aside {
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  background: linear-gradient(145deg, #010918 50%, var(--panel-color-light) 85%, #081d37 100%) !important;
-  border-right: 1px solid rgba(59,130,246,0.12) !important;
+  background: linear-gradient(120deg, #010918 20%, var(--panel-color-light) 70%, #081d37 100%) !important;
+  border-right: 1px solid var(--accent-border) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: 2px 0px 14px 2px #030014;
 }
-aside nav { flex: 1 !important; overflow-y: auto !important; overflow-x: hidden !important; }
+aside nav { 
+  flex: 1 !important; 
+  overflow-y: auto !important; 
+  overflow-x: hidden !important; 
+}
+
 aside nav::-webkit-scrollbar { display: none; }
 
 /* Active nav — gradient pill */
 aside button[class*="border-blue-5"],
 aside button[class*="border-amber-4"], .ai-button {
-  background: linear-gradient(90deg, var(--accent-color) 0%, #3b82f614 100%) !important;
+  background: linear-gradient(90deg, var(--accent-color) 0%, #3b83f637 100%) !important;
   border: 1px solid #2564ebab !important;
   border-radius: 8px !important;
   box-shadow:
       0 0 20px rgba(59, 130, 246, 0.08) inset,
-      0 9px 26px 4px rgba(59, 131, 246, 0.1) !important;
+      0 9px 26px 4px rgba(59, 131, 246, 0.2) !important;
 }
 aside button[class*="border-blue-5"] *,
 aside button[class*="border-amber-4"] * { color: #93c5fd !important; }
@@ -106,7 +114,7 @@ section {
   border:.0625rem solid var(--accent-border) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
+  box-shadow: 0 1px 0 var(--box-shadow-color) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
 .small-panel-color {
@@ -138,7 +146,7 @@ border-radius: 8px !important;
 div[class*="border-zinc"],
 button[class*="border-zinc"] {
   border-color: rgba(255,255,255,0.08) !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
 }
 
 .bg-zinc-900 {
@@ -165,7 +173,7 @@ td[class*="border"] {
 
 /* Table container */
 table {
-  border-radius: 14px !important;
+  border-radius: 8px !important;
   overflow: hidden !important;
   border: .0625rem solid rgba(255, 255, 255, 0.08) !important;
 
@@ -253,9 +261,7 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 
 /* ── Alert drawer ───────────────────────────────────────────────────────── */
 .fixed.right-0.top-0.z-50 {
-  background: rgba(4,7,18,0.97) !important;
-  border-left: 1px solid rgba(255,255,255,0.08) !important;
-  backdrop-filter: blur(24px) !important;
+  backdrop-filter: blur(30px) !important;
 }
 
 /* Metric cards and any bordered div without zinc class */
@@ -271,6 +277,10 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 .metric-card > div {
     border: .0625rem solid var(--accent-border) !important;
     background: #082a71 !important;
+}
+
+.logo {
+  border-bottom: none !important;
 }
 /* Gap between panels */
 .space-y-4>*+* {
@@ -292,12 +302,12 @@ th.sticky .left-0 {
 
 .calendar-row > * {
   flex-shrink: 2;
-
   justify-content: space-around;
 }
 
 .rounded-full-dot {
-  filter: drop-shadow(0 0 0.3rem var(--accent-color)) !important;
+  filter: drop-shadow(0 0 0.3rem var(--dots-color)) !important;
+  background-color: var(--dots-color) !important;
 }
 
 /* ── News importance highlight ─────────────────────────────────────────── */

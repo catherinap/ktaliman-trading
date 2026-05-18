@@ -1512,8 +1512,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
  
        {/* Logo — fixed at bottom */}
       <div className={cls(
-        'shrink-0 border-t border-zinc-900 transition-all duration-300',
-        collapsed ? 'px-0 py-4 flex justify-center' : 'px-4 py-4'
+        'shrink-0 border-b logo transition-all duration-300',
+        collapsed ? 'px-0 py-1 flex justify-center' : 'px-4 py-2.5'
       )}>
         {collapsed ? (
           /* Collapsed: monogram only */
@@ -1597,7 +1597,7 @@ function AlertBell({ onOpen }) {
   return (
     <button
       onClick={onOpen}
-      className="relative grid h-8 w-8 place-items-center border border-zinc-800 text-slate-200 transition hover:border-zinc-700 hover:text-zinc-300"
+      className="relative grid h-8 w-8 place-items-center default-bg text-slate-200 transition hover:text-zinc-300"
       title="Alerts"
     >
       <Bell size={15} />
@@ -1668,10 +1668,10 @@ function AlertDrawer({ open, onClose }) {
       />
  
       {/* Drawer */}
-      <div className="fixed right-0 top-0 z-50 flex h-screen w-[400px] flex-col border-l border-zinc-800 bg-[#070707] shadow-2xl">
+      <div className="fixed right-0 top-0 z-50 flex h-screen w-[400px] flex-col default-bg shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-400">
+          <span className="text-[11px] uppercase tracking-[0.25em]">
             COT Alerts
           </span>
           <div className="flex items-center gap-2">
@@ -1722,7 +1722,7 @@ function AlertDrawer({ open, onClose }) {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
-                      <div className={cls("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", !alert.is_read ? severityDot(alert.severity) : "bg-zinc-700")} />
+                      <div className={cls("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", !alert.is_read ? severityDot(alert.severity) : "rounded-full-dot")} />
                       <div className={cls("text-sm font-medium leading-5", !alert.is_read ? "text-zinc-100" : "text-slate-200")}>
                         {alert.title}
                       </div>
@@ -1773,7 +1773,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
         {/* Burger button */}
         <button
           onClick={() => setSidebarCollapsed((v) => !v)}
-          className="grid h-8 w-8 shrink-0 place-items-center border border-zinc-800 text-slate-200 transition hover:border-zinc-700 hover:text-zinc-300"
+          className="grid h-8 w-8 shrink-0 place-items-center default-bg text-slate-200 transition hover:text-zinc-300"
           aria-label="Toggle sidebar"
         >
           {/* Animated burger → X lines */}
@@ -2087,7 +2087,10 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               fillHeight={true} />
             <section className="border border-zinc-900" style={{ flexShrink: 0 }}>
               <div className="border-b border-zinc-900 px-4 py-3">
-                <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                    <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
+                </div>
               </div>
               <div className="divide-y divide-zinc-900">
                 {alertFeed.length === 0 ? (
@@ -2115,9 +2118,12 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           {/* LEFT: Top Active Signals — 3×2 circles */}
           <section className="border border-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-              <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
                 Top Active Signals
-              </span>
+                </span>
+              </div>
               <button onClick={() => setActive("signals")}
                 className="text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:text-zinc-300 transition">
                 All →
@@ -2137,9 +2143,12 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           {/* RIGHT: COT Heatmap compact */}
           <section className="border border-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-              <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-                {t("panels.cotFlowHeatmap")}
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
+                    {t("panels.cotFlowHeatmap")}
+                  </span>
+                </div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] text-zinc-700">0</span>
                 <div style={{
@@ -2170,9 +2179,12 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
           <section className="border border-zinc-900">
             <div className="border-b border-zinc-900 px-3 py-2.5 shrink-0">
               <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                 <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
                   {t("panels.economicCalendar")}
                 </span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <CustomSelect
@@ -2292,9 +2304,12 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 <section className="border border-zinc-900 ">
   <div className="border-b border-zinc-900 px-3 py-2.5">
     <div className="flex items-center justify-between gap-2 mb-2">
-      <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
-        {t("panels.marketNews")}
-      </span>
+      <div className="flex items-center gap-2">
+        <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+          <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
+            {t("panels.marketNews")}
+          </span>
+      </div>
     </div>
     <div className="flex items-center gap-2 flex-wrap">
       <CustomSelect
@@ -5392,7 +5407,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
         {/* Remove button */}
         <button
           onClick={() => onRemove(asset.symbol)}
-          className="shrink-0 border border-zinc-800 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:border-zinc-700 hover:text-zinc-400 transition"
+          className="shrink-0 default-bg px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:text-zinc-400 transition"
           title={aiLanguage === "uk" ? "Видалити" : "Remove"}
         >
           ✕
