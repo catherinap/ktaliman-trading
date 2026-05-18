@@ -7262,7 +7262,7 @@ setWorkspaceData({
       setMacroFeedLoading(true);
 
       const [calendarRes, newsRes] = await Promise.all([
-        fetch("/api/calendar?limit=80"),
+        fetch("/api/calendar?limit=50"),
         fetch("/api/news?limit=200"),
 	  ]);
 
