@@ -2209,9 +2209,10 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               {calendar.length === 0 ? (
                 <div className="px-4 py-4 text-sm text-slate-200">No calendar events.</div>
               ) : [...calendar]
-                  .filter(e => calImpact === "all" || e.importance === calImpact)
-                  .filter(e => calCountry === "all" || e.country === calCountry)
-                  .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || "")).reverse()
+                  .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || ""))
+                  .reverse()
+                  .filter(e => calImpact === "all" || (e.importance || "").toLowerCase() === calImpact.toLowerCase())
+                  .filter(e => calCountry === "all" || (e.country || "").toUpperCase() === calCountry.toUpperCase())
                   .map((event) => {
                   const imp = (event.importance || "").toLowerCase();
                   const isHigh = imp === "high";
