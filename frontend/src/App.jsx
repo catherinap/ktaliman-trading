@@ -3398,6 +3398,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     : avgDistance >= 40 ? '#fbbf24'
     : '#4ade80'
 
+  // ── Heatmap cell color ────────────────────────────────────────────────────
   const cellColor = (distance) => {
     if (distance == null) return { bg: 'transparent', text: '#52525b' }
     if (distance <= 12)  return { bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' }
@@ -3408,6 +3409,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     return                      { bg: 'rgba(248,113,113,0.25)', text: '#ef4444' }
   }
 
+  // Compact names for heatmap axis labels
   const shortName = (name) => {
     const map = {
       'Gold': 'XAU', 'Silver': 'XAG', 'Copper': 'HG', 'Platinum': 'PL',
@@ -3421,9 +3423,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     return map[name] || name.split(' ')[0].slice(0, 4).toUpperCase()
   }
 
-  const markerColor = (pct) =>
-    pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
-
+  // Build distance lookup map: "NameA|NameB" → distance
   const distanceMap = useMemo(() => {
     const m = {}
     for (const p of pairs) {
@@ -3432,97 +3432,8 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     }
     return m
   }, [pairs])
-
-  // ── Positioning Scale component ────────────────────────────────────────────
-  // Shows two colored markers on a 0–100 track with zone backgrounds
-  const PositioningScale = ({ leftPct, rightPct, leftName, rightName }) => {
-    const lc = markerColor(leftPct)
-    const rc = markerColor(rightPct)
-    const gap = Math.abs(leftPct - rightPct)
-
-    return (
-      <div style={{ padding: '8px 0 4px' }}>
-        {/* Zone track */}
-        <div style={{ position: 'relative', height: '6px', borderRadius: '3px', overflow: 'visible',
-          background: 'linear-gradient(90deg, rgba(248,113,113,0.25) 0%, rgba(248,113,113,0.08) 35%, rgba(148,163,184,0.08) 35%, rgba(148,163,184,0.08) 65%, rgba(74,222,128,0.08) 65%, rgba(74,222,128,0.25) 100%)',
-        }}>
-          {/* Zone dividers */}
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '35%', width: '1px', background: 'rgba(255,255,255,0.08)' }} />
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '65%', width: '1px', background: 'rgba(255,255,255,0.08)' }} />
-
-          {/* Gap fill between markers */}
-          {(() => {
-            const minP = Math.min(leftPct, rightPct)
-            const maxP = Math.max(leftPct, rightPct)
-            return (
-              <div style={{
-                position: 'absolute', top: '1px', bottom: '1px',
-                left: `${minP}%`, width: `${maxP - minP}%`,
-                background: gap <= 25
-                  ? 'rgba(74,222,128,0.15)'
-                  : gap >= 60
-                  ? 'rgba(248,113,113,0.15)'
-                  : 'rgba(251,191,36,0.10)',
-                borderRadius: '2px',
-              }} />
-            )
-          })()}
-
-          {/* Left marker */}
-          <div style={{
-            position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
-            left: `${leftPct}%`,
-            width: '12px', height: '12px', borderRadius: '50%',
-            background: lc,
-            border: '2px solid rgba(0,0,0,0.5)',
-            boxShadow: `0 0 8px ${lc}99, 0 0 3px ${lc}`,
-            zIndex: 2,
-          }} />
-
-          {/* Right marker */}
-          <div style={{
-            position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
-            left: `${rightPct}%`,
-            width: '12px', height: '12px', borderRadius: '50%',
-            background: rc,
-            border: '2px solid rgba(0,0,0,0.5)',
-            boxShadow: `0 0 8px ${rc}99, 0 0 3px ${rc}`,
-            zIndex: 2,
-          }} />
-        </div>
-
-        {/* Labels row */}
-        <div style={{ position: 'relative', height: '18px', marginTop: '6px' }}>
-          <div style={{
-            position: 'absolute',
-            left: `${leftPct}%`,
-            transform: 'translateX(-50%)',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: lc, letterSpacing: '0.08em' }}>
-              {Math.round(leftPct)}
-            </div>
-            <div style={{ fontSize: '8px', color: '#52525b', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-              {shortName(leftName)}
-            </div>
-          </div>
-          <div style={{
-            position: 'absolute',
-            left: `${rightPct}%`,
-            transform: 'translateX(-50%)',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: rc, letterSpacing: '0.08em' }}>
-              {Math.round(rightPct)}
-            </div>
-            <div style={{ fontSize: '8px', color: '#52525b', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-              {shortName(rightName)}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+    const [hoveredRow, setHoveredRow] = React.useState(null)
+    const [hoveredCol, setHoveredCol] = React.useState(null)
 
   return (
     <div className="space-y-4">
@@ -3557,26 +3468,29 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
           </div>
         </div>
-        <div className="mt-2 text-[10px] text-zinc-600 border-t border-zinc-900 pt-2">
+        <div className="mt-2 text-[10px] pt-2">
           COT positioning similarity — not price correlation. Green = funds positioned alike. Red = opposite bets.
         </div>
       </Panel>
 
       {/* ── MAIN GRID ── */}
-      <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+
+        {/* ── LEFT ── */}
         <div className="space-y-4">
 
-          {/* HEATMAP — fixed spacing */}
+          {/* CORRELATION HEATMAP */}
           <Panel title="Correlation Matrix">
             <div className="overflow-x-auto">
-              <table style={{ borderCollapse: 'collapse', fontSize: '11px', width: '100%' }}>
+              <table style={{ borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed', width: 'auto' }}>
                 <thead>
                   <tr>
                     {/* Empty corner — no minWidth */}
-                    <th style={{ padding: '2px 4px 4px 0', width: '38px' }} />
+                    <th style={{ padding: '2px 4px 4px 0', width: '38px', minWidth: '38px' }} />
                     {universeAssets.map(a => (
                       <th key={a.symbol} style={{
-                        padding: '2px 3px 6px', textAlign: 'center',
+                        padding: '2px 0 6px', textAlign: 'center',
+                        width: '34px', minWidth: '34px',            
                         color: '#64748b', fontWeight: 600,
                         fontSize: '9px', letterSpacing: '0.08em',
                         textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -3586,30 +3500,35 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody onMouseLeave={() => { setHoveredRow(null); setHoveredCol(null) }}>
                   {universeAssets.map((rowAsset) => (
                     <tr key={rowAsset.symbol}>
                       {/* Row label — tight padding */}
                       <td style={{
-                        padding: '2px 6px 2px 0',
+                        padding: '2px 6px',
                         color: '#94a3b8', fontWeight: 600,
                         fontSize: '9px', whiteSpace: 'nowrap',
                         letterSpacing: '0.06em', textTransform: 'uppercase',
+                        background: hoveredCol?.row === rowAsset.symbol ? 'rgba(96,165,250,0.04)' : 'transparent',
                       }}>
                         {shortName(rowAsset.name)}
                       </td>
                       {universeAssets.map((colAsset) => {
                         if (rowAsset.symbol === colAsset.symbol) {
-                          const pct = Number(rowAsset.funds_percentile_3y)
-                          const diagColor = pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
                           return (
-                            <td key={colAsset.symbol} style={{
-                              padding: '2px 3px', textAlign: 'center',
-                              background: 'rgba(255,255,255,0.05)',
-                              color: diagColor, fontWeight: 700,
-                              borderRadius: '3px',
-                            }}>
-                              {isNaN(pct) ? '—' : Math.round(pct)}
+                            <td key={colAsset.symbol}
+                              onMouseEnter={() => { setHoveredRow(rowAsset.symbol); setHoveredCol(colAsset.symbol) }}
+                              style={{
+                                padding: '0', textAlign: 'center',
+                                width: '30px', height: '30px', minWidth: '30px',
+                                background:  hoveredRow === rowAsset.symbol || hoveredCol === colAsset.symbol
+                                  ? 'rgba(96,165,250,0.08)'
+                                  : 'rgba(255,255,255,0.02)',
+                                color: '#2d3748',
+                                cursor: 'crosshair',
+                              }}
+                            >
+                              ×
                             </td>
                           )
                         }
@@ -3618,15 +3537,26 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                         return (
                           <td key={colAsset.symbol}
                             title={`${rowAsset.name} ↔ ${colAsset.name}: gap ${dist != null ? Math.round(dist) : '—'}`}
+                            onMouseEnter={() => { setHoveredRow(rowAsset.symbol); setHoveredCol(colAsset.symbol) }}
                             style={{
-                              padding: '2px 3px', textAlign: 'center',
-                              background: bg, color: text,
-                              fontWeight: 600, borderRadius: '3px',
-                              cursor: 'default',
+                              padding: '0', textAlign: 'center',
+                              width: '30px', height: '30px', minWidth: '30px',
+                              background:hoveredRow === rowAsset.symbol && hoveredCol === colAsset.symbol
+                                ? 'transparent'  // виділяємо тільки через border, без зміни фону
+                                : hoveredRow === rowAsset.symbol || hoveredCol === colAsset.symbol
+                                ? 'rgba(96,165,250,0.12)'
+                                : bg,
+                              color: hoveredCol?.row === rowAsset.symbol && hoveredCol?.col === colAsset.symbol
+                                ? '#0f172a'  // темний текст на яскравому фоні
+                                : text,
+                              fontWeight: 600, borderRadius: '3px', cursor: 'crosshair',
+                              outline: hoveredCol?.row === rowAsset.symbol && hoveredCol?.col === colAsset.symbol
+                                ? '2px solid text-blue-500' : 'none',  // підсвічування при наведенні на клітинку,
+                              transition: 'background 0.1s',
                             }}
                           >
                             {dist != null ? Math.round(dist) : '—'}
-                          </td>
+</td>
                         )
                       })}
                     </tr>
@@ -3635,7 +3565,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
               </table>
             </div>
             {/* Legend */}
-            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-zinc-900 flex-wrap">
+            <div className="flex items-center gap-3 mt-3 pt-3 flex-wrap justify-center">
               <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-600">Gap:</span>
               {[
                 { label: '0–12 Aligned',   bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' },
@@ -3652,69 +3582,72 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
           </Panel>
 
-          {/* TOP PAIRS — positioning scale */}
+          {/* COMPACT TOP PAIRS — side by side */}
           <div className="grid gap-4 md:grid-cols-2">
 
             {/* Aligned */}
-            <div className="border border-zinc-900 small-panel-color p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px rgba(74,222,128,0.8)' }} />
-                <span className="text-[10px] uppercase tracking-[0.25em] text-emerald-400 font-semibold">Top Aligned</span>
+            <div className="border border-zinc-900 small-panel-color p-3">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-emerald-400 mb-3">
+                ● Top Aligned
               </div>
-              <div className="space-y-4">
+              <div className="space-y-1.5">
                 {alignedPairs.map((pair) => (
-                  <div key={pair.key}>
-                    {/* Pair names + gap badge */}
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-zinc-200">
+                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-900 last:border-b-0">
+                    <div className="min-w-0">
+                      <div className="text-xs text-zinc-200 truncate">
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
-                      </span>
-                      <span style={{
-                        fontSize: '10px', fontWeight: 700,
-                        color: '#4ade80', letterSpacing: '0.08em',
-                        background: 'rgba(74,222,128,0.08)',
-                        border: '1px solid rgba(74,222,128,0.2)',
-                        padding: '1px 6px', borderRadius: '4px',
-                      }}>
-                        gap {Math.round(pair.distance)}
+                      </div>
+                      <div className="text-[9px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">
+                        {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Distance bar */}
+                      <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${100 - pair.distance}%`, height: '100%',
+                          borderRadius: 9999, background: '#4ade80',
+                          boxShadow: '0 0 4px rgba(74,222,128,0.6)',
+                        }} />
+                      </div>
+                      <span style={{ fontSize: '10px', color: '#4ade80', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                        {Math.round(pair.distance)}
                       </span>
                     </div>
-                    <PositioningScale
-                      leftPct={pair.leftPct} rightPct={pair.rightPct}
-                      leftName={pair.left.name} rightName={pair.right.name}
-                    />
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Opposed */}
-            <div className="border border-zinc-900 small-panel-color p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)' }} />
-                <span className="text-[10px] uppercase tracking-[0.25em] text-rose-400 font-semibold">Top Opposed</span>
+            <div className="border border-zinc-900 small-panel-color p-3">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-rose-400 mb-3">
+                ● Top Opposed
               </div>
-              <div className="space-y-4">
+              <div className="space-y-1.5">
                 {opposedPairs.map((pair) => (
-                  <div key={pair.key}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-zinc-200">
+                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-900 last:border-b-0">
+                    <div className="min-w-0">
+                      <div className="text-xs text-zinc-200 truncate">
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
-                      </span>
-                      <span style={{
-                        fontSize: '10px', fontWeight: 700,
-                        color: '#f87171', letterSpacing: '0.08em',
-                        background: 'rgba(248,113,113,0.08)',
-                        border: '1px solid rgba(248,113,113,0.2)',
-                        padding: '1px 6px', borderRadius: '4px',
-                      }}>
-                        gap {Math.round(pair.distance)}
+                      </div>
+                      <div className="text-[9px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">
+                        {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Distance bar */}
+                      <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${pair.distance}%`, height: '100%',
+                          borderRadius: 9999, background: '#f87171',
+                          boxShadow: '0 0 4px rgba(248,113,113,0.6)',
+                        }} />
+                      </div>
+                      <span style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                        {Math.round(pair.distance)}
                       </span>
                     </div>
-                    <PositioningScale
-                      leftPct={pair.leftPct} rightPct={pair.rightPct}
-                      leftName={pair.left.name} rightName={pair.right.name}
-                    />
                   </div>
                 ))}
               </div>
@@ -3725,6 +3658,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 
         {/* ── RIGHT ── */}
         <div className="space-y-4">
+
           <AIAnalysisPanel
             type="correlation"
             data={{
@@ -3746,18 +3680,22 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             aiLanguage={aiLanguage}
             title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
           />
+
           <div className="border border-zinc-900 small-panel-color p-4">
             <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
             <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
           </div>
+
           <div className="border border-zinc-900 small-panel-color p-4">
             <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
             <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
           </div>
+
           <div className="border border-zinc-900 small-panel-color p-4">
             <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
             <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
           </div>
+
         </div>
       </div>
     </div>
