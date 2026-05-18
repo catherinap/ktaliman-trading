@@ -76,14 +76,14 @@ export default function AIAnalysisPanel({
 
   return (
     <section
-      className="border border-zinc-800 bg-[#0a0a0a]"
+      className="border border-zinc-800"
       style={fillHeight ? { display: "flex", flexDirection: "column", flex: 1 } : {}}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+          <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400" />
+          <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
             {panelTitle}
           </span>
           {lastLanguage && (
@@ -96,14 +96,14 @@ export default function AIAnalysisPanel({
           onClick={fetch_analysis}
           disabled={state === "loading"}
           className={[
-            "border px-3 py-1.5 text-[11px] uppercase tracking-[0.22em] transition",
+            "border px-3 py-1.5 text-[11px] uppercase tracking-[0.22em] transition ai-button",
             state === "loading"
               ? "cursor-not-allowed border-zinc-800 text-zinc-600"
               : languageChanged
-              ? "border-violet-500/60 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"
+              ? " text-blue-50 hover:bg-blue-300/20"
               : state === "done"
-              ? "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-              : "border-violet-600/50 bg-violet-600/10 text-violet-300 hover:bg-violet-600/20",
+              ? "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-blue-300"
+              : "border-blue-500 bg-blue-500/10 text-blue-50 hover:bg-blue-500/20",
           ].join(" ")}
         >
           {state === "loading"
