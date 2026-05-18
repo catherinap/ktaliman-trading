@@ -104,20 +104,18 @@ section {
 
 .small-panel-color {
 background-color: var(--panel-color-light) !important;
+border-radius: 8px !important;
 }
 
 /* Inner cards */
 [class*="bg-\[#080808\]"],
 [class*="bg-\[#0a0a0a\]"],
 [class*="bg-\[#0d0d0d\]"],
-.bg-zinc-950 {
+.bg-zinc-950, .default-bg {
   background-color: var(--accent-alpha) !important;
   border-radius: 8px !important;
   backdrop-filter: blur(20px) !important;
-}
-[class*="bg-black\\/"] {
-  background: rgb(59 130 246 / 3%) !important;
-  backdrop-filter: blur(20px) !important;
+  border: .0625rem solid var(--accent-border) !important;
 }
 
 /* ALL borders → subtle white */
@@ -264,7 +262,7 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 }
 
 .metric-card > div {
-    border: .0625rem solid #5a6874 !important;
+    border: .0625rem solid var(--accent-border) !important;
     background: #082a71 !important;
 }
 /* Gap between panels */
@@ -281,7 +279,7 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 }
 
 /* No border-radius on sticky table cells */
-th.sticky left-0 {
+th.sticky .left-0 {
   border-radius: 0 !important;
 }
 

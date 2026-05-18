@@ -3202,12 +3202,12 @@ function MacroView({ assets, aiLanguage, openGuide }) {
 
         <div className="grid gap-4 xl:grid-cols-2">
 
-          <div className="border border-zinc-900 p-4">
+          <div className="p-4 default-bg">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
           </div>
 
-          <div className="border border-zinc-900 p-4">
+          <div className="p-4 default-bg">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
           </div>
@@ -3266,7 +3266,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
         />
 
-          <div className="border border-zinc-900 p-4">
+          <div className="default-bg p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
         </div>
@@ -3282,19 +3282,19 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           </div>
         </Panel>
         <div className="grid gap-4 xl:grid-cols-2">
-          <div className="border border-zinc-900 bg-[#080808] p-4">
+          <div className="default-bg p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Sleeve Dispersion</div>
             <div className="mt-2 text-2xl text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
             <div className="mt-1 text-sm text-slate-200">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
           </div>
 
-          <div className="border border-zinc-900 bg-[#080808] p-4">
+          <div className="default-bg p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Macro Phase</div>
             <div className="mt-2 text-2xl text-zinc-100">{macroPhase(macroComposite, t)}</div>
             <div className="mt-1 text-sm text-slate-200">Composite regime state</div>
           </div>
         </div>
-          <div className="border border-zinc-900 bg-[#080808] p-4">
+          <div className="default-bg p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Narrative Summary</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
           </div>
@@ -3377,7 +3377,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
             <Metric label="Dispersion" value={formatPercentile(avgDistance)} />
           </div>
-          <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
+          <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Quick Guide</div>
             <div className="mt-3 text-zinc-100">This is not price correlation in the classic statistical sense.</div>
             <div className="mt-2">Here correlation means how similar current COT positioning is across assets. Small percentile gaps mean stronger alignment. Large gaps mean a more conflicted macro map.</div>
@@ -3388,27 +3388,27 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Panel title={t("panels.crossAssetPositioningMap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">live percentile relationships</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className=" small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Small gap</div>
               <div className="mt-2">Assets are being positioned in a similar way. Their macro message is closer.</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className=" small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Large gap</div>
               <div className="mt-2">Assets are expressing different or opposing positioning conditions.</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className=" small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Why it matters</div>
               <div className="mt-2">When several markets confirm each other, trade conviction is easier. When they disagree, be more selective.</div>
             </div>
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="small-panel-color p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 ">Narrative Summary</div>
               <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.summary}</div>
               <div className="mt-3 text-sm text-slate-200">Same-sector pairs: {sameSectorPairs} · Cross-sector pairs: {crossSectorPairs}</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="small-panel-color p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
               <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.interpretation}</div>
             </div>
@@ -3446,7 +3446,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
           <Panel title={quickGuide.title} >
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
               <div>{quickGuide.summary}</div>
-              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{quickGuide.takeaway}</div>
+              <div className="small-panel-color p-3 text-zinc-400">{quickGuide.takeaway}</div>
             </div>
           </Panel>
 
@@ -3474,12 +3474,12 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 
           <Panel title={t("panels.regimeHealth")}>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-              <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Alignment State</div>
                 <div className="mt-2 text-lg text-zinc-100">{dispersionLabel(avgDistance, t)}</div>
                 <div className="mt-1 text-sm text-slate-200">Average gap between assets</div>
               </div>
-              <div className="border border-zinc-900 small-panel-color p-4">
+              <div className="small-panel-color p-4">
                 <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Cross-Asset Bias</div>
                 <div className="mt-2 text-lg text-zinc-100">{crossSectorPairs > sameSectorPairs ? 'Cross-Sector' : 'Same-Sector'}</div>
                 <div className="mt-1 text-sm text-slate-200">Dominant relationship structure</div>
@@ -3487,13 +3487,13 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
           </Panel>
 
-          <div className="border border-zinc-900 bg-zinc-950 p-4">
+          <div className=".default-bg bg-zinc-950 p-4">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
             <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
           </div>
           
           
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
+        <div className=".default-bg bg-zinc-950 p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
           </div>         
@@ -3525,11 +3525,11 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             ))}
           </div>
           <div className="space-y-4">
-            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
+            <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What these charts mean</div>
               <div className="mt-3">{chartExplanation}</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
+            <div className="small-panel-color p-4 text-sm leading-7 text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to use them</div>
               <div className="mt-3">Use aligned pairs as confirmation tools. If one asset gives you a directional idea, check whether a related asset is sitting in a similar percentile state. Use opposed pairs as warning signs that the macro message may be split.</div>
             </div>
@@ -3812,19 +3812,19 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
       </Panel>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
+        <div className="border border-zinc-900 default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Narrative Summary</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.summary}</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
+        <div className="border border-zinc-900 default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.interpretation}</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
+        <div className="border border-zinc-900 default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
+        <div className="border border-zinc-900 default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
           <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
         </div>
