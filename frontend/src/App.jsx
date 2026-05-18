@@ -1993,13 +1993,17 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
   // ── News importance highlight ──────────────────────────────────────────────
   const newsItemStyle = (item) => {
-    const imp = (item.importance || item.category || "").toLowerCase()
-    if (imp === "high" || imp === "critical") return {
-      borderLeft: "2px solid rgba(248,113,113,0.5)",
-      background: "rgba(248,113,113,0.04)",
-    }
-    return {}
+  const imp = (item.importance || item.category || "").toLowerCase()
+  if (imp === "high" || imp === "critical") return {
+    borderLeft: "4px solid #f87171",
+    background: "linear-gradient(90deg, rgba(248,113,113,0.15) 0%, transparent 60%)",
   }
+  if (imp === "medium") return {
+    borderLeft: "4px solid #fbbf24",
+    background: "linear-gradient(90deg, rgba(251,191,36,0.10) 0%, transparent 60%)",
+  }
+  return {}
+}
 
   return (
     <><div className="flex justify-end">
@@ -7196,7 +7200,7 @@ useEffect(() => {
     setLoading(true)
     setError('')
 
-    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes, calendarRes] = await Promise.all([
+    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes, calendarRes, newsRes] = await Promise.all([
   fetch('/api/system/status'),
   fetch('/api/heatmap'),
   fetch('/api/assets'),
@@ -7204,6 +7208,7 @@ useEffect(() => {
   fetch('/api/workspace'),
   fetch('/api/seasonality'),
   fetch('/api/calendar?limit=15'),
+  fetch('/api/news?limit=200'),
 ])
 
 if (!statusRes.ok || !heatmapRes.ok || !assetsRes.ok || !signalsRes.ok || !workspaceRes.ok) {
@@ -7217,6 +7222,7 @@ const signalsJson     = await signalsRes.json()
 const workspaceJson   = await workspaceRes.json()
 const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
 const calendarJson    = calendarRes.ok    ? await calendarRes.json()    : { items: [] }
+const newsJson        = newsRes?.ok       ? await newsRes.json()        : { items: [] }
 
 setStatus(statusJson)
 setHeatmap(heatmapJson.sectors || {})
@@ -7227,7 +7233,7 @@ setWorkspaceData({
   macro_regime: workspaceJson.macro_regime || null,
   releases: workspaceJson.releases || [],
   calendar: calendarJson.items?.length ? calendarJson.items : (workspaceJson.calendar || []),
-  news: workspaceJson.news || [],
+  news: newsJson.items?.length ? newsJson.items : (workspaceJson.news || []),
 })
 
     if ((assetsJson.items || []).length > 0) {
