@@ -3248,8 +3248,8 @@ function MacroView({ assets, aiLanguage, openGuide }) {
               </div>
             ))}
           </div>
-          <div className="text-sm leading-7 text-blue-300 border-t border-zinc-900 pt-3">
-            <span className="text-rose-400 uppercase tracking-[0.18em] text-[10px] mr-2">Verdict</span>
+          <div className="text-sm leading-7 text-blue-300 pt-3">
+            <span className="text-rose-400 tracking-[0.18em] text-[14px] mr-2">Verdict:</span>
             {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
@@ -3275,7 +3275,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
                 </div>
                 <div className="space-y-2">
                   {sleeve.members.length ? sleeve.members.map((a) => (
-                    <div key={a.symbol} className="flex items-center justify-between border-t border-zinc-900 pt-2 first:border-t-0 first:pt-0">
+                    <div key={a.symbol} className="flex items-center justify-between pt-2 first:border-t-0 first:pt-0">
                       <div>
                         <div className="text-xs text-zinc-100">{a.name}</div>
                         <div className="text-[10px] uppercase tracking-[0.15em] text-slate-400 mt-0.5">
@@ -3330,7 +3330,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
         <Panel title={t("panels.compositeScores")}>
           <div className="space-y-2 mb-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-b-0">
+              <div key={sleeve.key} className="flex items-center justify-between py-2 last:border-b-0">
                 <span className={cls('text-xs uppercase tracking-[0.18em]', sleeveColor(sleeve.key))}>
                   {sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})
                 </span>
@@ -3592,7 +3592,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
               </div>
               <div className="space-y-1.5">
                 {alignedPairs.map((pair) => (
-                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-900 last:border-b-0">
+                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 last:border-b-0">
                     <div className="min-w-0">
                       <div className="text-xs text-zinc-200 truncate">
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
@@ -3626,7 +3626,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
               </div>
               <div className="space-y-1.5">
                 {opposedPairs.map((pair) => (
-                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-900 last:border-b-0">
+                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 last:border-b-0">
                     <div className="min-w-0">
                       <div className="text-xs text-zinc-200 truncate">
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
@@ -4424,7 +4424,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           </div>
 
           {/* Momentum bar */}
-          <div className="border border-zinc-900 bg-[#080808] px-4 py-3">
+          <div className="bg-[#080808] px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Momentum</span>
               <MomentumBadge asset={asset} size="md" />
