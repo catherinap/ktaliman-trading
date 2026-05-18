@@ -3178,39 +3178,32 @@ function MacroView({ assets, aiLanguage, openGuide }) {
   const { t } = useTranslation();
 
   const sleeveData = useMemo(() => Object.entries(MACRO_SLEEVES).map(([key, config]) => {
-  const members = findAssetsExact(assets, config.members)
-  const score = averagePercentile(members)
-  return {
-    key,
-    title: config.title,
-    members,
-    expectedCount: config.members.length,
-    memberCount: members.length,
-    score,
-    description: config.description,
-    text: score == null
-      ? `No ${config.title.toLowerCase()} sleeve data available.`
-      : `${config.title} positioning is ${macroLabel(score, t).toLowerCase()} across ${members.length}/${config.members.length} sleeve members.`
-  }
-}), [assets, t])
+    const members = findAssetsExact(assets, config.members)
+    const score = averagePercentile(members)
+    return {
+      key,
+      title: config.title,
+      members,
+      expectedCount: config.members.length,
+      memberCount: members.length,
+      score,
+      description: config.description,
+      text: score == null
+        ? `No ${config.title.toLowerCase()} sleeve data available.`
+        : `${config.title} positioning is ${macroLabel(score, t).toLowerCase()} across ${members.length}/${config.members.length} sleeve members. Composite percentile: ${formatPercentile(score)}.`
+    }
+  }), [assets, t])
 
-  const growth = sleeveData.find((x) => x.key === 'growth')
+  const growth    = sleeveData.find((x) => x.key === 'growth')
   const inflation = sleeveData.find((x) => x.key === 'inflation')
-  const policy = sleeveData.find((x) => x.key === 'policy')
-  const growthScore = growth?.score ?? null
+  const policy    = sleeveData.find((x) => x.key === 'policy')
+  const growthScore    = growth?.score ?? null
   const inflationScore = inflation?.score ?? null
-  const policyScore = policy?.score ?? null
+  const policyScore    = policy?.score ?? null
 
   const macroNarrative = useMemo(
-	  () => buildMacroNarrative(
-		{
-		  growth: growthScore,
-		  inflation: inflationScore,
-		  policy: policyScore,
-		},
-		t
-	  ),
-	  [growthScore, inflationScore, policyScore, t]
+    () => buildMacroNarrative({ growth: growthScore, inflation: inflationScore, policy: policyScore }, t),
+    [growthScore, inflationScore, policyScore, t]
   )
 
   const macroComposite = averagePercentile([
@@ -3219,94 +3212,110 @@ function MacroView({ assets, aiLanguage, openGuide }) {
     { funds_percentile_3y: policyScore }
   ])
 
+  // Sleeve label color
+  const sleeveColor = (key) => {
+    if (key === 'growth')    return 'text-emerald-400'
+    if (key === 'inflation') return 'text-amber-400'
+    if (key === 'grains')    return 'text-lime-400'
+    return 'text-sky-400'
+  }
+
   return (
     <div className="grid gap-4 xl:grid-cols-[1.35fr_0.9fr]">
+
+      {/* ── LEFT COLUMN ── */}
       <div className="space-y-4">
+
+        {/* 1. MACRO COMPOSITE — sleeve overview + verdict */}
         <Panel title={t("panels.macroComposite")} right={<GuideButton sectionKey="macro" openGuide={openGuide} />}>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key}>
-                <div className={cls(
-					  'mb-3 text-[11px] uppercase tracking-[0.24em]',
-					  sleeve.key === 'growth'
-						? 'text-emerald-400'
-						: sleeve.key === 'inflation'
-						  ? 'text-amber-400'
-						  : 'text-sky-400'
-					)}>
+              <div key={sleeve.key} className="default-bg p-3 border border-zinc-900">
+                <div className={cls('text-[10px] uppercase tracking-[0.24em] mb-1', sleeveColor(sleeve.key))}>
                   {sleeve.title}
                 </div>
-                <div className="text-sm leading-7 text-zinc-200">
-                  {sleeve.text} Composite percentile: {formatPercentile(sleeve.score)}.
+                <div className={cls('text-2xl font-semibold', macroTone(sleeve.score))}>
+                  {formatPercentile(sleeve.score)}
+                </div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-300 mt-1">
+                  {macroLabel(sleeve.score, t)}
+                </div>
+                <div className="text-[10px] text-zinc-500 mt-1">
+                  {sleeve.memberCount}/{sleeve.expectedCount} assets
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="mt-5 pt-4 text-sm leading-7 text-blue-400">
-            <span className="text-rose-400">Verdict:</span> {macroVerdict(growthScore, inflationScore, policyScore, t)}
+          <div className="text-sm leading-7 text-blue-300 border-t border-zinc-900 pt-3">
+            <span className="text-rose-400 uppercase tracking-[0.18em] text-[10px] mr-2">Verdict</span>
+            {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
+
+        {/* 2. MACRO CONTEXT — VIX / Yield Curve / DXY / S&P 500 */}
         <MacroContextPanel aiLanguage={aiLanguage} />
 
-        <div className="grid gap-4 xl:grid-cols-2">
-
-          <div className="p-4 default-bg">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
-          </div>
-
-          <div className="p-4 default-bg">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
-          </div>
-        </div>
-
+        {/* 3. SLEEVE DETAIL — the most important breakdown */}
         <Panel title={t("panels.sleeveDetail")}>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="border border-zinc-900 small-panel-color p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm uppercase tracking-[0.22em] text-zinc-400">{sleeve.title}</div>
+              <div key={sleeve.key} className="border border-zinc-900 small-panel-color p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={cls('text-[10px] uppercase tracking-[0.2em]', sleeveColor(sleeve.key))}>
+                    {sleeve.title}
+                  </div>
                   <div className={cls('text-sm font-semibold', macroTone(sleeve.score))}>
                     {formatPercentile(sleeve.score)}
                   </div>
                 </div>
-
-                <div className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-slate-200">
-                  <span>{macroLabel(sleeve.score, t)}</span>
-                  <span>{sleeve.memberCount}/{sleeve.expectedCount}</span>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-slate-300 mb-3">
+                  {macroLabel(sleeve.score, t)} · {sleeve.memberCount}/{sleeve.expectedCount}
                 </div>
-
-                <div className="mt-4 space-y-3">
+                <div className="space-y-2">
                   {sleeve.members.length ? sleeve.members.map((a) => (
-                    <div key={a.symbol} className="pt-3 first:border-t-0 first:pt-0">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-zinc-100">{a.name}</div>
-                        <div className={cls('text-sm', flowColor(a.funds_percentile_3y))}>
-                          {formatPercentile(a.funds_percentile_3y)}
+                    <div key={a.symbol} className="flex items-center justify-between border-t border-zinc-900 pt-2 first:border-t-0 first:pt-0">
+                      <div>
+                        <div className="text-xs text-zinc-100">{a.name}</div>
+                        <div className="text-[10px] uppercase tracking-[0.15em] text-slate-400 mt-0.5">
+                          {a.flow_state || 'Neutral'}
                         </div>
                       </div>
-                      <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-200">
-                        {a.flow_state || 'Neutral'}
+                      <div className={cls('text-sm font-medium', flowColor(a.funds_percentile_3y))}>
+                        {formatPercentile(a.funds_percentile_3y)}
                       </div>
                     </div>
-                  )) : <div className="text-sm text-slate-200">No sleeve members available.</div>}
+                  )) : <div className="text-xs text-slate-400">No data available.</div>}
                 </div>
               </div>
             ))}
           </div>
         </Panel>
+
+        {/* 4. INTERPRETATION + TRADING RELEVANCE */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="p-4 default-bg border border-zinc-900">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Interpretation</div>
+            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
+          </div>
+          <div className="p-4 default-bg border border-zinc-900">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Trading Relevance</div>
+            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
+          </div>
+        </div>
+
       </div>
 
+      {/* ── RIGHT COLUMN ── */}
       <div className="space-y-4">
+
+        {/* 1. AI ANALYSIS */}
         <AIAnalysisPanel
           type="macro"
           data={{
-            growth_score:    growthScore,
-            inflation_score: inflationScore,
-            policy_score:    policyScore,
-            composite:       macroComposite,
+            growth_score:     growthScore,
+            inflation_score:  inflationScore,
+            policy_score:     policyScore,
+            composite:        macroComposite,
             growth_assets:    sleeveData.find((x) => x.key === "growth")?.members || [],
             inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
             policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
@@ -3315,38 +3324,46 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
         />
 
-          <div className="default-bg p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
-        </div>
-        
+        {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
         <Panel title={t("panels.compositeScores")}>
-          <div className="space-y-3">
+          <div className="space-y-2 mb-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="flex items-center justify-between pb-3 text-sm last:border-b-0">
-                <span className="text-zinc-200">{sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})</span>
-                <span className={cls(macroTone(sleeve.score))}>{formatPercentile(sleeve.score)}</span>
+              <div key={sleeve.key} className="flex items-center justify-between py-2 border-b border-zinc-900 last:border-b-0">
+                <span className={cls('text-xs uppercase tracking-[0.18em]', sleeveColor(sleeve.key))}>
+                  {sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})
+                </span>
+                <span className={cls('text-sm font-semibold', macroTone(sleeve.score))}>
+                  {formatPercentile(sleeve.score)}
+                </span>
               </div>
             ))}
           </div>
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="default-bg p-3 border border-zinc-900">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Sleeve Dispersion</div>
+              <div className="text-xl font-semibold text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
+              <div className="text-[10px] text-zinc-500 mt-1">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
+            </div>
+            <div className="default-bg p-3 border border-zinc-900">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Macro Phase</div>
+              <div className="text-xl font-semibold text-zinc-100">{macroPhase(macroComposite, t)}</div>
+              <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
+            </div>
+          </div>
         </Panel>
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="default-bg p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Sleeve Dispersion</div>
-            <div className="mt-2 text-2xl text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
-            <div className="mt-1 text-sm text-slate-200">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
-          </div>
 
-          <div className="default-bg p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Macro Phase</div>
-            <div className="mt-2 text-2xl text-zinc-100">{macroPhase(macroComposite, t)}</div>
-            <div className="mt-1 text-sm text-slate-200">Composite regime state</div>
-          </div>
+        {/* 3. NARRATIVE SUMMARY */}
+        <div className="default-bg p-4 border border-zinc-900">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Narrative Summary</div>
+          <div className="text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
         </div>
-          <div className="default-bg p-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Narrative Summary</div>
-            <div className="mt-3 text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
-          </div>
+
+        {/* 4. WHAT TO WATCH */}
+        <div className="default-bg p-4 border border-zinc-900">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">What To Watch</div>
+          <div className="text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
+        </div>
+
       </div>
     </div>
   )
