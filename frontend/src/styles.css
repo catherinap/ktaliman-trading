@@ -9,6 +9,13 @@
   --accent-color-fade: #082a71;
   --accent-alpha: #1637e00d;
   --accent-border: #1638e080;
+  /* ── News importance colors ── */
+  --news-high-border: #f87171;
+  --news-high-bg: rgba(248, 113, 113, 0.3);
+  --news-high-bg-hover: rgba(248, 113, 113, 0.4);
+  --news-medium-border: #fbbf24;
+  --news-medium-bg: rgba(251, 191, 36, 0.2);
+  --news-medium-bg-hover: rgba(251, 191, 36, 0.3);
 }
 * { box-sizing: border-box; }
 
@@ -291,6 +298,25 @@ th.sticky .left-0 {
 
 .rounded-full-dot {
   filter: drop-shadow(0 0 0.3rem var(--accent-color)) !important;
+}
+
+/* ── News importance highlight ─────────────────────────────────────────── */
+.news-item-high {
+  border-left: 4px solid var(--news-high-border) !important;
+  background: linear-gradient(90deg, var(--news-high-bg) 0%, transparent 65%) !important;
+}
+
+.news-item-high:hover {
+  background: linear-gradient(90deg, var(--news-high-bg-hover) 0%, transparent 65%) !important;
+}
+
+.news-item-medium {
+  border-left: 3px solid var(--news-medium-border) !important;
+  background: linear-gradient(90deg, var(--news-medium-bg) 0%, transparent 65%) !important;
+}
+
+.news-item-medium:hover {
+  background: linear-gradient(90deg, var(--news-medium-bg-hover) 0%, transparent 65%) !important;
 }
 
 /* ── Focus ──────────────────────────────────────────────────────────────── */

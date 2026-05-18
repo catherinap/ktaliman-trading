@@ -2216,6 +2216,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   const isMed  = imp === "medium";
                   const hasData = event.actual != null || event.forecast != null || event.previous != null;
                   const actColor = actualColor(event.title, event.actual, event.forecast);
+                  const isPast = event.datetime ? new Date(event.datetime) < new Date() : false;
                   return (
                     <div key={event.id} className="px-3 py-2.5"
                       style={isHigh ? { borderLeft: "2px solid rgba(248,113,113,0.6)", background: "rgba(248,113,113,0.04)" }
@@ -2229,7 +2230,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                             const { time, date, day } = formatEventDateTime(event.datetime, timezone);
                             return (
                               <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#60a5fa', letterSpacing: '0.08em' }}>
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: isPast ? '#2d4060' : '#94a3b8', letterSpacing: '0.08em' }}>
                                   {day} {date}
                                 </span>
                                 <span className="text-[11px] tabular-nums font-mono" style={{ color: '#60a5fa' }}>
@@ -2244,9 +2245,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                           }}>
                             {event.currency || event.country || ""}
                           </span>
-                          <span className="text-sm text-zinc-100 leading-5 m-auto" style={{ fontWeight: 500 }}>
-                            {event.title || "TBD"}
-                          </span>
+                          <span className="text-sm leading-5" style={{ fontWeight: isPast ? 400 : 500, color: isPast ? '#4a6080' : '#e2e8f0' }}>{event.title || "TBD"}</span>
                         </div>
                         <span style={{
                           fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em',
@@ -2353,20 +2352,15 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
         .map((item) => {
           const url = item.url && item.url !== "#" ? item.url : null
           const isHigh = item.importance === "high"
+          const isMed  = item.importance === "medium"
           const pubDate = item.published_at ? new Date(item.published_at) : null
           const dateStr = pubDate ? pubDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""
           const timeStr = pubDate ? pubDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""
           return (
             <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
-              className="block px-3 py-2.5 transition"
-              style={{
-                textDecoration: "none",
-                borderLeft: isHigh ? "2px solid rgba(248,113,113,0.6)" : "2px solid transparent",
-                background: isHigh ? "rgba(248,113,113,0.04)" : "transparent",
-              }}
+              className={`block px-3 py-2.5 transition ${isHigh ? 'news-item-high' : isMed ? 'news-item-medium' : ''}`}
+              style={{ textDecoration: "none" }}
               onClick={e => { if (!url) e.preventDefault() }}
-              onMouseEnter={e => { e.currentTarget.style.background = isHigh ? "rgba(248,113,113,0.07)" : "rgba(96,165,250,0.04)" }}
-              onMouseLeave={e => { e.currentTarget.style.background = isHigh ? "rgba(248,113,113,0.04)" : "transparent" }}
             >
               <div className="flex items-center justify-between gap-2 mb-0.5">
                 <div className="flex items-center gap-1.5 min-w-0">
