@@ -1529,20 +1529,24 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
        {/* Logo — fixed at bottom */}
       <div className={cls(
         'shrink-0 border-b logo transition-all duration-300',
-        collapsed ? 'px-0 py-1 flex justify-center' : 'px-4 py-2.5'
+        collapsed ? 'px-0 py-1 flex justify-center' : 'px-4 py-4'
       )}>
         {collapsed ? (
           /* Collapsed: monogram only */
-          <div className="flex h-8 w-8 items-center justify-center border border-zinc-800">
+          <div className="flex h-8 w-8 items-center justify-center">
             <div className="flex h-8 w-8 items-center justify-center bg-white">
-  <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-900">KP</span>
-</div>
+              <div className="flex h-8 w-8 items-center justify-center">
+                <img src="/logo.svg" alt="KP" style={{ width: '35px', height: '35px', objectFit: 'contain' }} />
+              </div>
+            </div>
           </div>
         ) : (
           /* Expanded: full logo */
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-white">
-              <span className="text-[14px] font-bold tracking-[0.10em] text-zinc-900">KP</span>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-white p-1.5">
+              <div className="flex h-8 w-8 items-center justify-center">
+                <img src="/logo.svg" alt="KP" style={{ width: '55px', height: '55px', objectFit: 'contain' }} />
+              </div>
             </div>
             <div className="overflow-hidden">
               <div className={cls(
