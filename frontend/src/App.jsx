@@ -7217,6 +7217,65 @@ Never use seasonality as your primary reason to enter a trade. It must always be
 
 Ніколи не використовуйте сезонність як вашу основну причину для входу в угоду. Вона завжди повинна бути третім підтвердженням після позиціонування COT та макроекономічного контексту. Зелена сезонна клітинка сама по собі, без підтримуючого режиму COT та макро узгодження, не є придатним для торгівлі сигналом. Сезонність говорить вам напрямок вітру — вам все одно потрібен двигун COT та навігація макро, щоб подорож мала сенс.`
         }
+      },
+      {
+        title: {
+          en: "Triple-Confirm Setups: when seasonal, COT, and flow align",
+          uk: "Потрійне підтвердження: коли сезонність, COT та потік збігаються"
+        },
+        content: {
+          en: `The Triple-Confirm Spotlight finds assets where three independent filters are simultaneously confirmed — this is the strongest possible seasonal signal on the platform.
+
+[[BOLD_UPPER]]The three conditions[[/]]
+
+[[BOLD]]Seasonal score of sixty or above[[/]] means that in the current calendar month, the five-year average COT Index for this asset is in the bullish zone. The seasonal wind is blowing in your direction.
+
+[[BOLD]]COT Index of sixty-five or above (for long) or thirty-five or below (for short)[[/]] means that hedge funds are currently positioned in the same direction that seasonal history suggests. Institutional money and calendar are aligned.
+
+[[BOLD]]Flow state is directional[[/]] means the flow state is not Neutral — it is either Accumulation, Distribution, Long Extreme, or Short Extreme. This confirms that the current positioning is actively moving, not stalling.
+
+[[BOLD_UPPER]]Why all three together matter[[/]]
+
+Each filter alone is insufficient. A strong seasonal score without COT confirmation means the calendar says one thing but institutional money says another — high risk. A strong COT signal without seasonal support means you are trading against the historical calendar tendency — reduced probability. Only when all three agree do you have a statistically meaningful edge.
+
+[[BOLD_UPPER]]How to use the sparkline[[/]]
+
+Each Triple-Confirm card shows a twelve-month sparkline of average COT positioning across five years. The current month is highlighted with a vertical amber marker. Look at the shape of the curve around the highlighted month — if the curve peaks here and declines in the following months, this may be the optimal entry window before seasonal tailwind fades.
+
+[[BOLD_UPPER]]What to do when no setups are shown[[/]]
+
+When the Triple-Confirm panel shows no setups, it also shows the closest candidates with checkmarks indicating which conditions each asset has met and which it has not. This tells you exactly what is missing — for example, a strong seasonal score but no COT confirmation means the setup is developing and worth monitoring for next week's COT report.
+
+[[BOLD_UPPER]]Practical rule[[/]]
+
+A Triple-Confirm setup is not a trade signal by itself. It is the highest-quality filter output the platform can generate. Confirm entry timing with price action or technical analysis, and manage risk as you would with any setup.`,
+
+          uk: `Spotlight потрійного підтвердження знаходить активи, де три незалежні фільтри підтверджені одночасно — це найсильніший можливий сезонний сигнал на платформі.
+
+[[BOLD_UPPER]]Три умови[[/]]
+
+[[BOLD]]Сезонний показник шістдесят або вище[[/]] означає, що в поточному календарному місяці п'ятирічний середній Індекс COT для цього активу знаходиться в бичачій зоні. Сезонний вітер дує у вашому напрямку.
+
+[[BOLD]]Індекс COT шістдесят п'ять або вище (для лонгу) або тридцять п'ять або нижче (для шорту)[[/]] означає, що хедж-фонди зараз позиціоновані в тому ж напрямку, який підказує сезонна historical. Інституційні гроші та календар узгоджені.
+
+[[BOLD]]Стан потоку є спрямованим[[/]] означає, що стан потоку не є Нейтральним — він знаходиться в стані Накопичення, Розподілу, Екстремуму лонгу або Екстремуму шорту. Це підтверджує, що поточне позиціонування активно рухається, а не застряло.
+
+[[BOLD_UPPER]]Чому всі три разом важливі[[/]]
+
+Кожен фільтр окремо недостатній. Сильний сезонний показник без підтвердження COT означає, що календар каже одне, а інституційні гроші — інше, це підвищений ризик. Сильний сигнал COT без сезонної підтримки означає, що ви торгуєте проти historical календарної тенденції, знижена ймовірність. Тільки коли всі три погоджуються, у вас є статистично значуща перевага.
+
+[[BOLD_UPPER]]Як використовувати спарклайн[[/]]
+
+Кожна картка потрійного підтвердження показує дванадцятимісячний спарклайн середнього COT позиціонування за п'ять років. Поточний місяць виділений вертикальним янтарним маркером. Подивіться на форму кривої навколо виділеного місяця — якщо крива тут досягає піку і знижується в наступних місяцях, це може бути оптимальне вікно входу до того, як сезонний попутний вітер згасне.
+
+[[BOLD_UPPER]]Що робити коли немає сетапів[[/]]
+
+Коли панель потрійного підтвердження не показує сетапів, вона також показує найближчих кандидатів з позначками, які умови кожен актив виконав, а які ні. Це точно говорить вам чого не вистачає — наприклад, сильний сезонний показник, але немає підтвердження COT означає, що сетап розвивається і варто відстежувати в наступному тижневому звіті COT.
+
+[[BOLD_UPPER]]Практичне правило[[/]]
+
+Сетап потрійного підтвердження сам по собі не є торговим сигналом. Це найякісніший фільтр, який може згенерувати платформа. Підтвердіть момент входу за допомогою цінової дії або технічного аналізу та керуйте ризиком так само, як і з будь-яким іншим сетапом.`
+        }
       }
     ]
   }
@@ -7296,23 +7355,33 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
       ? initialSection
       : GUIDE_SECTIONS[0].key
   )
+  const [openBlocks, setOpenBlocks] = React.useState({})
 
   React.useEffect(() => {
     if (initialSection && GUIDE_SECTIONS.find(s => s.key === initialSection)) {
       setActiveKey(initialSection)
+      setOpenBlocks({}) // reset accordion on tab change
     }
   }, [initialSection])
-  
+
+  // When tab changes — reset accordion
+  const handleTabChange = (key) => {
+    setActiveKey(key)
+    setOpenBlocks({})
+  }
+
+  const toggleBlock = (bi) => {
+    setOpenBlocks(prev => ({ ...prev, [bi]: !prev[bi] }))
+  }
+
   const activeSection = GUIDE_SECTIONS.find(s => s.key === activeKey) || GUIDE_SECTIONS[0]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-
       {/* Header */}
       <div style={{
         borderBottom: '1px solid rgba(90,104,116,0.5)',
-        padding: '20px 28px 0',
-        flexShrink: 0,
+        padding: '20px 28px 0', flexShrink: 0,
       }}>
         <div style={{ fontSize: '11px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(148,163,184,0.5)', marginBottom: '3px' }}>
           {lang === 'uk' ? 'Платформа' : 'Platform'}
@@ -7320,14 +7389,13 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
         <div style={{ fontSize: '19px', fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.02em', marginBottom: '16px' }}>
           {lang === 'uk' ? 'Посібник користувача' : 'Platform Guide'}
         </div>
-
         {/* Tab bar */}
         <div className="flex flex-wrap gap-2" style={{ paddingBottom: '16px' }}>
           {GUIDE_SECTIONS.map(sec => {
             const isActive = activeKey === sec.key
             const label = typeof sec.title === 'object' ? sec.title[lang] : sec.title
             return (
-              <button key={sec.key} onClick={() => setActiveKey(sec.key)}
+              <button key={sec.key} onClick={() => handleTabChange(sec.key)}
                 className={`min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
                   isActive
                     ? 'border-blue-400 bg-zinc-950 text-zinc-100'
@@ -7345,7 +7413,6 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
 
       {/* Content area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-
         {/* Section summary */}
         <div style={{ marginBottom: '24px' }}>
           <p style={{ fontSize: '13px', color: 'rgba(148,163,184,0.7)', margin: 0, lineHeight: 1.7 }}>
@@ -7353,29 +7420,58 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
           </p>
         </div>
 
-        {/* Blocks */}
-        {activeSection.blocks.map((block, bi) => (
-          <div key={bi} style={{
-            marginBottom: '20px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(90,104,116,0.4)',
-            borderRadius: '10px',
-            padding: '20px 24px',
-          }}>
-            <h3 style={{
-              fontSize: '12px', fontWeight: 600, color: activeSection.color,
-              margin: '0 0 14px 0', letterSpacing: '0.08em', textTransform: 'uppercase',
+        {/* Accordion blocks */}
+        {activeSection.blocks.map((block, bi) => {
+          const isOpen = !!openBlocks[bi]
+          const title = typeof block.title === 'object' ? block.title[lang] : block.title
+          const content = typeof block.content === 'object' ? block.content[lang] : block.content
+          return (
+            <div key={bi} style={{
+              marginBottom: '8px',
+              border: `1px solid ${isOpen ? 'rgba(90,104,116,0.6)' : 'rgba(90,104,116,0.25)'}`,
+              borderRadius: '8px',
+              overflow: 'hidden',
+              transition: 'border-color 0.15s',
             }}>
-              {typeof block.title === 'object' ? block.title[lang] : block.title}
-            </h3>
-            <div>
-              {renderGuideContent(
-                typeof block.content === 'object' ? block.content[lang] : block.content
+              {/* Accordion header — clickable */}
+              <button
+                onClick={() => toggleBlock(bi)}
+                style={{
+                  width: '100%', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 20px',
+                  background: isOpen ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                  border: 'none', cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >
+                <span style={{
+                  fontSize: '11px', fontWeight: 700,
+                  color: isOpen ? activeSection.color : '#94a3b8',
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  transition: 'color 0.15s',
+                }}>
+                  {title}
+                </span>
+                <span style={{
+                  fontSize: '12px', color: isOpen ? activeSection.color : '#475569',
+                  transition: 'transform 0.2s, color 0.15s',
+                  transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  display: 'inline-block',
+                }}>
+                  ▾
+                </span>
+              </button>
+
+              {/* Accordion body */}
+              {isOpen && (
+                <div style={{ padding: '4px 20px 20px', borderTop: '1px solid rgba(90,104,116,0.25)' }}>
+                  {renderGuideContent(content)}
+                </div>
               )}
             </div>
-          </div>
-        ))}
-
+          )
+        })}
       </div>
     </div>
   )
