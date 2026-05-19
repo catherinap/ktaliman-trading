@@ -6,7 +6,7 @@
   --small-panel-color: #0c1a316d;
   --panels-border: rgba(255, 255, 255, 0.08);
   --accent-color: #1637e0;
-  --dots-color: #607bff;
+  --dots-color: #6085ff;
   --accent-color-fade: #082a71;
   --accent-alpha: #2d34572d;
   --accent-border: #1638e080;
@@ -122,6 +122,11 @@ background-color: var(--panel-color-light) !important;
 border-radius: 8px !important;
 }
 
+.metric-card>div {
+  border: .0625rem solid var(--accent-border) !important;
+  background: #082a71 !important;
+}
+
 /* Inner cards */
 [class*="bg-\[#080808\]"],
 [class*="bg-\[#0a0a0a\]"],
@@ -131,6 +136,10 @@ border-radius: 8px !important;
   border-radius: 8px !important;
   backdrop-filter: blur(20px) !important;
   border: .0625rem solid var(--accent-border) !important;
+}
+
+.heatmap-cells {
+  border-radius: 5px !important;
 }
 
 /* ALL borders → subtle white */
@@ -272,11 +281,6 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 [class~="border"][class~="p-3"],
 [class~="border"][class~="p-4"] {
   border-radius: 10px !important;
-}
-
-.metric-card > div {
-    border: .0625rem solid var(--accent-border) !important;
-    background: #082a71 !important;
 }
 
 .logo {
