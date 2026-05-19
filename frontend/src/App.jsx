@@ -3707,7 +3707,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 }
 
 
-function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en" }) {  const { t } = useTranslation();
+function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en", uiLanguage = "en" }) {  const { t } = useTranslation();
   const rows = useMemo(() => {
     if (!seasonalityData || seasonalityData.length === 0) return []
     return [...seasonalityData].sort((a, b) => b.current - a.current)
@@ -3724,6 +3724,35 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
   const weakest = narrative.weakest
   const topRanked = rows.slice(0, 8)
   const chartRows = rows.slice(0, 3)
+  const breadthScore = rows.length
+    ? Math.round(((supportiveCount - headwindCount) / rows.length) * 100)
+    : null
+  const breadthColor = breadthScore == null ? '#94a3b8'
+    : breadthScore >= 30  ? '#4ade80'
+    : breadthScore <= -30 ? '#f87171'
+    : '#fbbf24'
+  const breadthLabel = breadthScore == null ? '—'
+    : breadthScore >= 50  ? 'Strong Tailwind'
+    : breadthScore >= 20  ? 'Mild Tailwind'
+    : breadthScore <= -50 ? 'Strong Headwind'
+    : breadthScore <= -20 ? 'Mild Headwind'
+    : 'Mixed'
+    
+
+  const tripleConfirm = useMemo(() => {
+    return rows.filter(row => {
+      const seasonal = row.current >= 60
+      const asset = assets.find(a => a.symbol === row.symbol)
+      if (!asset) return false
+      const pct = Number(asset.funds_percentile_3y)
+      const cotAligned = pct >= 65 || pct <= 35
+      const flowDirectional = asset.flow_state && asset.flow_state !== 'Neutral'
+      return seasonal && cotAligned && flowDirectional
+    }).map(row => {
+      const asset = assets.find(a => a.symbol === row.symbol)
+      return { ...row, asset }
+    }).slice(0, 6)
+  }, [rows, assets])
 
   const simpleGuide = useMemo(() => {
     if (narrative.breadth == null) {
@@ -3778,23 +3807,107 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
       </Panel>
     )
   }
+
+  const tripleConfirmInsight = (row, asset) => {
+  const pct = Number(asset?.funds_percentile_3y)
+  const cotDir = pct >= 65 ? 'long' : 'short'
+  const score = row.current
+  const month = currentMonth
+  const flow = asset?.flow_state || ''
+
+  if (score >= 80 && (pct >= 75 || pct <= 25)) {
+    return `${month} is one of the historically strongest months for ${row.name}. COT funds are firmly positioned ${cotDir} — seasonal and institutional pressure point in the same direction. High-conviction setup.`
+  }
+  if (score >= 65) {
+    return `${month} tends to be a favorable period for ${row.name}. With funds ${cotDir}-biased and ${flow.toLowerCase()} flow, the calendar adds a meaningful tailwind to the existing COT setup.`
+  }
+  return `${month} provides mild seasonal support for ${row.name}. Funds are positioned ${cotDir} — the seasonal edge is moderate but directionally confirmed. Worth watching for an entry trigger.`
+}
  
   return (
     <div className="space-y-4">
-      <Panel title={t("panels.seasonality")} right={<GuideButton sectionKey="seasonality" openGuide={openGuide} />}>
-        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="grid gap-4 md:grid-cols-3 metric-card">
-            <Metric label="Current Month" value={currentMonth} />
-            <Metric label="Seasonal Breadth" value={formatPercentile(narrative.breadth)} />
-            <Metric label="Supportive Windows" value={`${supportiveCount}/${rows.length || 0}`} />
+      {/* ── TOP ROW: Header + AI ── */}
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+        <div className="border border-zinc-900 small-panel-color p-5">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.3em] text-zinc-400 mb-1">{t("panels.seasonality")}</div>
+              <div className="flex items-baseline gap-3">
+                <div className="text-2xl font-bold" style={{ color: breadthColor }}>{breadthLabel}</div>
+                <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">{currentMonth}</div>
+              </div>
+              <div className="text-xs text-zinc-500 mt-1">
+                {supportiveCount} supportive · {headwindCount} headwinds · {rows.length - supportiveCount - headwindCount} neutral
+              </div>
+            </div>
+            <GuideButton sectionKey="seasonality" openGuide={openGuide} />
           </div>
-          <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Quick Guide</div>
-            <div className="mt-3 text-zinc-100">Seasonality is a calendar tendency.</div>
-            <div className="mt-2">It asks a simple question: does this asset usually behave better, worse, or mixed in this month compared with the rest of the year?</div>
+          {/* Breadth bar */}
+          <div className="mb-4">
+            <div className="flex justify-between text-[9px] uppercase tracking-[0.15em] text-zinc-500 mb-1.5">
+              <span>◄ Headwinds</span>
+              <span className="text-zinc-400">Seasonal Breadth</span>
+              <span>Tailwinds ►</span>
+            </div>
+            <div style={{ position: 'relative', height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)' }}>
+              <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'rgba(255,255,255,0.12)' }} />
+              {breadthScore != null && (
+                <div style={{
+                  position: 'absolute', top: '1px', bottom: '1px',
+                  left: breadthScore >= 0 ? '50%' : `${50 + breadthScore / 2}%`,
+                  width: `${Math.abs(breadthScore) / 2}%`,
+                  borderRadius: '3px', background: breadthColor,
+                  boxShadow: `0 0 10px ${breadthColor}90`,
+                  transition: 'width 0.4s, left 0.4s',
+                }} />
+              )}
+              {breadthScore != null && (
+                <div style={{
+                  position: 'absolute', top: '50%', left: `${50 + breadthScore / 2}%`,
+                  transform: 'translate(-50%, -50%)',
+                  width: '13px', height: '13px', borderRadius: '50%',
+                  background: breadthColor, border: '2px solid rgba(0,0,0,0.5)',
+                  boxShadow: `0 0 10px ${breadthColor}`,
+                }} />
+              )}
+            </div>
+            <div className="flex justify-between mt-1">
+              <span style={{ fontSize: '9px', color: '#52525b' }}>-100</span>
+              <span style={{ color: breadthColor, fontWeight: 700, fontSize: '12px' }}>
+                {breadthScore != null ? (breadthScore >= 0 ? `+${breadthScore}` : breadthScore) : '—'}
+              </span>
+              <span style={{ fontSize: '9px', color: '#52525b' }}>+100</span>
+            </div>
+          </div>
+          {/* Metrics */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Universe',   value: rows.length,                                   color: '#93c5fd' },
+              { label: 'Supportive', value: supportiveCount,                               color: '#4ade80' },
+              { label: 'Headwinds',  value: headwindCount,                                 color: '#f87171' },
+              { label: 'Triple ✓',   value: tripleConfirm.length,                          color: '#a78bfa' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="border border-zinc-900 p-2 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color }}>{value}</div>
+                <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '2px' }}>{label}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </Panel>
+        <AIAnalysisPanel
+          type="seasonality"
+          data={{
+            current_month: currentMonth,
+            supportive_count: supportiveCount,
+            headwind_count: headwindCount,
+            total_assets: rows.length,
+            top_assets: rows.slice(0, 6).map(r => ({ name: r.name, symbol: r.symbol, current: r.current, cot_index: r.cot_index ?? null })),
+            bottom_assets: [...rows].reverse().slice(0, 4).map(r => ({ name: r.name, symbol: r.symbol, current: r.current, cot_index: r.cot_index ?? null })),
+          }}
+          aiLanguage={aiLanguage}
+          title={aiLanguage === "uk" ? "AI — Сезонний аналіз" : "AI — Seasonal Analysis"}
+        />
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
@@ -3847,136 +3960,231 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
               </div>
             </div>
           </div>
-        </Panel>
-
-        <div className="space-y-4">
-          <AIAnalysisPanel
-            type="seasonality"
-            data={{
-              current_month: currentMonth,
-              supportive_count: supportiveCount,
-              headwind_count: headwindCount,
-              total_assets: rows.length,
-              top_assets: rows.slice(0, 6).map(r => ({
-                name: r.name, symbol: r.symbol,
-                current: r.current,
-                cot_index: r.cot_index ?? null
-              })),
-              bottom_assets: [...rows].reverse().slice(0, 4).map(r => ({
-                name: r.name, symbol: r.symbol,
-                current: r.current,
-                cot_index: r.cot_index ?? null
-              })),
-            }}
-            aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI — Сезонний аналіз" : "AI — Seasonal Analysis"}
-          />
-         <Panel title={t("panels.currentMonthRanking")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{currentMonth}</span>}>
-            <div className="space-y-3">
-              {topRanked.map((row) => (
-                <div key={row.symbol} className="border border-zinc-900 small-panel-color p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-base text-zinc-100">{row.name}</div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-200">{normalizeSector(row.sector)}</div>
-                    </div>
-                    <div className={cls('text-sm', seasonalBiasTone(row.current))}>{seasonalBiasLabel(row.current)}</div>
-                  </div>
-                  <div className="mt-4 h-2 overflow-hidden bg-zinc-900">
-                    <div
-                      className={cls('h-full', row.current >= 55 ? 'bg-emerald-400' : row.current <= 45 ? 'bg-rose-400' : 'bg-amber-300')}
-                      style={{ width: `${Math.max(6, row.current)}%` }}
-                    />
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-sm">
-                    <span className="text-slate-200">Seasonal score</span>
-                    <span className="text-zinc-200">{formatPercentile(row.current)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel title={simpleGuide.title}>
-            <div className="space-y-3 text-sm leading-7 text-zinc-300">
-              <div>{simpleGuide.summary}</div>
-              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{simpleGuide.takeaway}</div>
-            </div>
-          </Panel>
-        </div>
-      </div>
-
-      <Panel title={t("panels.seasonalityCurves")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">visual explanation</span>}>
-        <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="grid gap-4 md:grid-cols-3">
-            {chartRows.map((row) => (
-              <div key={`${row.symbol}-spark`} className="border border-zinc-900 small-panel-color p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm text-zinc-100">{row.name}</div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">{seasonalBiasLabel(row.current)}</div>
-                  </div>
-                  <div className="text-sm text-zinc-400">{formatPercentile(row.current)}</div>
-                </div>
-                <div className="mt-4">
-                  <MiniSparkline values={row.values} positive={row.current >= 55} />
-                </div>
-                <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-200">
-                  <span>Worst {formatPercentile(row.worst)}</span>
-                  <span>Best {formatPercentile(row.best)}</span>
-                </div>
+           {/* Legend */}
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-zinc-900 flex-wrap">
+            <span style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Score:</span>
+            {[
+              { label: '≥70 Strong',   bg: 'rgba(74,222,128,0.3)',   text: '#4ade80' },
+              { label: '55–69 Mild',   bg: 'rgba(74,222,128,0.12)',  text: '#86efac' },
+              { label: '46–54 Neutral', bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
+              { label: '31–45 Mild',   bg: 'rgba(248,113,113,0.12)', text: '#f87171' },
+              { label: '≤30 Strong',   bg: 'rgba(248,113,113,0.3)',  text: '#ef4444' },
+            ].map(({ label, bg, text }) => (
+              <div key={label} className="flex items-center gap-1">
+                <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${text}40` }} />
+                <span style={{ fontSize: '9px', color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
               </div>
             ))}
           </div>
-          <div className="space-y-4">
-            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What these charts mean</div>
-              <div className="mt-3">{chartExplanation}</div>
+        </Panel>
+
+    <div className="space-y-4">
+                   {/* Current Month Ranking — compact */}
+      <div className="border border-zinc-900 small-panel-color p-4">
+        <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-100 mb-3 pb-2 border-b border-zinc-900 flex items-center justify-between">
+          <span>{currentMonth} Ranking</span>
+          <span style={{ fontSize: '10px', color: '#475569', fontWeight: 400 }}>{rows.length} assets</span>
+        </div>
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          {rows.map((row, i) => (
+            <div key={row.symbol} className="flex items-center gap-3 py-1.5 border-b border-zinc-900 last:border-b-0">
+              {/* Rank */}
+              <div style={{ fontSize: '10px', color: '#374151', fontWeight: 700, width: '16px', flexShrink: 0, textAlign: 'right' }}>
+                {i + 1}
+              </div>
+              {/* Name + sector */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {row.name}
+                </div>
+                <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {row.symbol}
+                </div>
+              </div>
+              {/* Bar + score */}
+              <div style={{ width: '64px', flexShrink: 0 }}>
+                <div style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', marginBottom: '3px', overflow: 'visible' }}>
+                  <div style={{
+                    width: `${Math.max(4, row.current)}%`, height: '100%', borderRadius: '2px',
+                    background: row.current >= 55 ? '#4ade80' : row.current <= 45 ? '#f87171' : '#fbbf24',
+                    boxShadow: row.current >= 55
+                      ? '0 0 6px rgba(74,222,128,0.7)'
+                      : row.current <= 45 ? '0 0 6px rgba(248,113,113,0.7)'
+                      : '0 0 6px rgba(251,191,36,0.5)',
+                  }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className={cls('text-[10px] font-bold', seasonalBiasTone(row.current))}>
+                    {formatPercentile(row.current)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-4 text-sm leading-7 text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to use them</div>
-              <div className="mt-3">First look at the outlined current month in the heatmap. Then check whether the current month score sits near the upper or lower area of the sparkline. If the current month is strong and COT is also supportive, the setup is easier to trust.</div>
-            </div>
+          ))}
+        </div>
+      </div>
+        <Panel title={simpleGuide.title}>
+          <div className="space-y-3 text-sm leading-7 text-zinc-300">
+            <div>{simpleGuide.summary}</div>
+            <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{simpleGuide.takeaway}</div>
           </div>
-        </div>
-      </Panel>
+        </Panel>
+        {/* Narrative blocks — column */}
+        <div className="space-y-3">
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
+              Narrative Summary
+            </div>
+            <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.summary}</div>
+          </div>
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
+              Trading Relevance
+            </div>
+            <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.tradingRelevance}</div>
+          </div>
+          <div className="border border-zinc-900 small-panel-color p-4">
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
+              What To Watch
+            </div>
+            <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.whatToWatch}</div>
+          </div>
+          </div>
+          {/* Triple-Confirm Setups */}
+        <div className="border border-zinc-900 small-panel-color p-4">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-900">
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.9)' }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#a78bfa', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+              Triple-Confirm Setups
+            </span>
+            <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#475569' }}>
+              seasonal · COT · flow
+            </span>
+          </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="border border-zinc-900 default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Narrative Summary</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.summary}</div>
-        </div>
-        <div className="border border-zinc-900 default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Interpretation</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.interpretation}</div>
-        </div>
-        <div className="border border-zinc-900 default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Trading Relevance</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
-        </div>
-        <div className="border border-zinc-900 default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">What To Watch</div>
-          <div className="mt-3 text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-        </div>
+          {tripleConfirm.length === 0 ? (
+            /* Empty state — two columns with info cards instead of blank space */
+            <div>
+              <div className="text-center py-4 mb-4">
+                <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '8px' }}>◎</div>
+                <div style={{ fontSize: '11px', color: '#475569', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                  No triple-confirm setups in {currentMonth}
+                </div>
+                <div style={{ fontSize: '10px', color: '#374151', marginTop: '4px' }}>
+                  Seasonal alone is not enough — wait for COT + flow alignment
+                </div>
+              </div>
+              {/* Show what would qualify — top seasonal candidates */}
+              <div style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '8px' }}>
+                Closest candidates (seasonal only)
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                {rows.slice(0, 4).map(row => {
+                  const asset = assets.find(a => a.symbol === row.symbol)
+                  const pct = asset ? Number(asset.funds_percentile_3y) : null
+                  const cotOk = pct != null && (pct >= 65 || pct <= 35)
+                  const flowOk = asset?.flow_state && asset.flow_state !== 'Neutral'
+                  return (
+                    <div key={row.symbol} className="border border-zinc-900 p-3" style={{ background: 'rgba(255,255,255,0.01)' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+                        {row.name}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span style={{
+                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                          background: row.current >= 55 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
+                          color: row.current >= 55 ? '#4ade80' : '#f87171',
+                          border: `1px solid ${row.current >= 55 ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}`,
+                        }}>
+                          ✓ Seasonal {formatPercentile(row.current)}
+                        </span>
+                        <span style={{
+                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                          background: cotOk ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.04)',
+                          color: cotOk ? '#60a5fa' : '#374151',
+                          border: `1px solid ${cotOk ? 'rgba(96,165,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                        }}>
+                          {cotOk ? '✓' : '✗'} COT {pct != null ? formatPercentile(pct) : '—'}
+                        </span>
+                        <span style={{
+                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                          background: flowOk ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.04)',
+                          color: flowOk ? '#a78bfa' : '#374151',
+                          border: `1px solid ${flowOk ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                        }}>
+                          {flowOk ? '✓' : '✗'} {asset?.flow_state || 'No flow'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Has triple-confirm setups — show them in two columns */
+            <div className="grid gap-3 md:grid-cols-2">
+              {tripleConfirm.map(({ name, symbol, current, values, asset }) => {
+                const pct = Number(asset?.funds_percentile_3y)
+                const cotColor = pct >= 65 ? '#4ade80' : '#f87171'
+                const cotDir   = pct >= 65 ? 'Long' : 'Short'
+                return (
+                  <div key={symbol} className="border border-zinc-900 p-3" style={{ background: 'rgba(167,139,250,0.03)' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', marginBottom: '6px' }}>{name}</div>
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      <span style={{ fontSize: '9px', color: '#4ade80', background: 'rgba(74,222,128,0.08)',
+                        border: '1px solid rgba(74,222,128,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        S {formatPercentile(current)}
+                      </span>
+                      <span style={{ fontSize: '9px', color: cotColor, background: `${cotColor}18`,
+                        border: `1px solid ${cotColor}30`, padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        C {cotDir} {formatPercentile(pct)}
+                      </span>
+                      <span style={{ fontSize: '9px', color: '#a78bfa', background: 'rgba(167,139,250,0.1)',
+                        border: '1px solid rgba(167,139,250,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {asset?.flow_state?.split(' ')[0] || 'Flow'}
+                      </span>
+                    </div>
+                    {values && values.length === 12 && (
+                      <div style={{ position: 'relative' }}>
+                        <MiniSparkline values={values} positive={current >= 55} />
+                        <div style={{
+                          position: 'absolute', top: 0, bottom: 0,
+                          left: `${(monthIndex / 12) * 100}%`,
+                          width: `${100 / 12}%`,
+                          background: 'rgba(251,191,36,0.12)',
+                          borderLeft: '1px solid rgba(251,191,36,0.5)',
+                          pointerEvents: 'none',
+                        }} />
+                      </div>
+                    )}
+                    <div className="flex justify-between mt-1">
+                      <span style={{ fontSize: '8px', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Jan</span>
+                      <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{currentMonth}</span>
+                      <span style={{ fontSize: '8px', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Dec</span>
+                    </div>
+                    {/* Insight */}
+                    <div style={{
+                      marginTop: '8px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      fontSize: '11px',
+                      lineHeight: '1.65',
+                      color: '#94a3b8',
+                    }}>
+                      {tripleConfirmInsight({ name: symbol, current }, asset)}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>  
       </div>
-
-      <div className="grid gap-4 xl:grid-cols-3">
-        <div className="border border-zinc-900 bg-[#080808] p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Strongest Tailwind</div>
-          <div className="mt-2 text-lg text-zinc-100">{strongest?.name || 'n/a'}</div>
-          <div className="mt-1 text-sm text-slate-200">Current month score: {formatPercentile(strongest?.current)}</div>
-        </div>
-        <div className="border border-zinc-900 bg-[#080808] p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Weakest Window</div>
-          <div className="mt-2 text-lg text-zinc-100">{weakest?.name || 'n/a'}</div>
-          <div className="mt-1 text-sm text-slate-200">Current month score: {formatPercentile(weakest?.current)}</div>
-        </div>
-        <div className="border border-zinc-900 bg-[#080808] p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Why this matters</div>
-          <div className="mt-2 text-sm leading-7 text-zinc-300">Use seasonality as a background filter. Prefer assets where the calendar bias, COT positioning, and chart structure point in the same direction.</div>
-        </div>
-      </div>
-    </div>
+    </div>  
+  </div>
   )
 }
 
@@ -7406,7 +7614,7 @@ setWorkspaceData({
   history: <HistoricalDataView assets={assets} />, 
 	explorer: <Explorer assets={assets} selected={selected} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>,
   correlation: <CorrelationView assets={assets} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
-  seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage}/>,
+  seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage} uiLanguage={appSettings.uiLanguage}/>,
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	guide: <GuideView setActive={setActive} initialSection={guideSection} uiLanguage={uiLanguage} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
