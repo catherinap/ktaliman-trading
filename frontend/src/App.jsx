@@ -5103,15 +5103,26 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     <div className="space-y-4">
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-900">
-        {[{key:'live',label:'Live Signals'},{key:'history',label:'Signal History'}].map((tab) => (
+      <div className="flex border-b border-zinc-900 justify-between ">
+        <div>{[{key:'live',label:'Live Signals'},{key:'history',label:'Signal History'}].map((tab) => (
           <button key={tab.key} onClick={() => setHistoryTab(tab.key)}
             className={cls('border-b-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.22em] transition',
               historyTab === tab.key ? 'border-amber-400 text-zinc-100' : 'border-transparent text-slate-200 hover:text-zinc-300'
             )}>
             {tab.label}
           </button>
-        ))}
+        ))}</div>
+        {/* Sync Signal History */}
+        <button
+            onClick={async () => {
+              const r = await fetch('/api/signals/persist', { method: 'POST' })
+              const d = await r.json()
+              alert(d.ok ? `Synced: ${d.report_date}` : d.message)
+            }}
+            className="border border-blue-400 text-blue-300 hover:bg-blue-400/10 px-2 py-1 text-xs uppercase tracking-[0.22em] transition"
+          >
+            Sync Now
+        </button>
       </div>
 
       {historyTab === 'history' ? (
@@ -5133,7 +5144,6 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
       <Panel
         title="Filters"
-        right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">control the queue</span>}
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div>
