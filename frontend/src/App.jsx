@@ -5285,30 +5285,71 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
           />
           <Panel
-            title="Alert Feed"
-            right={<span className="text-xs uppercase tracking-[0.22em] text-rose-300">transition monitor</span>}
-          >
-            <div className="space-y-3">
-              {activeAlerts.length ? activeAlerts.map((alert) => (
-                <div key={alert.id} className="border border-zinc-900 small-panel-color p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm text-zinc-100">{alert.title}</div>
-                      <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-200">
-                        {alert.asset} · {directionLabel(alert.direction)}
-                      </div>
-                    </div>
-                    <span className={cls('inline-flex items-center border px-2 py-1 text-[10px] uppercase tracking-[0.22em]', alertImpactTone(alert.impact))}>
-                      {alert.impact}
-                    </span>
-                  </div>
-                  <div className="mt-3 text-sm leading-7 text-zinc-300">{alert.text}</div>
+  title="Assets In Play"
+  right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">this week's top setups</span>}
+>
+  <div className="space-y-3">
+    {engine.signals
+      .filter(s => s.state === 'active' || s.state === 'aging')
+      .sort((a, b) => b.priorityScore - a.priorityScore)
+      .slice(0, 6)
+      .map((s) => {
+        const ast = assets.find(x => x.symbol === s.symbol)
+        const isLong = s.direction === 'long'
+        const dc = isLong ? '#4ade80' : '#f87171'
+        const pct = s.percentile
+        const wow = ast?.funds_index_wow_change
+        let why = ''
+        if (pct != null) {
+          if (isLong) {
+            if (pct >= 90) why = `3-year long extreme (${pct.toFixed(0)}). Institutional conviction at cycle highs.`
+            else if (pct >= 75) why = `Strong long positioning at ${pct.toFixed(0)}. Funds firmly bullish.`
+            else why = `Long signal at ${pct.toFixed(0)} — above 65 institutional threshold.`
+          } else {
+            if (pct <= 10) why = `3-year short extreme (${pct.toFixed(0)}). Institutional selling at cycle highs.`
+            else if (pct <= 25) why = `Strong short positioning at ${pct.toFixed(0)}. Funds firmly bearish.`
+            else why = `Short signal at ${pct.toFixed(0)} — below 35 threshold.`
+          }
+          if (wow != null && Math.abs(wow) >= 4)
+            why += ` Funds ${wow > 0 ? 'added' : 'cut'} ${Math.abs(wow).toFixed(1)}pts this week.`
+        }
+        const action = s.state === 'active'
+          ? (isLong ? 'Buy dips — institutions positioned with you.' : 'Sell rallies — institutions positioned against.')
+          : (isLong ? 'Aging — tighten stops, avoid new longs.' : 'Aging — manage shorts carefully.')
+        return (
+          <div key={s.symbol} className="border border-zinc-900 small-panel-color p-4">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9' }}>{s.asset}</span>
+                  <span style={{ fontSize:'9px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.symbol}</span>
+                  <span style={{
+                    fontSize:'9px', padding:'1px 5px', borderRadius:'3px', textTransform:'uppercase', letterSpacing:'0.08em',
+                    color: s.state==='active' ? '#4ade80' : '#fbbf24',
+                    background: s.state==='active' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
+                    border: `1px solid ${s.state==='active' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
+                  }}>{s.state}</span>
                 </div>
-              )) : (
-                <div className="text-sm text-zinc-400">No live alerts right now.</div>
-              )}
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize:'11px', fontWeight:700, color:dc }}>{isLong ? '↑ Long' : '↓ Short'}</span>
+                  <span style={{ fontSize:'10px', color:'#475569' }}>{ast?.flow_state || ''}</span>
+                </div>
+              </div>
+              <div style={{ textAlign:'right', flexShrink:0 }}>
+                {pct != null && <div style={{ fontSize:'22px', fontWeight:800, color:dc, lineHeight:1 }}>{pct.toFixed(0)}</div>}
+                {wow != null && <div style={{ fontSize:'9px', color: wow>0?'#4ade80':'#f87171' }}>{wow>0?'+':''}{wow.toFixed(1)}w</div>}
+              </div>
             </div>
-          </Panel>
+            {why && <div style={{ fontSize:'11px', color:'#94a3b8', lineHeight:'1.65', marginBottom:'6px' }}>{why}</div>}
+            <div style={{ fontSize:'11px', color:'#60a5fa', lineHeight:'1.5' }}>→ {action}</div>
+          </div>
+        )
+      })}
+    {engine.signals.filter(s => s.state==='active'||s.state==='aging').length === 0 && (
+      <div className="text-sm text-zinc-500">No actionable signals this week.</div>
+    )}
+  </div>
+</Panel>
 
           <Panel
             title="State Guide"
@@ -5637,8 +5678,8 @@ function SettingsView({
   return (
     
     <>
-    <div className="settings-panel">
-      <Panel title={t("settings.title")}>
+      <div className="settings-panel">
+        <Panel title={t("settings.title")}>
       <div className="space-y-6 text-sm text-zinc-300">
         <LanguageSettings
           uiLanguage={uiLanguage}
