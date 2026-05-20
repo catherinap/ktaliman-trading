@@ -507,8 +507,8 @@ function classifySignalState({ direction, percentile, ageWeeks, entryQualityScor
   if (direction === 'neutral') return 'candidate'
   if (percentile == null || Number.isNaN(percentile)) return 'stale'
   if (entryQualityScore < 35) return 'invalidated'
-  if (ageWeeks >= 6) return 'stale'
-  if (ageWeeks >= 4) return 'aging'
+  // ageWeeks від inferSignalAgeWeeks ненадійний — не використовуємо для aging/stale
+  // Тільки реальні дані з бази можуть визначати aging/stale
   if (percentile >= 65 || percentile <= 35) return 'active'
   return 'candidate'
 }
@@ -5052,25 +5052,32 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     [assets, seasonalityData, macroComposite]
   )
 
- const [stateFilter, setStateFilter] = useState('all')
+  const [stateFilter, setStateFilter] = useState('all')
   const [directionFilter, setDirectionFilter] = useState('all')
   const [sectorFilter, setSectorFilter] = useState('all')
   const [minScore, setMinScore] = useState(55)
   const [alertsOnly, setAlertsOnly] = useState(false)
  
   // Signal history state
-  const [signalHistory, setSignalHistory] = useState([])
-  const [historyLoading, setHistoryLoading] = useState(false)
   const [historyTab, setHistoryTab] = useState('live') // 'live' | 'history'
  
-  React.useEffect(() => {
-    setHistoryLoading(true)
-    fetch('/api/signals/history?active_only=false&limit=200')
-      .then((r) => r.ok ? r.json() : { items: [] })
-      .then((json) => setSignalHistory(json.items || []))
-      .catch(() => setSignalHistory([]))
-      .finally(() => setHistoryLoading(false))
-  }, [])
+    // Signal History = live engine signals (same source as Live tab)
+  // База використовується тільки для закритих/resolved сигналів в майбутньому
+  const signalHistory = useMemo(() => {
+    return engine.signals.map(s => ({
+      symbol:          s.symbol,
+      name:            s.asset,
+      sector:          s.sector,
+      direction:       s.direction,
+      current_state:   s.state,
+      current_score:   s.percentile,
+      peak_score:      s.percentile,
+      weeks_active:    inferSignalAgeWeeks(assets.find(a => a.symbol === s.symbol)),
+      first_seen_date: null,
+      last_seen_date:  null,
+      score_history:   [],
+    }))
+  }, [engine.signals, assets])
   const [sortBy, setSortBy] = useState('priority')
 
   const sectors = useMemo(() => {
@@ -5127,7 +5134,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
       {historyTab === 'history' ? (
         <Panel title="Signal Lifecycle History">
-          <SignalHistoryTable items={signalHistory} loading={historyLoading} />
+          <SignalHistoryTable items={signalHistory} loading={false} />
         </Panel>
       ) : (<>
 
