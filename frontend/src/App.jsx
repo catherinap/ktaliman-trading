@@ -5200,7 +5200,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </div>
       </Panel>
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
         <Panel
           title="Ranked Signals"
           right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
@@ -5283,7 +5283,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             data={{ signals: engine.signals.slice(0, 6) }}
             aiLanguage={aiLanguage}
             title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
-          />
+              />
+              
           <Panel
   title="Assets In Play"
   right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">this week's top setups</span>}
@@ -5299,30 +5300,57 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         const dc = isLong ? '#4ade80' : '#f87171'
         const pct = s.percentile
         const wow = ast?.funds_index_wow_change
+        const accel = ast?.funds_index_acceleration
+        const avg3 = ast?.funds_index_3w_avg
+        const avg8 = ast?.funds_index_8w_avg
+
+        // WHY
         let why = ''
         if (pct != null) {
           if (isLong) {
-            if (pct >= 90) why = `3-year long extreme (${pct.toFixed(0)}). Institutional conviction at cycle highs.`
-            else if (pct >= 75) why = `Strong long positioning at ${pct.toFixed(0)}. Funds firmly bullish.`
-            else why = `Long signal at ${pct.toFixed(0)} — above 65 institutional threshold.`
+            if (pct >= 90) why = `Hedge funds are at a 3-year long extreme (${pct.toFixed(0)}). Institutional conviction is as strong as it has been in years.`
+            else if (pct >= 75) why = `Funds hold a strong long position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bullish.`
+            else why = `Funds are positioned long at ${pct.toFixed(0)} — above the 65 threshold that defines an active signal.`
           } else {
-            if (pct <= 10) why = `3-year short extreme (${pct.toFixed(0)}). Institutional selling at cycle highs.`
-            else if (pct <= 25) why = `Strong short positioning at ${pct.toFixed(0)}. Funds firmly bearish.`
-            else why = `Short signal at ${pct.toFixed(0)} — below 35 threshold.`
+            if (pct <= 10) why = `Hedge funds are at a 3-year short extreme (${pct.toFixed(0)}). Institutional selling pressure is at cycle highs.`
+            else if (pct <= 25) why = `Funds hold a strong short position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bearish.`
+            else why = `Funds are positioned short at ${pct.toFixed(0)} — below the 35 threshold that defines an active signal.`
           }
-          if (wow != null && Math.abs(wow) >= 4)
-            why += ` Funds ${wow > 0 ? 'added' : 'cut'} ${Math.abs(wow).toFixed(1)}pts this week.`
+          if (wow != null && Math.abs(wow) >= 4) {
+            why += ` This week funds ${wow > 0 ? 'added' : 'cut'} exposure by ${Math.abs(wow).toFixed(1)} index points${accel === 'accelerating' ? ' and the move is accelerating' : ''}.`
+          } else if (avg3 != null && avg8 != null && Math.abs(avg3 - avg8) >= 5) {
+            const drift = avg3 - avg8
+            why += ` 3w avg (${avg3.toFixed(1)}) is ${drift > 0 ? 'above' : 'below'} 8w avg (${avg8.toFixed(1)}) — ${drift > 0 ? 'strengthening' : 'weakening'} trend.`
+          }
         }
+
+        // WHAT TO DO
         const action = s.state === 'active'
-          ? (isLong ? 'Buy dips — institutions positioned with you.' : 'Sell rallies — institutions positioned against.')
-          : (isLong ? 'Aging — tighten stops, avoid new longs.' : 'Aging — manage shorts carefully.')
+          ? (isLong
+            ? 'Buy dips — institutional money is positioned with you. Use weakness as opportunity, not strength to chase.'
+            : 'Sell rallies — institutional money is against this asset. Fade strength rather than chasing breakdowns.')
+          : (isLong
+            ? 'Signal is aging — optimal entry window may have passed. Tighten stops on existing longs, avoid new entries without strong confirmation.'
+            : 'Signal is aging — best short entry window may be behind. Manage existing shorts carefully, new entries need clear triggers.')
+
+        // RISK NOTE
+        let risk = ''
+        if (pct >= 85 || pct <= 15) {
+          risk = `Crowded positioning at extreme — any catalyst could trigger sharp mean-reversion. Use defined stops.`
+        } else if (s.state === 'aging') {
+          risk = `Signal has been active for several weeks — fading momentum raises reversal risk. Monitor next COT report closely.`
+        } else {
+          risk = `Monitor next week's COT report for any sign of positioning reversal.`
+        }
+
         return (
           <div key={s.symbol} className="border border-zinc-900 small-panel-color p-4">
-            <div className="flex items-start justify-between gap-3 mb-2">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9' }}>{s.asset}</span>
-                  <span style={{ fontSize:'9px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.symbol}</span>
+                  <span style={{ fontSize:'9px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.symbol} · {s.sector}</span>
                   <span style={{
                     fontSize:'9px', padding:'1px 5px', borderRadius:'3px', textTransform:'uppercase', letterSpacing:'0.08em',
                     color: s.state==='active' ? '#4ade80' : '#fbbf24',
@@ -5337,11 +5365,43 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 {pct != null && <div style={{ fontSize:'22px', fontWeight:800, color:dc, lineHeight:1 }}>{pct.toFixed(0)}</div>}
-                {wow != null && <div style={{ fontSize:'9px', color: wow>0?'#4ade80':'#f87171' }}>{wow>0?'+':''}{wow.toFixed(1)}w</div>}
+                <div style={{ fontSize:'9px', color:'#475569', letterSpacing:'0.08em', textTransform:'uppercase' }}>COT index</div>
+                {wow != null && <div style={{ fontSize:'9px', color: wow>0?'#4ade80':'#f87171', marginTop:'2px' }}>{wow>0?'+':''}{wow.toFixed(1)} this week</div>}
               </div>
             </div>
-            {why && <div style={{ fontSize:'11px', color:'#94a3b8', lineHeight:'1.65', marginBottom:'6px' }}>{why}</div>}
-            <div style={{ fontSize:'11px', color:'#60a5fa', lineHeight:'1.5' }}>→ {action}</div>
+
+            {/* 4 metrics */}
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {[
+                { label: 'Entry Quality', value: s.entryQualityScore?.toFixed(0) ?? '—' },
+                { label: 'Priority',      value: s.priorityScore?.toFixed(0) ?? '—' },
+                { label: '3w avg',        value: avg3 != null ? avg3.toFixed(1) : '—' },
+                { label: '8w avg',        value: avg8 != null ? avg8.toFixed(1) : '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="border border-zinc-900 px-2 py-1.5 text-center" style={{ background:'rgba(255,255,255,0.02)' }}>
+                  <div style={{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }}>{value}</div>
+                  <div style={{ fontSize:'8px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:'1px' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Why */}
+            <div className="mb-2">
+              <div style={{ fontSize:'9px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Why this signal</div>
+              <div style={{ fontSize:'11px', color:'#cbd5e1', lineHeight:'1.65' }}>{why}</div>
+            </div>
+
+            {/* What to do */}
+            <div className="mb-2">
+              <div style={{ fontSize:'9px', fontWeight:700, color:'#60a5fa', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>What to do</div>
+              <div style={{ fontSize:'11px', color:'#cbd5e1', lineHeight:'1.65' }}>{action}</div>
+            </div>
+
+            {/* Risk */}
+            <div>
+              <div style={{ fontSize:'9px', fontWeight:700, color:'#f87171', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Risk note</div>
+              <div style={{ fontSize:'11px', color:'#94a3b8', lineHeight:'1.65' }}>{risk}</div>
+            </div>
           </div>
         )
       })}
