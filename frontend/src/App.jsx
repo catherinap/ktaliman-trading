@@ -1662,250 +1662,135 @@ function AlertBell({ onOpen }) {
   )
 }
 
-// ── Assets In Play — replaces AlertDrawer ─────────────────────────────────
-// Shows top actionable signals with full context: why, what, COT data, conviction
-
-function AlertDrawer({ open, onClose, assets = [], signals = [] }) {
-  // Build engine locally from assets + signals
-  const engine = React.useMemo(
-    () => buildSignalEngine(assets),
-    [assets]
-  )
-  if (!open) return null
-
-  // Top signals: active first, then aging — sorted by priorityScore
-  const topSignals = React.useMemo(() => {
-    if (!engine?.signals) return []
-    return engine.signals
-      .filter(s => s.state === 'active' || s.state === 'aging')
-      .sort((a, b) => b.priorityScore - a.priorityScore)
-      .slice(0, 8)
-  }, [engine?.signals])
-
-  const dirColor  = (dir) => dir === 'long' ? '#4ade80' : '#f87171'
-  const dirLabel  = (dir) => dir === 'long' ? '↑ Long' : '↓ Short'
-  const stateBadge = (state) => state === 'active'
-    ? { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)', label: 'Active' }
-    : { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.25)',  label: 'Aging'  }
-
-  // Build narrative for each signal
-  const buildNarrative = (s) => {
-    const asset  = assets?.find(a => a.symbol === s.symbol)
-    const pct    = s.percentile
-    const dir    = s.direction
-    const flow   = asset?.flow_state || 'Neutral'
-    const wow    = asset?.funds_index_wow_change
-    const accel  = asset?.funds_index_acceleration
-    const avg3   = asset?.funds_index_3w_avg
-    const avg8   = asset?.funds_index_8w_avg
-
-    let why = ''
-    let action = ''
-    let risk = ''
-
-    // WHY
-    if (dir === 'long') {
-      if (pct >= 90) {
-        why = `Hedge funds are at a 3-year long extreme (${pct.toFixed(0)}). Institutional conviction is as strong as it has been in years.`
-      } else if (pct >= 75) {
-        why = `Funds hold a strong long position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly in the bullish zone.`
-      } else {
-        why = `Funds are positioned long at ${pct.toFixed(0)} — above the 65 threshold that defines an active signal.`
-      }
-    } else {
-      if (pct <= 10) {
-        why = `Hedge funds are at a 3-year short extreme (${pct.toFixed(0)}). Institutional selling pressure is at cycle highs.`
-      } else if (pct <= 25) {
-        why = `Funds hold a strong short position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bearish.`
-      } else {
-        why = `Funds are positioned short at ${pct.toFixed(0)} — below the 35 threshold that defines an active signal.`
-      }
-    }
-
-    // Momentum context
-    if (wow != null && Math.abs(wow) >= 5) {
-      const wowDir = wow > 0 ? 'added' : 'reduced'
-      why += ` This week funds ${wowDir} exposure by ${Math.abs(wow).toFixed(1)} index points${accel === 'accelerating' ? ' and the move is accelerating' : ''}.`
-    } else if (avg3 != null && avg8 != null) {
-      const drift = avg3 - avg8
-      if (Math.abs(drift) >= 5) {
-        why += ` The 3-week average (${avg3.toFixed(1)}) is ${drift > 0 ? 'above' : 'below'} the 8-week average (${avg8.toFixed(1)}) — ${drift > 0 ? 'strengthening' : 'weakening'} momentum.`
-      }
-    }
-
-    // WHAT TO DO
-    if (s.state === 'active') {
-      if (dir === 'long') {
-        action = `Look for long entries on pullbacks. Institutional money is positioned with you — use weakness as an opportunity rather than chasing strength.`
-      } else {
-        action = `Look for short entries on rallies. Institutional positioning supports selling into strength rather than chasing breakdowns.`
-      }
-    } else {
-      // aging
-      if (dir === 'long') {
-        action = `Signal is aging — the optimal entry window may have passed. If already in a long position, tighten stops. New entries require strong technical confirmation.`
-      } else {
-        action = `Signal is aging — the best short entry window may be behind. Manage existing positions carefully. New shorts need clear technical triggers.`
-      }
-    }
-
-    // RISK
-    if (pct >= 85 || pct <= 15) {
-      risk = `Risk: crowded positioning at extremes means any catalyst could trigger sharp mean-reversion. Use defined stops.`
-    } else if (s.state === 'aging') {
-      risk = `Risk: signal has been active for several weeks — fading momentum increases the chance of reversal.`
-    } else {
-      risk = `Risk: monitor next week's COT report for any sign of positioning reversal.`
-    }
-
-    return { why, action, risk, flow, pct, wow, accel }
+function AlertDrawer({ open, onClose }) {
+  const [alerts, setAlerts]   = useState([])
+  const [loading, setLoading] = useState(false)
+ 
+  const load = React.useCallback(() => {
+    if (!open) return
+    setLoading(true)
+    fetch("/api/alerts/unread?limit=50")
+      .then((r) => r.ok ? r.json() : { items: [] })
+      .then((json) => setAlerts(json.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [open])
+ 
+  React.useEffect(() => { load() }, [load])
+ 
+  const markAllRead = () => {
+    fetch("/api/alerts/mark-read", { method: "POST" })
+      .then(() => setAlerts((prev) => prev.map((a) => ({ ...a, is_read: true }))))
   }
-
+ 
+  const severityTone = (s) =>
+    s === "high"   ? "text-rose-400 border-rose-900/50 bg-rose-950/20" :
+    s === "medium" ? "text-blue-400 border-amber-900/50 bg-amber-950/20" :
+                     "text-zinc-400 border-zinc-800 bg-zinc-950"
+ 
+  const severityDot = (s) =>
+    s === "high"   ? "bg-rose-400" :
+    s === "medium" ? "bg-amber-400" : "bg-zinc-600"
+ 
+  if (!open) return null
+ 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
-
+      <div
+        className="fixed inset-0 z-40 bg-black/40"
+        onClick={onClose}
+      />
+ 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 z-50 flex h-screen w-[480px] flex-col default-bg shadow-2xl border-l border-zinc-900">
-
+      <div className="fixed right-0 top-0 z-50 flex h-screen w-[400px] flex-col default-bg shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-900 px-5 py-4 shrink-0">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 mb-0.5">Weekly Briefing</div>
-            <div className="text-base font-semibold text-zinc-100">Assets In Play</div>
-          </div>
-          <button
-            onClick={onClose}
-            className="grid h-7 w-7 place-items-center border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Subheader */}
-        <div className="px-5 py-3 border-b border-zinc-900 shrink-0">
-          <div className="text-xs text-zinc-500 leading-5">
-            Top COT signals ranked by conviction. These are the assets where institutional positioning
-            is clearest and most actionable right now.
-          </div>
-          <div className="flex items-center gap-3 mt-2">
-            <span style={{ fontSize: '10px', color: '#4ade80', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', padding: '1px 8px', borderRadius: '3px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {topSignals.filter(s => s.state === 'active').length} active
-            </span>
-            <span style={{ fontSize: '10px', color: '#fbbf24', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', padding: '1px 8px', borderRadius: '3px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {topSignals.filter(s => s.state === 'aging').length} aging
-            </span>
+        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <span className="text-[11px] uppercase tracking-[0.25em]">
+            COT Alerts
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={markAllRead}
+              className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-zinc-400 transition"
+            >
+              Mark all read
+            </button>
+            <button
+              onClick={onClose}
+              className="grid h-7 w-7 place-items-center border border-zinc-800 text-slate-200 hover:text-zinc-300 transition"
+            >
+              ✕
+            </button>
           </div>
         </div>
-
-        {/* Signal cards */}
+ 
+        {/* Body */}
         <div className="flex-1 overflow-y-auto">
-          {topSignals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-              <div style={{ fontSize: '28px', opacity: 0.2 }}>◎</div>
-              <div className="text-sm text-zinc-600">No actionable signals this week.</div>
+          {loading && (
+            <div className="p-4 space-y-2">
+              {[100, 85, 70].map((w, i) => (
+                <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
+              ))}
             </div>
-          ) : (
+          )}
+ 
+          {!loading && alerts.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+              <Bell size={28} className="text-zinc-700" />
+              <div className="text-sm text-zinc-600">No alerts yet.</div>
+              <div className="text-xs text-zinc-700">
+                Alerts fire automatically after each weekly COT update.
+              </div>
+            </div>
+          )}
+ 
+          {!loading && alerts.length > 0 && (
             <div className="divide-y divide-zinc-900">
-              {topSignals.map((s, idx) => {
-                const badge = stateBadge(s.state)
-                const { why, action, risk, flow, wow } = buildNarrative(s)
-                const asset = assets?.find(a => a.symbol === s.symbol)
-
-                return (
-                  <div key={s.id} className="px-5 py-5">
-                    {/* Asset header */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span style={{ fontSize: '11px', color: '#52525b', fontWeight: 600 }}>#{idx + 1}</span>
-                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#f1f5f9' }}>{s.asset}</span>
-                          <span style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            {s.symbol} · {s.sector}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: dirColor(s.direction) }}>
-                            {dirLabel(s.direction)}
-                          </span>
-                          <span style={{
-                            fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase',
-                            color: badge.color, background: badge.bg,
-                            border: `1px solid ${badge.border}`,
-                            padding: '1px 6px', borderRadius: '3px',
-                          }}>
-                            {badge.label}
-                          </span>
-                          <span style={{ fontSize: '10px', color: '#475569' }}>{flow}</span>
-                        </div>
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={cls(
+                    "border-l-2 px-4 py-3 transition",
+                    !alert.is_read ? severityTone(alert.severity) : "border-zinc-900 text-zinc-600"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2">
+                      <div className={cls("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", !alert.is_read ? severityDot(alert.severity) : "rounded-full-dot")} />
+                      <div className={cls("text-sm font-medium leading-5", !alert.is_read ? "text-zinc-100" : "text-slate-200")}>
+                        {alert.title}
                       </div>
-                      {/* COT score */}
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontSize: '22px', fontWeight: 800, color: dirColor(s.direction), lineHeight: 1 }}>
-                          {s.percentile?.toFixed(0)}
-                        </div>
-                        <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
-                          COT index
-                        </div>
-                        {wow != null && (
-                          <div style={{ fontSize: '9px', color: wow > 0 ? '#4ade80' : '#f87171', marginTop: '2px' }}>
-                            {wow > 0 ? '+' : ''}{wow.toFixed(1)} this week
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Mini metrics row */}
-                    <div className="flex gap-3 mb-3">
-                      {[
-                        { label: 'Entry Quality', value: `${s.entryQualityScore?.toFixed(0)}` },
-                        { label: 'Priority',      value: `${s.priorityScore?.toFixed(0)}` },
-                        { label: '3w avg',        value: asset?.funds_index_3w_avg != null ? asset.funds_index_3w_avg.toFixed(1) : '—' },
-                        { label: '8w avg',        value: asset?.funds_index_8w_avg != null ? asset.funds_index_8w_avg.toFixed(1) : '—' },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="border border-zinc-900 px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.02)', flex: 1 }}>
-                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#e2e8f0' }}>{value}</div>
-                          <div style={{ fontSize: '8px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '1px' }}>{label}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* WHY */}
-                    <div className="mb-2">
-                      <div style={{ fontSize: '9px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '4px' }}>
-                        Why this signal
-                      </div>
-                      <div style={{ fontSize: '12px', lineHeight: '1.65', color: '#cbd5e1' }}>{why}</div>
-                    </div>
-
-                    {/* WHAT TO DO */}
-                    <div className="mb-2">
-                      <div style={{ fontSize: '9px', fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '4px' }}>
-                        What to do
-                      </div>
-                      <div style={{ fontSize: '12px', lineHeight: '1.65', color: '#cbd5e1' }}>{action}</div>
-                    </div>
-
-                    {/* RISK */}
-                    <div>
-                      <div style={{ fontSize: '9px', fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '4px' }}>
-                        Risk note
-                      </div>
-                      <div style={{ fontSize: '12px', lineHeight: '1.65', color: '#94a3b8' }}>{risk}</div>
                     </div>
                   </div>
-                )
-              })}
+                  <div className="mt-1.5 pl-3.5 text-xs leading-5 text-slate-200">
+                    {alert.body}
+                  </div>
+                  <div className="mt-1.5 pl-3.5 flex items-center gap-3 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                    <span>{alert.symbol}</span>
+                    <span>·</span>
+                    <span>{alert.report_date}</span>
+                    {alert.severity === "high" && !alert.is_read && (
+                      <span className="text-rose-600">high priority</span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-zinc-900 px-5 py-3 shrink-0">
-          <div style={{ fontSize: '10px', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-            Based on CFTC COT data · Updated weekly
-          </div>
+ 
+        {/* Footer — run check */}
+        <div className="border-t border-zinc-900 px-4 py-3">
+          <button
+            onClick={() => {
+              fetch("/api/alerts/run", { method: "POST" })
+                .then(() => load())
+            }}
+            className="w-full border border-zinc-800 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:border-zinc-700 hover:text-zinc-300 transition"
+          >
+            Run Alert Check Now
+          </button>
         </div>
       </div>
     </>
@@ -5752,8 +5637,8 @@ function SettingsView({
   return (
     
     <>
-      <div className="settings-panel">
-        <Panel title={t("settings.title")}>
+    <div className="settings-panel">
+      <Panel title={t("settings.title")}>
       <div className="space-y-6 text-sm text-zinc-300">
         <LanguageSettings
           uiLanguage={uiLanguage}
@@ -7737,6 +7622,7 @@ export default function App() {
   const [schedulerState, setSchedulerState] = useState(null)
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false)
   const [guideSection, setGuideSection] = useState(null)
+
   const openGuide = (sectionKey = null) => {
     setGuideSection(sectionKey)
     setActive("guide")
@@ -7995,10 +7881,8 @@ setWorkspaceData({
         <AlertDrawer
           open={alertDrawerOpen}
           onClose={() => setAlertDrawerOpen(false)}
-          assets={assets}
-          signals={signals}
         />
-       <div className="flex-1 p-4 md:p-6">
+        <div className="flex-1 p-4 md:p-6">
           {loading
             ? <Panel title="Loading"><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
             : error
