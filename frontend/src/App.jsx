@@ -5090,7 +5090,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     if (directionFilter !== 'all') rows = rows.filter((x) => x.direction === directionFilter)
     if (sectorFilter !== 'all') rows = rows.filter((x) => x.sector === sectorFilter)
     if (alertsOnly) rows = rows.filter((x) => x.alerts.length > 0)
-    rows = rows.filter((x) => x.priorityScore >= minScore)
+    rows = rows.filter((x) => x.state === 'stale' || x.priorityScore >= minScore)
 
     rows.sort((a, b) => {
       if (sortBy === 'quality') return b.entryQualityScore - a.entryQualityScore
