@@ -4910,6 +4910,8 @@ function SignalHistoryTable({ items, loading }) {
   const ScoreSparkline = ({ history }) => {
     if (!history?.length) return <span className="text-zinc-700">—</span>
     const vals = history.map((h) => h.score)
+    const trend = vals[vals.length-1] - vals[0]
+    const strokeColor = trend > 2 ? '#4ade80' : trend < -2 ? '#f87171' : '#71717a'
     const min = Math.min(...vals)
     const max = Math.max(...vals)
     const range = max - min || 1
@@ -4922,7 +4924,7 @@ function SignalHistoryTable({ items, loading }) {
     }).join(' ')
     return (
       <svg width={w} height={h} className="overflow-visible">
-        <polyline points={points} fill="none" stroke="#71717a" strokeWidth="1.5" />
+        <polyline points={points} fill="none" stroke={strokeColor} strokeWidth="1.5" />
         <circle
           cx={w}
           cy={h - ((vals[vals.length - 1] - min) / range) * h}
@@ -4979,7 +4981,7 @@ function SignalHistoryTable({ items, loading }) {
                 <th className="px-3 py-2 text-right">Current</th>
                 <th className="px-3 py-2 text-right">Peak</th>
                 <th className="px-3 py-2 text-left">First seen</th>
-                <th className="px-3 py-2 text-left">8w trend</th>
+                <th className="px-3 py-2 text-left">Trend (8w→now)</th>
               </tr>
             </thead>
             <tbody>
@@ -5072,9 +5074,24 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       current_score:   s.percentile,
       peak_score:      s.percentile,
       weeks_active:    inferSignalAgeWeeks(assets.find(a => a.symbol === s.symbol)),
-      first_seen_date: null,
-      last_seen_date:  null,
-      score_history:   [],
+      first_seen_date: (() => {
+        const a = assets.find(x => x.symbol === s.symbol)
+        if (!a?.report_date) return null
+        const wa = inferSignalAgeWeeks(a)
+        const d = new Date(a.report_date)
+        d.setDate(d.getDate() - (wa - 1) * 7)
+        return d.toISOString().slice(0, 10)
+      })(),
+      last_seen_date: assets.find(a => a.symbol === s.symbol)?.report_date || null,
+      score_history: (() => {
+        const a = assets.find(x => x.symbol === s.symbol)
+        if (!a) return []
+        const pts = []
+        if (a.funds_index_8w_avg != null) pts.push({ date: '8w', score: a.funds_index_8w_avg })
+        if (a.funds_index_3w_avg != null) pts.push({ date: '3w', score: a.funds_index_3w_avg })
+        pts.push({ date: 'now', score: s.percentile })
+        return pts
+      })(),
     }))
   }, [engine.signals, assets])
   const [sortBy, setSortBy] = useState('priority')
