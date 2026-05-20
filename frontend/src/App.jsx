@@ -506,8 +506,8 @@ function classifySignalState({ direction, percentile, ageWeeks, entryQualityScor
   if (direction === 'neutral') return 'candidate'
   if (percentile == null || Number.isNaN(percentile)) return 'stale'
   if (entryQualityScore < 35) return 'invalidated'
-  // ageWeeks від inferSignalAgeWeeks ненадійний — не використовуємо для aging/stale
-  // Тільки реальні дані з бази можуть визначати aging/stale
+  if (ageWeeks >= 6) return 'stale'
+  if (ageWeeks >= 4) return 'aging'
   if (percentile >= 65 || percentile <= 35) return 'active'
   return 'candidate'
 }
