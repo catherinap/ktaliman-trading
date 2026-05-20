@@ -695,7 +695,20 @@ def run_weekly_update():
             log(f"Alert check HTTP error: {alert_res.status_code}")
     except Exception as e:
         log(f"Alert check failed (backend may not be running): {e}")
-
+    # Persist signal history after each update
+    try:
+        persist_res = requests.post(
+            "http://localhost:8000/api/signals/persist",
+            timeout=30
+        )
+        if persist_res.ok:
+            data = persist_res.json()
+            log(f"Signal history persisted: {data.get('report_date')}")
+        else:
+            log(f"Signal persist HTTP error: {persist_res.status_code}")
+    except Exception as e:
+        log(f"Signal persist failed (backend may not be running): {e}")
+        
     log('=== WEEKLY UPDATE COMPLETE ===')
 
 
