@@ -1872,6 +1872,21 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
   const news     = workspaceData?.news     || []
+  const [calDate, setCalDate] = React.useState("all")
+  const availableDates = React.useMemo(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  const dates = [...new Set(
+    calendar.map(e => e.datetime?.slice(0, 10)).filter(Boolean)
+  )].sort()
+  return dates.map(d => ({
+    value: d,
+    label: d === today
+      ? 'Today'
+      : new Date(d + 'T12:00:00').toLocaleDateString('en-GB', {
+          weekday: 'short', day: '2-digit', month: 'short'
+        }),
+  }))
+}, [calendar])
 
   const topSignals = useMemo(() => {
     if (!assets.length) return []
@@ -2235,6 +2250,16 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                     {value:"AU",  label:"AU"},
                   ]}
                 />
+                <CustomSelect
+                  value={calDate}
+                  onChange={setCalDate}
+                  minWidth="0"
+                  placeholder="All Dates"
+                  options={[
+                    { value: "all", label: "All Dates" },
+                    ...availableDates.map(d => ({ value: d.value, label: d.label }))
+                  ]}
+                />
               </div>
             </div>
             <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
@@ -2244,7 +2269,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                   .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || ""))
                   .reverse()
                   .filter(e => calImpact === "all" || e.importance === calImpact)
-                  .filter(e => calCountry === "all" || (e.country || "").toUpperCase() === calCountry.toUpperCase())
+                  .filter(e => calCountry === "all" || (e.country || "").toUpperCase() === calCountry.toUpperCase()).filter(e => calDate === "all" || (e.datetime || "").slice(0, 10) === calDate)
                   .map((event, idx) => {
                   const imp = (event.importance || "").toLowerCase();
                   const isHigh = imp === "high";
@@ -5287,6 +5312,72 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   )
 }
 
+function HistoryBootstrapButton() {
+  const [state, setState] = React.useState('idle')
+  const [msg, setMsg] = React.useState('')
+  const [lastRun, setLastRun] = React.useState(null)
+
+  React.useEffect(() => {
+    if (state !== 'running') return
+    const iv = setInterval(async () => {
+      try {
+        const r = await fetch('/api/system/worker-status')
+        const d = await r.json()
+        const w = d?.worker?.history
+        if (!w?.running) {
+          setState(w?.last_status === 'ok' ? 'ok' : 'error')
+          setMsg(w?.last_status || '')
+          setLastRun(w?.last_run)
+          clearInterval(iv)
+        }
+      } catch {}
+    }, 4000)
+    return () => clearInterval(iv)
+  }, [state])
+
+  const run = async () => {
+    setState('running'); setMsg('')
+    try {
+      const r = await fetch('/api/system/run-history', { method: 'POST' })
+      const d = await r.json()
+      if (!d.ok) { setState('error'); setMsg(d.message) }
+    } catch { setState('error'); setMsg('Network error') }
+  }
+
+  const color = state === 'ok' ? '#4ade80' : state === 'error' ? '#f87171' : state === 'running' ? '#fbbf24' : '#60a5fa'
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={run}
+        disabled={state === 'running'}
+        className={cls(
+          'border px-4 py-3 text-sm uppercase tracking-[0.22em] transition',
+          state === 'running'
+            ? 'cursor-not-allowed border-zinc-800 text-zinc-600'
+            : 'border-blue-400 text-blue-300 hover:bg-blue-400/10'
+        )}
+      >
+        {state === 'running' ? '⟳  Running...' : 'Run History'}
+      </button>
+      {state === 'running' && (
+        <div className="text-xs text-amber-400 tracking-[0.1em]">
+          Worker is running in background. Page can be closed safely.
+        </div>
+      )}
+      {msg && state !== 'running' && (
+        <div style={{ fontSize: '12px', color, letterSpacing: '0.08em' }}>
+          {state === 'ok' ? '✓ Completed successfully' : `✗ ${msg}`}
+        </div>
+      )}
+      {lastRun && (
+        <div className="text-xs text-zinc-600">
+          Last run: {new Date(lastRun).toLocaleString('en-GB')}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function UpdateDataView({ updateState, updateBusy, onRun, schedulerState, timezone = "Europe/Copenhagen" }) {
   const { t } = useTranslation()
@@ -5324,13 +5415,13 @@ const fmtUtc = (iso) => {
                 onClick={onRun}
                 disabled={updateBusy || isRunning}
                 className={cls(
-                  'border px-4 py-3 text-sm uppercase tracking-[0.22em]',
+                  'border px-4 py-3 text-sm uppercase tracking-[0.22em] transition',
                   updateBusy || isRunning
                     ? 'cursor-not-allowed border-zinc-800 text-zinc-600'
-                    : 'border-amber-400 text-amber-300 hover:bg-amber-400/10'
+                    : 'border-blue-400 text-blue-300 hover:bg-blue-400/10'
                 )}
               >
-                {isRunning ? 'Worker Running...' : 'Run Worker'}
+                {isRunning ? '⟳  Running...' : 'Run Worker'}
               </button>
               <div className={cls('text-sm uppercase tracking-[0.2em]', statusTone)}>
                 {updateState?.status || 'idle'}
@@ -5338,7 +5429,17 @@ const fmtUtc = (iso) => {
             </div>
           </div>
         </Panel>
- 
+        {/* History Bootstrap */}
+        <Panel title="History Bootstrap">
+          <div className="space-y-4">
+            <div className="text-sm leading-7 text-zinc-300">
+              Downloads full COT history <span className="text-zinc-100">2016 → present</span> for all assets.
+              Run this after adding new assets to the ASSET_MAP in the worker.
+              Takes <span className="text-amber-300">10–30 minutes</span> — non-blocking.
+            </div>
+            <HistoryBootstrapButton />
+          </div>
+        </Panel>
         {/* Worker Log */}
         <Panel title="Worker Log">
           <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
