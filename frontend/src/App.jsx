@@ -2061,7 +2061,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
     </div><div className="space-y-4">
 
         {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1.1fr 0.9fr"}}>
 
           {/* LEFT col: Macro Context + Macro Regime stacked */}
           <div className="space-y-4">
@@ -2163,34 +2163,9 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
         </div>
 
         {/* ══ ROW 2: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1.1fr 0.9fr" }}>
 
-          {/* LEFT: Top Active Signals — 3×2 circles */}
-          <section className="border border-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
-                <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-                Top Active Signals
-                </span>
-              </div>
-              <button onClick={() => setActive("signals")}
-                className="text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:text-zinc-300 transition">
-                All →
-              </button>
-            </div>
-            <div className="p-4">
-              {topSignals.length === 0 ? (
-                <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                  {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* RIGHT: COT Heatmap compact */}
+          {/* COT Heatmap compact */}
           <section className="border border-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -2220,10 +2195,35 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               ))}
             </div>
           </section>
+
+          {/* Top Active Signals — 3×2 circles */}
+          <section className="border border-zinc-900">
+            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
+                Top Active Signals
+                </span>
+              </div>
+              <button onClick={() => setActive("signals")}
+                className="text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:text-zinc-300 transition">
+                All →
+              </button>
+            </div>
+            <div className="p-4">
+              {topSignals.length === 0 ? (
+                <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                  {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        {/* ══ ROW 3: 3 equal cols — Calendar | News | Guide ════════════════════ */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
+        {/* ══ ROW 3: 3 equal cols — Calendar | News | - */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1.1fr 1.1fr 0.8fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900">
@@ -3267,7 +3267,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.35fr_0.9fr]">
+    <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
 
       {/* ── LEFT COLUMN ── */}
       <div className="space-y-4">
@@ -3297,9 +3297,6 @@ function MacroView({ assets, aiLanguage, openGuide }) {
             {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
-
-        {/* 2. MACRO CONTEXT — VIX / Yield Curve / DXY / S&P 500 */}
-        <MacroContextPanel aiLanguage={aiLanguage} />
 
         {/* 3. SLEEVE DETAIL — the most important breakdown */}
         <Panel title={t("panels.sleeveDetail")}>
@@ -3337,17 +3334,8 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           </div>
         </Panel>
 
-        {/* 4. INTERPRETATION + TRADING RELEVANCE */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="p-4 default-bg border border-zinc-900">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Interpretation</div>
-            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
-          </div>
-          <div className="p-4 default-bg border border-zinc-900">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Trading Relevance</div>
-            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
-          </div>
-        </div>
+        {/* 2. MACRO CONTEXT — VIX / Yield Curve / DXY / S&P 500 */}
+        <MacroContextPanel aiLanguage={aiLanguage} />
 
       </div>
 
@@ -3371,20 +3359,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
         />
 
         {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
-        <Panel title={t("panels.compositeScores")}>
-          <div className="space-y-2 mb-4">
-            {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="flex items-center justify-between py-2 last:border-b-0">
-                <span className={cls('text-xs uppercase tracking-[0.18em]', sleeveColor(sleeve.key))}>
-                  {sleeve.title} ({sleeve.memberCount}/{sleeve.expectedCount})
-                </span>
-                <span className={cls('text-sm font-semibold', macroTone(sleeve.score))}>
-                  {formatPercentile(sleeve.score)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-1">
+        <div className="grid grid-cols-2 gap-3 pt-1">
             <div className="default-bg p-3 border border-zinc-900">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Sleeve Dispersion</div>
               <div className="text-xl font-semibold text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
@@ -3396,9 +3371,7 @@ function MacroView({ assets, aiLanguage, openGuide }) {
               <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
             </div>
           </div>
-        </Panel>
-
-        {/* 3. NARRATIVE SUMMARY */}
+          {/* 3. NARRATIVE SUMMARY */}
         <div className="default-bg p-4 border border-zinc-900">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Narrative Summary</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
@@ -3409,7 +3382,15 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">What To Watch</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
         </div>
-
+        {/* 4. INTERPRETATION + TRADING RELEVANCE */}
+        <div className="p-4 default-bg border border-zinc-900">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Interpretation</div>
+            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
+          </div>
+        <div className="p-4 default-bg border border-zinc-900">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Trading Relevance</div>
+            <div className="text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
+          </div>
       </div>
     </div>
   )
@@ -3483,15 +3464,16 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     <div className="space-y-4">
 
       {/* ── HEADER ── */}
-      <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
-        <div className="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-          <div className="grid gap-3 md:grid-cols-4 metric-card">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
+          <div className="grid gap-3 md:grid-cols-2 metric-card">
             <Metric label="Universe"      value={universeAssets.length} />
             <Metric label="Pairs"         value={pairs.length} />
             <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
             <Metric label="Avg Distance"  value={formatPercentile(avgDistance)} />
           </div>
-          <div className="flex items-center gap-4 border border-zinc-900 small-panel-color p-3">
+          <div className="flex flex-col gap-8 border border-zinc-900 small-panel-color py-4 px-3">
             <div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-1">Market Alignment</div>
               <div className="text-lg font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
@@ -3512,13 +3494,34 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
           </div>
         </div>
-        <div className="mt-2 text-[10px] pt-2">
-          COT positioning similarity — not price correlation. Green = funds positioned alike. Red = opposite bets.
-        </div>
-      </Panel>
+        </Panel>
+
+        <AIAnalysisPanel
+          type="correlation"
+          data={{
+            avg_alignment:      avgAlignment,
+            avg_distance:       avgDistance,
+            same_sector_pairs:  sameSectorPairs,
+            cross_sector_pairs: crossSectorPairs,
+            aligned_pairs: alignedPairs.slice(0, 5).map(p => ({
+              left: p.left?.name, right: p.right?.name,
+              leftPct: p.leftPct, rightPct: p.rightPct,
+              distance: p.distance, relationship: p.relationship
+            })),
+            opposed_pairs: opposedPairs.slice(0, 5).map(p => ({
+              left: p.left?.name, right: p.right?.name,
+              leftPct: p.leftPct, rightPct: p.rightPct,
+              distance: p.distance, relationship: p.relationship
+            })),
+          }}
+          aiLanguage={aiLanguage}
+          title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
+        />
+      </div>
+
 
       {/* ── MAIN GRID ── */}
-      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
 
         {/* ── LEFT ── */}
         <div className="space-y-4">
@@ -3625,8 +3628,27 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
               ))}
             </div>
           </Panel>
+        </div>
 
-          {/* COMPACT TOP PAIRS — side by side */}
+        {/* ── RIGHT ── */}
+        <div className="space-y-4">
+
+        <div className="border border-zinc-900 small-panel-color p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
+        </div>
+
+        <div className="border border-zinc-900 small-panel-color p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
+        </div>
+
+        <div className="border border-zinc-900 small-panel-color p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
+        </div>
+
+                    {/* COMPACT TOP PAIRS — side by side */}
           <div className="grid gap-4 md:grid-cols-2">
 
             {/* Aligned */}
@@ -3698,51 +3720,9 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
 
           </div>
-        </div>
-
-        {/* ── RIGHT ── */}
-        <div className="space-y-4">
-
-          <AIAnalysisPanel
-            type="correlation"
-            data={{
-              avg_alignment:      avgAlignment,
-              avg_distance:       avgDistance,
-              same_sector_pairs:  sameSectorPairs,
-              cross_sector_pairs: crossSectorPairs,
-              aligned_pairs: alignedPairs.slice(0, 5).map(p => ({
-                left: p.left?.name, right: p.right?.name,
-                leftPct: p.leftPct, rightPct: p.rightPct,
-                distance: p.distance, relationship: p.relationship
-              })),
-              opposed_pairs: opposedPairs.slice(0, 5).map(p => ({
-                left: p.left?.name, right: p.right?.name,
-                leftPct: p.leftPct, rightPct: p.rightPct,
-                distance: p.distance, relationship: p.relationship
-              })),
-            }}
-            aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
-          />
-
-          <div className="border border-zinc-900 small-panel-color p-4">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
-            <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
-          </div>
-
-          <div className="border border-zinc-900 small-panel-color p-4">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
-            <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
-          </div>
-
-          <div className="border border-zinc-900 small-panel-color p-4">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
-            <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-          </div>
-
-        </div>
       </div>
     </div>
+  </div>
   )
 }
 
@@ -3950,7 +3930,140 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
+      {/* Triple-Confirm Setups */}
+      <div className="border border-zinc-900 default-bg p-4">
+        <div className="flex items-center gap-2 mb-4 pb-3">
+          <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+          <span style={{ fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+            Triple-Confirm Setups
+          </span>
+          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#708db5' }}>
+            seasonal · COT · flow
+          </span>
+        </div>
+
+        {tripleConfirm.length === 0 ? (
+          /* Empty state — two columns with info cards instead of blank space */
+          <div>
+            <div className="text-center py-4 mb-4">
+              <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '8px' }}>◎</div>
+              <div style={{ fontSize: '11px', color: '#475569', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                No triple-confirm setups in {currentMonth}
+              </div>
+              <div style={{ fontSize: '10px', color: '#374151', marginTop: '4px' }}>
+                Seasonal alone is not enough — wait for COT + flow alignment
+              </div>
+            </div>
+            {/* Show what would qualify — top seasonal candidates */}
+            <div style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '8px' }}>
+              Closest candidates (seasonal only)
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {rows.slice(0, 4).map(row => {
+                const asset = assets.find(a => a.symbol === row.symbol)
+                const pct = asset ? Number(asset.funds_percentile_3y) : null
+                const cotOk = pct != null && (pct >= 65 || pct <= 35)
+                const flowOk = asset?.flow_state && asset.flow_state !== 'Neutral'
+                return (
+                  <div key={row.symbol} className="border border-zinc-900 p-3 small-panel-color">
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+                      {row.name}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span style={{
+                        fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: row.current >= 55 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
+                        color: row.current >= 55 ? '#4ade80' : '#f87171',
+                        border: `1px solid ${row.current >= 55 ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}`,
+                      }}>
+                        ✓ Seasonal {formatPercentile(row.current)}
+                      </span>
+                      <span style={{
+                        fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: cotOk ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.04)',
+                        color: cotOk ? '#60a5fa' : '#374151',
+                        border: `1px solid ${cotOk ? 'rgba(96,165,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                      }}>
+                        {cotOk ? '✓' : '✗'} COT {pct != null ? formatPercentile(pct) : '—'}
+                      </span>
+                      <span style={{
+                        fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: flowOk ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.04)',
+                        color: flowOk ? '#a78bfa' : '#374151',
+                        border: `1px solid ${flowOk ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                      }}>
+                        {flowOk ? '✓' : '✗'} {asset?.flow_state || 'No flow'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          /* Has triple-confirm setups — show them in two columns */
+          <div className="grid gap-3 md:grid-cols-3">
+            {tripleConfirm.map(({ name, symbol, current, values, asset }) => {
+              const pct = Number(asset?.funds_percentile_3y)
+              const cotColor = pct >= 65 ? '#4ade80' : '#f87171'
+              const cotDir   = pct >= 65 ? 'Long' : 'Short'
+              return (
+                <div key={symbol} className="p-3 small-panel-color" style={{ border: '1px solid var(--accent-border)'}}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', marginBottom: '6px' }}>{name}</div>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    <span style={{ fontSize: '9px', color: '#4ade80', background: 'rgba(74,222,128,0.08)',  
+                      border: '1px solid rgba(74,222,128,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      S {formatPercentile(current)}
+                    </span>
+                    <span style={{ fontSize: '9px', color: cotColor, background: `${cotColor}18`,
+                      border: `1px solid ${cotColor}30`, padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      C {cotDir} {formatPercentile(pct)}
+                    </span>
+                    <span style={{ fontSize: '9px', color: '#99b1ff', background: '#1638e049',
+                      border: '1px solid rgba(167,139,250,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {asset?.flow_state?.split(' ')[0] || 'Flow'}
+                    </span>
+                  </div>
+                  {values && values.length === 12 && (
+                    <div style={{ position: 'relative' }}>
+                      <MiniSparkline values={values} positive={current >= 55} />
+                      <div style={{
+                        position: 'absolute', top: 0, bottom: 0,
+                        left: `${(monthIndex / 12) * 100}%`,
+                        width: `${100 / 12}%`,
+                        background: 'rgba(251,191,36,0.12)',
+                        borderLeft: '1px solid rgba(251,191,36,0.5)',
+                        pointerEvents: 'none',
+                      }} />
+                    </div>
+                  )}
+                  <div className="flex justify-between mt-1">
+                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Jan</span>
+                    <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{currentMonth}</span>
+                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Dec</span>
+                  </div>
+                  {/* Insight */}
+                  <div style={{
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid rgba(255,255,255,0.06)',
+                    fontSize: '13px',
+                    lineHeight: '1.65',
+                    color: '#c5d2e6',
+                  }}>
+                    {tripleConfirmInsight({ name: symbol, current }, asset)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>  
+
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
             <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
@@ -4092,139 +4205,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           </div>
           </div> 
       </div>
-      </div> 
-              {/* Triple-Confirm Setups */}
-        <div className="border border-zinc-900 default-bg p-4">
-        <div className="flex items-center gap-2 mb-4 pb-3">
-            <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
-            <span style={{ fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
-              Triple-Confirm Setups
-            </span>
-            <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#708db5' }}>
-              seasonal · COT · flow
-            </span>
-          </div>
-
-          {tripleConfirm.length === 0 ? (
-            /* Empty state — two columns with info cards instead of blank space */
-            <div>
-              <div className="text-center py-4 mb-4">
-                <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '8px' }}>◎</div>
-                <div style={{ fontSize: '11px', color: '#475569', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                  No triple-confirm setups in {currentMonth}
-                </div>
-                <div style={{ fontSize: '10px', color: '#374151', marginTop: '4px' }}>
-                  Seasonal alone is not enough — wait for COT + flow alignment
-                </div>
-              </div>
-              {/* Show what would qualify — top seasonal candidates */}
-              <div style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '8px' }}>
-                Closest candidates (seasonal only)
-              </div>
-              <div className="grid gap-2 md:grid-cols-2">
-                {rows.slice(0, 4).map(row => {
-                  const asset = assets.find(a => a.symbol === row.symbol)
-                  const pct = asset ? Number(asset.funds_percentile_3y) : null
-                  const cotOk = pct != null && (pct >= 65 || pct <= 35)
-                  const flowOk = asset?.flow_state && asset.flow_state !== 'Neutral'
-                  return (
-                    <div key={row.symbol} className="border border-zinc-900 p-3 small-panel-color">
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
-                        {row.name}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span style={{
-                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
-                          letterSpacing: '0.08em', textTransform: 'uppercase',
-                          background: row.current >= 55 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
-                          color: row.current >= 55 ? '#4ade80' : '#f87171',
-                          border: `1px solid ${row.current >= 55 ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}`,
-                        }}>
-                          ✓ Seasonal {formatPercentile(row.current)}
-                        </span>
-                        <span style={{
-                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
-                          letterSpacing: '0.08em', textTransform: 'uppercase',
-                          background: cotOk ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.04)',
-                          color: cotOk ? '#60a5fa' : '#374151',
-                          border: `1px solid ${cotOk ? 'rgba(96,165,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
-                        }}>
-                          {cotOk ? '✓' : '✗'} COT {pct != null ? formatPercentile(pct) : '—'}
-                        </span>
-                        <span style={{
-                          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
-                          letterSpacing: '0.08em', textTransform: 'uppercase',
-                          background: flowOk ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.04)',
-                          color: flowOk ? '#a78bfa' : '#374151',
-                          border: `1px solid ${flowOk ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
-                        }}>
-                          {flowOk ? '✓' : '✗'} {asset?.flow_state || 'No flow'}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : (
-            /* Has triple-confirm setups — show them in two columns */
-            <div className="grid gap-3 md:grid-cols-3">
-              {tripleConfirm.map(({ name, symbol, current, values, asset }) => {
-                const pct = Number(asset?.funds_percentile_3y)
-                const cotColor = pct >= 65 ? '#4ade80' : '#f87171'
-                const cotDir   = pct >= 65 ? 'Long' : 'Short'
-                return (
-                  <div key={symbol} className="p-3 small-panel-color" style={{ border: '1px solid var(--accent-border)'}}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', marginBottom: '6px' }}>{name}</div>
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      <span style={{ fontSize: '9px', color: '#4ade80', background: 'rgba(74,222,128,0.08)',  
-                        border: '1px solid rgba(74,222,128,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                        S {formatPercentile(current)}
-                      </span>
-                      <span style={{ fontSize: '9px', color: cotColor, background: `${cotColor}18`,
-                        border: `1px solid ${cotColor}30`, padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                        C {cotDir} {formatPercentile(pct)}
-                      </span>
-                      <span style={{ fontSize: '9px', color: '#99b1ff', background: '#1638e049',
-                        border: '1px solid rgba(167,139,250,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                        {asset?.flow_state?.split(' ')[0] || 'Flow'}
-                      </span>
-                    </div>
-                    {values && values.length === 12 && (
-                      <div style={{ position: 'relative' }}>
-                        <MiniSparkline values={values} positive={current >= 55} />
-                        <div style={{
-                          position: 'absolute', top: 0, bottom: 0,
-                          left: `${(monthIndex / 12) * 100}%`,
-                          width: `${100 / 12}%`,
-                          background: 'rgba(251,191,36,0.12)',
-                          borderLeft: '1px solid rgba(251,191,36,0.5)',
-                          pointerEvents: 'none',
-                        }} />
-                      </div>
-                    )}
-                    <div className="flex justify-between mt-1">
-                      <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Jan</span>
-                      <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{currentMonth}</span>
-                      <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Dec</span>
-                    </div>
-                    {/* Insight */}
-                    <div style={{
-                      marginTop: '8px',
-                      paddingTop: '8px',
-                      borderTop: '1px solid rgba(255,255,255,0.06)',
-                      fontSize: '13px',
-                      lineHeight: '1.65',
-                      color: '#c5d2e6',
-                    }}>
-                      {tripleConfirmInsight({ name: symbol, current }, asset)}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>   
+      </div>  
   </div>
   )
 }
@@ -4807,6 +4788,14 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
         {/* ── RIGHT COLUMN ── */}
         <div className="space-y-4">
 
+          {/* AI Asset Analysis */}
+          <AIAnalysisPanel
+            type="asset"
+            data={asset}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI-Аналіз активу" : "AI Asset Analysis"}
+          />
+          
           {/* Confirmation Checklist — with box-shadow on dots */}
           <Panel title={t("panels.confirmationChecklist")}>
             <div className="space-y-2">
@@ -4840,13 +4829,6 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             </div>
           </Panel>
 
-          {/* AI Asset Analysis */}
-          <AIAnalysisPanel
-            type="asset"
-            data={asset}
-            aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI-Аналіз активу" : "AI Asset Analysis"}
-          />
 
           {/* Sector Peers */}
           <Panel title={t("panels.sectorPeers")}>
@@ -5218,7 +5200,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </div>
       </Panel>
 
-      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <Panel
           title="Ranked Signals"
           right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
@@ -5296,6 +5278,12 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </Panel>
 
         <div className="space-y-4">
+          <AIAnalysisPanel
+            type="signals"
+            data={{ signals: engine.signals.slice(0, 6) }}
+            aiLanguage={aiLanguage}
+            title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
+          />
           <Panel
             title="Alert Feed"
             right={<span className="text-xs uppercase tracking-[0.22em] text-rose-300">transition monitor</span>}
@@ -5347,13 +5335,6 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
               </div>
             </div>
           </Panel>
-
-          <AIAnalysisPanel
-            type="signals"
-            data={{ signals: engine.signals.slice(0, 6) }}
-            aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
-          />
         </div>
       </div>
       </>)}
@@ -5449,7 +5430,7 @@ const fmtUtc = (iso) => {
   }
  
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+    <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
       <div className="space-y-4">
  
         {/* Manual run */}
@@ -5491,7 +5472,7 @@ const fmtUtc = (iso) => {
         </Panel>
         {/* Worker Log */}
         <Panel title="Worker Log">
-          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
+          <pre className="max-h-[420px] min-h-[78px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
             {updateState?.log || 'No log output yet.'}
           </pre>
         </Panel>
@@ -5523,8 +5504,7 @@ const fmtUtc = (iso) => {
                   <span>{fmtUtc(schedulerState.last_auto_run_utc)}</span>
                 </div>
                 <div className="mt-2 border border-zinc-900 bg-zinc-950 p-3 text-xs text-slate-200">
-                  CFTC publishes every Friday ~15:30 EST. Auto-run fires at 16:00 EST (21:00 UTC)
-                  with 30 min buffer to ensure data is available.
+                  CFTC publishes every Friday ~15:30 EST. Auto-run fires at 16:00 EST (21:00 UTC).
                 </div>
               </>
             ) : (
@@ -5568,8 +5548,6 @@ const fmtUtc = (iso) => {
     </div>
   )
 }
-
-function Placeholder({ title }) { return (<Panel title={title}><div className="text-sm text-zinc-400">This tab is scaffolded. Live data is already connected for core COT views.</div></Panel>) }
 
 const TIMEZONES = [
   { value: "Europe/Copenhagen", label: "Denmark (CET/CEST)" },
@@ -5657,17 +5635,19 @@ function SettingsView({
   const { t } = useTranslation();
  
   return (
-    <Panel title={t("settings.title")}>
+    
+    <>
+      <div className="settings-panel">
+        <Panel title={t("settings.title")}>
       <div className="space-y-6 text-sm text-zinc-300">
-        <LanguageSettings 
+        <LanguageSettings
           uiLanguage={uiLanguage}
           aiLanguage={aiLanguage}
           syncAiWithUi={syncAiWithUi}
           onChangeUiLanguage={onChangeUiLanguage}
           onChangeAiLanguage={onChangeAiLanguage}
-          onToggleSyncAiWithUi={onToggleSyncAiWithUi}
-        />
- 
+          onToggleSyncAiWithUi={onToggleSyncAiWithUi} />
+
         {/* Timezone selector */}
         <div className="space-y-2">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
@@ -5677,13 +5657,12 @@ function SettingsView({
             value={timezone}
             onChange={onChangeTimezone}
             options={TIMEZONES}
-            minWidth="280px"
-          />
+            minWidth="280px" />
           <div className="text-xs text-zinc-600">
             Used for displaying timestamps in Update tab and scheduler times.
           </div>
         </div>
-        
+
         {/* Email Alerts */}
         <div className="space-y-3">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
@@ -5692,7 +5671,7 @@ function SettingsView({
           <AlertTestButton />
         </div>
       </div>
-    </Panel>
+    </Panel></div></>
   );
 }
 

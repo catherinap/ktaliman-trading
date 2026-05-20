@@ -104,6 +104,10 @@ table .sticky.top-0 {
   background: rgba(19, 26, 52, 0.75) !important;
 }
 
+.settings-panel {
+  margin: 0 auto !important;
+  max-width: 1000px !important;
+}
 /* ═══════════════════════════════════════════════════════════════════════════
    GLASS PANELS
    ═══════════════════════════════════════════════════════════════════════════ */

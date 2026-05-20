@@ -112,7 +112,7 @@ export default function AIAnalysisPanel({
             ? aiLanguage === "uk" ? "Оновити мову" : "Update language"
             : state === "done"
             ? aiLanguage === "uk" ? "Оновити" : "Refresh"
-            : aiLanguage === "uk" ? "Згенерувати аналіз" : "Generate analysis"}
+            : aiLanguage === "uk" ? "Згенерувати" : "Generate"}
         </button>
       </div>
 
