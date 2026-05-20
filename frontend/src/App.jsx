@@ -468,24 +468,23 @@ function scoreMacroAlignment(asset, macroComposite) {
 }
 
 function inferSignalAgeWeeks(asset) {
-  // Use real momentum data if available
-  const wow = asset?.funds_index_wow_change
   const avg3 = asset?.funds_index_3w_avg
   const avg8 = asset?.funds_index_8w_avg
-  const pct  = Number(asset?.funds_percentile_3y)
-
-  if (Number.isNaN(pct)) return 99
-
-  // If 3w avg ≈ 8w avg — signal has been around a while (mature)
+  
+  // Drift between 3w and 8w avg = best proxy for signal age
+  // High drift = recent move = fresh signal
+  // Low drift = 3w ≈ 8w = stable for weeks = mature signal
   if (avg3 != null && avg8 != null) {
     const drift = Math.abs(avg3 - avg8)
-    if (drift <= 2)  return 6  // very stable = old/stale
-    if (drift <= 5)  return 4  // aging
-    if (drift <= 10) return 2  // relatively fresh
-    return 1                   // fresh breakout
+    if (drift >= 8)  return 1  // very fresh
+    if (drift >= 4)  return 3  // moderate
+    if (drift >= 2)  return 4  // aging
+    return 6                   // stale — barely moving
   }
 
-  // Fallback: use distance from neutral as proxy
+  // Fallback: distance from 50 as rough proxy
+  const pct = Number(asset?.funds_percentile_3y)
+  if (Number.isNaN(pct)) return 99
   const d = Math.abs(pct - 50)
   if (d >= 40) return 1
   if (d >= 30) return 2
