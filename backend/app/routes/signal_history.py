@@ -114,13 +114,17 @@ def persist_signals(report_date: date):
             continue
 
         with engine.begin() as conn:
+            from datetime import timedelta
+            cutoff = report_date - timedelta(weeks=20)
             existing = conn.execute(text("""
                 SELECT id, weeks_active, peak_score, current_state,
-                       score_history, became_active_date, became_aging_date
+                    score_history, became_active_date, became_aging_date
                 FROM signal_history
-                WHERE symbol = :s AND direction = :d AND resolved_date IS NULL
+                WHERE symbol = :s AND direction = :d
+                AND resolved_date IS NULL
+                AND first_seen_date >= :cutoff
                 ORDER BY first_seen_date DESC LIMIT 1
-            """), {"s": symbol, "d": direction}).mappings().first()
+            """), {"s": symbol, "d": direction, "cutoff": cutoff}).mappings().first()
 
             if existing:
                 weeks_active = (existing["weeks_active"] or 1) + 1
@@ -186,9 +190,11 @@ def backfill_signal_history():
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM signal_history"))
     with engine.connect() as conn:
+        from datetime import timedelta 
+        cutoff = date.today() - timedelta(weeks=52)
         dates = [r[0] for r in conn.execute(text(
-            "SELECT DISTINCT report_date FROM cot_analytics ORDER BY report_date ASC"
-        ))]
+                "SELECT DISTINCT report_date FROM cot_analytics WHERE report_date >= :cutoff ORDER BY report_date ASC"
+            ), {"cutoff": cutoff})]
     for d in dates:
         persist_signals(d)
 
@@ -216,7 +222,12 @@ def run_backfill():
 def get_signal_history(active_only: bool = False, limit: int = 200):
     import json as json_lib
     init_signal_history_table()
-    where = "WHERE resolved_date IS NULL" if active_only else ""
+    from datetime import timedelta
+    cutoff = (date.today() - timedelta(weeks=52)).isoformat()
+    if active_only:
+        where = f"WHERE resolved_date IS NULL AND first_seen_date >= '{cutoff}'"
+    else:
+        where = f"WHERE first_seen_date >= '{cutoff}'"
     with engine.connect() as conn:
         rows = conn.execute(text(f"""
             SELECT id, symbol, name, sector, direction,
