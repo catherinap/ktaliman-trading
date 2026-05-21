@@ -241,7 +241,11 @@ input:focus { border-color: rgba(59,130,246,0.5) !important; outline: none !impo
    ══════════════════════════════════════════════════════════════════════════ */
 /* Settings panel inner content gets more breathing room */
 [class*="space-y-6"] > * {
-  padding: 10px !important;
+  padding: 0px !important;
+}
+
+.padding-added {
+  padding: 1rem !important;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */

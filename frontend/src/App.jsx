@@ -2227,8 +2227,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900">
-            <div className="border-b border-zinc-900 px-3 py-2.5 shrink-0">
-              <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="border-b border-zinc-900 px-3 py-4 shrink-0">
+              <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                 <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
@@ -2277,7 +2277,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                 />
               </div>
             </div>
-            <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+            <div className="divide-y divide-zinc-900 pr-2" style={{ maxHeight: '420px', overflowY: 'auto' }}>
               {calendar.length === 0 ? (
                 <div className="px-4 py-4 text-sm text-slate-200">No calendar events.</div>
               ) : [...calendar]
@@ -2359,8 +2359,8 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
 
 {/* Market News */}
 <section className="border border-zinc-900 ">
-  <div className="border-b border-zinc-900 px-3 py-2.5">
-    <div className="flex items-center justify-between gap-2 mb-2">
+  <div className="border-b border-zinc-900 px-3 py-4">
+    <div className="flex items-center justify-between gap-2 mb-4">
       <div className="flex items-center gap-2">
         <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
           <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
@@ -4287,14 +4287,14 @@ function Summary({ assets, setActive, setSelected, openGuide }) {
 
   return (
   <div className="space-y-6">
-    <div className="flex justify-end">
-      <GuideButton sectionKey="cot" openGuide={openGuide} />
-    </div>
+
     {Object.entries(sectorGroups).map(([sector, items]) => {
       const headerGroups = items.length ? getGroupConfig(items[0]) : []
 
       return (
-        <Panel key={sector} title={sector}>
+        <Panel key={sector} title={sector} right={<div className="flex justify-end">
+      <GuideButton sectionKey="cot" openGuide={openGuide} />
+    </div>}>  
           <div className="overflow-x-auto">
             <table className="min-w-[1200px] w-full border-collapse text-sm">
               <thead className="sticky top-0 z-10 bg-zinc-950">
@@ -5421,19 +5421,6 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
               <div><span className="text-zinc-100">Aging:</span> the setup is still alive, but time decay is reducing its usefulness.</div>
               <div><span className="text-zinc-100">Stale:</span> the setup has lost timing edge and should not be treated as fresh.</div>
               <div><span className="text-zinc-100">Invalidated:</span> the signal failed minimum quality conditions or lost structural support.</div>
-            </div>
-          </Panel>
-
-          <Panel
-            title="Engine Notes"
-            right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">phase one</span>}
-          >
-            <div className="space-y-3 text-sm leading-7 text-zinc-300">
-              <div>This phase computes signal lifecycle directly from live positioning context without persistent backend history.</div>
-              <div>Signal age is inferred from current percentile extremity rather than stored event timestamps.</div>
-              <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">
-                Next phase can persist prior signal states and generate true transition alerts between weekly updates.
-              </div>
             </div>
           </Panel>
         </div>
@@ -7613,12 +7600,10 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
         borderBottom: '1px solid rgba(90,104,116,0.5)',
         padding: '20px 28px 0', flexShrink: 0,
       }}>
-        <div style={{ fontSize: '11px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(148,163,184,0.5)', marginBottom: '3px' }}>
-          {lang === 'uk' ? 'Платформа' : 'Platform'}
-        </div>
-        <div style={{ fontSize: '19px', fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.02em', marginBottom: '16px' }}>
+        <div style={{ fontSize: '14px', letterSpacing: '0.3em', textTransform: 'uppercase', color: '#f1f5f9', marginBottom: '20px' }}>
           {lang === 'uk' ? 'Посібник користувача' : 'Platform Guide'}
         </div>
+
         {/* Tab bar */}
         <div className="flex flex-wrap gap-2" style={{ paddingBottom: '16px' }}>
           {GUIDE_SECTIONS.map(sec => {

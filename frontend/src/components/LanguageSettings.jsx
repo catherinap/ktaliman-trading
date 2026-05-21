@@ -18,7 +18,7 @@ export default function LanguageSettings({
   const { t } = useTranslation()
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 padding-added">
       <div>
         <h2 className="text-sm uppercase tracking-[0.22em] text-zinc-400">
           {t("settings.language.title")}
