@@ -2223,7 +2223,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
         </div>
 
         {/* ══ ROW 3: 3 equal cols — Calendar | News | - */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1.1fr 1.1fr 0.8fr", alignItems: "start" }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900">
@@ -2302,7 +2302,7 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                             const { time, date, day } = formatEventDateTime(event.datetime, timezone);
                             return (
                               <div className="flex flex-col items-end shrink-0 gap-0.5" style={{ minWidth: '72px' }}>
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: isPast ? '#2d4060' : '#94a3b8', letterSpacing: '0.08em' }}>
+                                <span style={{ fontSize: '10px', color: isPast ? '#2d4060' : '#94a3b8', letterSpacing: '0.08em' }}>
                                   {day} {date}
                                 </span>
                                 <span className="text-[11px] tabular-nums font-mono" style={{ color: '#60a5fa' }}>
@@ -2311,13 +2311,13 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
                               </div>
                             );
                           })()}
-                          <span className="text-blue-400 ml-14" style={{
-                            fontSize: '14px', fontWeight: 700,
+                          <span className="text-blue-400 ml-8 mr-8" style={{
+                            fontSize: '14px', fontWeight: 400,
                             letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0
                           }}>
                             {event.currency || event.country || ""}
                           </span>
-                          <span className="text-sm leading-5" style={{ fontWeight: isPast ? 400 : 500, color: isPast ? '#4a6080' : '#e2e8f0' }}>{event.title || "TBD"}</span>
+                          <span className="text-sm leading-5" style={{color: isPast ? '#4a6080' : '#e2e8f0' }}>{event.title || "TBD"}</span>
                         </div>
                         <span style={{
                           fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em',
@@ -3936,9 +3936,6 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
           <span style={{ fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
             Triple-Confirm Setups
-          </span>
-          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#708db5' }}>
-            seasonal · COT · flow
           </span>
         </div>
 
