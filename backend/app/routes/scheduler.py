@@ -65,7 +65,7 @@ def start_scheduler():
         id="cot_weekly_update",
         name="COT Weekly Auto-Update",
         replace_existing=True,
-        misfire_grace_time=3600,  # Run even if up to 1h late (server was down)
+        misfire_grace_time=86400,  # Run even if up to 1h late (server was down)
     )
     _scheduler.start()
 
