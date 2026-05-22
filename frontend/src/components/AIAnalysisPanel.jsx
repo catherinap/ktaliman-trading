@@ -200,7 +200,7 @@ export default function AIAnalysisPanel({
               {renderAIText(text)}
             </div>
             {/* Save to Notes button */}
-            <div className="mt-4 pt-3 border-t border-zinc-900">
+            <div className="mt-4 pt-3">
               <button
                 onClick={saveToNotes}
                 disabled={saving || saved}
