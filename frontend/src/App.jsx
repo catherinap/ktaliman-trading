@@ -7560,11 +7560,44 @@ function renderGuideContent(text) {
   })
 }
 
+function renderNoteText(text) {
+  if (!text) return null
+  return text.split("\n").map((line, i) => {
+    if (!line.trim()) return <div key={i} className="h-2" />
+    const parts = line.split(/(\*\*[^*]+\*\*)/g)
+    const rendered = parts.map((part, j) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <span key={j}
+            className="font-semibold text-zinc-100"
+            style={{ textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: '0.9em' }}
+          >
+            {part.slice(2, -2)}
+          </span>
+        )
+      }
+      return <span key={j}>{part}</span>
+    })
+    return <div key={i} className="leading-7">{rendered}</div>
+  })
+}
+
 function ResearchNotesView({ aiLanguage = "en" }) {
   const [notes, setNotes]       = React.useState([])
   const [loading, setLoading]   = React.useState(true)
   const [typeFilter, setTypeFilter] = React.useState("all")
   const [expanded, setExpanded] = React.useState({})
+  const [modalNote, setModalNote] = React.useState(null)
+
+// Блокуємо скрол фону коли модалка відкрита
+React.useEffect(() => {
+  if (modalNote) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+  return () => { document.body.style.overflow = '' }
+}, [modalNote])
 
   const load = React.useCallback(() => {
     setLoading(true)
@@ -7663,24 +7696,33 @@ function ResearchNotesView({ aiLanguage = "en" }) {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {[...pinnedNotes, ...regularNotes].map(note => {
             const badge = typeBadge(note.type)
             const isExpanded = !!expanded[note.id]
-            const preview = note.content.slice(0, 180) + (note.content.length > 180 ? '...' : '')
+            const preview = note.content.slice(0, 300) + (note.content.length > 300 ? '...' : '')
             const date = new Date(note.created_at).toLocaleDateString('en-GB', {
               day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
             })
 
             return (
               <div key={note.id} className="border border-zinc-900 small-panel-color"
-                style={{ borderColor: note.is_pinned ? 'rgba(251,191,36,0.25)' : undefined }}>
+                style={{
+                  borderColor: note.is_pinned ? 'rgba(251,191,36,0.25)' : undefined,
+                  cursor: 'pointer',
+                }}
+                onClick={() => setModalNote(note)}>
                 {/* Note header */}
                 <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-zinc-900">
                   <div className="flex items-start gap-2 min-w-0">
                     {note.is_pinned && <span style={{ fontSize:'13px', flexShrink:0, marginTop:'1px' }}>📌</span>}
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-zinc-100 truncate">{note.title}</div>
+                      <div
+                        className="text-sm font-medium text-zinc-100 truncate cursor-pointer hover:text-blue-300 transition"
+                        onClick={() => setModalNote(note)}
+                      >
+                        {note.title}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span style={{
                           fontSize:'9px', padding:'1px 6px', borderRadius:'3px',
@@ -7698,7 +7740,7 @@ function ResearchNotesView({ aiLanguage = "en" }) {
                   </div>
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => togglePin(note.id)}
+                    <button onClick={(e) => { e.stopPropagation(); togglePin(note.id) }}
                       title={note.is_pinned ? 'Unpin' : 'Pin'}
                       style={{
                         padding: '4px 6px', fontSize:'12px',
@@ -7708,7 +7750,7 @@ function ResearchNotesView({ aiLanguage = "en" }) {
                       }}>
                       {note.is_pinned ? '📌' : '📍'}
                     </button>
-                    <button onClick={() => deleteNote(note.id)}
+                    <button onClick={(e) => { e.stopPropagation(); deleteNote(note.id) }}
                       style={{
                         display:'flex', alignItems:'center', justifyContent:'center',
                         width:'24px', height:'24px',
@@ -7726,11 +7768,11 @@ function ResearchNotesView({ aiLanguage = "en" }) {
                 {/* Note content */}
                 <div className="px-4 py-3">
                   <div className="text-sm leading-7 text-zinc-300">
-                    {isExpanded ? note.content : preview}
+                    {renderNoteText(isExpanded ? note.content : preview)}
                   </div>
                   {note.content.length > 180 && (
                     <button
-                      onClick={() => setExpanded(prev => ({ ...prev, [note.id]: !isExpanded }))}
+                      onClick={(e) => { e.stopPropagation(); setExpanded(prev => ({ ...prev, [note.id]: !isExpanded })) }}
                       className="mt-2 text-[10px] uppercase tracking-[0.15em] text-blue-400 hover:text-blue-300 transition"
                     >
                       {isExpanded
@@ -7739,6 +7781,106 @@ function ResearchNotesView({ aiLanguage = "en" }) {
                     </button>
                   )}
                 </div>
+              {/* Modal */}
+{modalNote && (
+  <>
+    {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 bg-black/70"
+      onClick={() => setModalNote(null)}
+    />
+    {/* Modal window */}
+    <div style={{
+      position: 'fixed', zIndex: 51,
+      top: '50%', left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '90%', maxWidth: '680px',
+      maxHeight: '85vh',
+      display: 'flex', flexDirection: 'column',
+      background: '#0d1117',
+      border: '1px solid rgba(255,255,255,0.1)',
+      boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
+    }}>
+      {/* Modal header */}
+      <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-zinc-900" style={{ flexShrink: 0 }}>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            {modalNote.is_pinned && <span style={{ fontSize:'13px' }}>📌</span>}
+            <span className="text-sm font-semibold text-zinc-100">{modalNote.title}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {(() => {
+              const badge = typeBadge(modalNote.type)
+              return (
+                <span style={{
+                  fontSize:'9px', padding:'1px 6px', borderRadius:'3px',
+                  textTransform:'uppercase', letterSpacing:'0.1em',
+                  color: badge.color, background: badge.bg,
+                }}>{badge.label}</span>
+              )
+            })()}
+            {modalNote.metadata?.symbol && (
+              <span className="text-[10px] text-zinc-500 uppercase tracking-[0.1em]">
+                {modalNote.metadata.symbol}
+              </span>
+            )}
+            <span className="text-[10px] text-zinc-600">
+              {new Date(modalNote.created_at).toLocaleDateString('en-GB', {
+                day:'2-digit', month:'short', year:'numeric',
+                hour:'2-digit', minute:'2-digit'
+              })}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => setModalNote(null)}
+          style={{
+            display:'flex', alignItems:'center', justifyContent:'center',
+            width:'28px', height:'28px', flexShrink: 0,
+            border:'1px solid rgba(255,255,255,0.08)',
+            color:'#475569', background:'transparent', cursor:'pointer',
+            fontSize:'13px', transition:'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(248,113,113,0.4)'; e.currentTarget.style.color='#f87171' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; e.currentTarget.style.color='#475569' }}
+        >
+          ✕
+        </button>
+      </div>
+      {/* Modal content — scrollable */}
+      <div className="overflow-y-auto px-5 py-4" style={{ flex: 1 }}>
+        <div className="text-sm leading-7 text-zinc-300">
+          {renderNoteText(modalNote.content)}
+        </div>
+      </div>
+      {/* Modal footer */}
+      <div className="flex items-center gap-3 px-5 py-3 border-t border-zinc-900" style={{ flexShrink: 0 }}>
+        <button
+          onClick={() => { togglePin(modalNote.id); setModalNote(prev => prev ? {...prev, is_pinned: !prev.is_pinned} : null) }}
+          style={{
+            fontSize:'11px', color: modalNote.is_pinned ? '#fbbf24' : '#475569',
+            background:'transparent', border:'1px solid rgba(255,255,255,0.08)',
+            padding:'4px 10px', cursor:'pointer', transition:'all 0.15s',
+            textTransform:'uppercase', letterSpacing:'0.12em',
+          }}
+        >
+          {modalNote.is_pinned ? '📌 Unpin' : '📍 Pin'}
+        </button>
+        <button
+          onClick={() => { deleteNote(modalNote.id); setModalNote(null) }}
+          style={{
+            fontSize:'11px', color:'#f87171',
+            background:'transparent', border:'1px solid rgba(248,113,113,0.2)',
+            padding:'4px 10px', cursor:'pointer', transition:'all 0.15s',
+            textTransform:'uppercase', letterSpacing:'0.12em',
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </>
+)}
               </div>
             )
           })}
