@@ -13,6 +13,7 @@ import {
   Layout,
   LineChart,
   Settings,
+  BookMarked,
   Star,
   Zap,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { key: "signals", labelKey: "nav.signals", icon: Zap },
   { key: "history", labelKey: "nav.history", icon: BarChart2 },
   { key: "guide", labelKey: "nav.guide", icon: BookOpen },
+  { key: "research", labelKey: "nav.research", icon: BookMarked },
   { key: "update", labelKey: "nav.update", icon: Database },
   { key: "settings", labelKey: "nav.settings", icon: Settings },
 ]
@@ -7558,6 +7560,194 @@ function renderGuideContent(text) {
   })
 }
 
+function ResearchNotesView({ aiLanguage = "en" }) {
+  const [notes, setNotes]       = React.useState([])
+  const [loading, setLoading]   = React.useState(true)
+  const [typeFilter, setTypeFilter] = React.useState("all")
+  const [expanded, setExpanded] = React.useState({})
+
+  const load = React.useCallback(() => {
+    setLoading(true)
+    fetch(`/api/notes?type=${typeFilter}`)
+      .then(r => r.json())
+      .then(d => setNotes(d.items || []))
+      .catch(() => setNotes([]))
+      .finally(() => setLoading(false))
+  }, [typeFilter])
+
+  React.useEffect(() => { load() }, [load])
+
+  const togglePin = async (id) => {
+    await fetch(`/api/notes/${id}/pin`, { method: 'PATCH' })
+    load()
+  }
+
+  const deleteNote = async (id) => {
+    await fetch(`/api/notes/${id}`, { method: 'DELETE' })
+    setNotes(prev => prev.filter(n => n.id !== id))
+  }
+
+  const clearAll = async () => {
+    if (!window.confirm(aiLanguage === 'uk' ? 'Видалити всі нотатки?' : 'Clear all notes?')) return
+    await fetch(`/api/notes?type=${typeFilter}`, { method: 'DELETE' })
+    load()
+  }
+
+  const typeOptions = [
+    { value: 'all',         label: 'All Types' },
+    { value: 'macro',       label: 'Macro' },
+    { value: 'asset',       label: 'Asset' },
+    { value: 'correlation', label: 'Correlation' },
+    { value: 'signals',     label: 'Signals' },
+    { value: 'seasonality', label: 'Seasonality' },
+  ]
+
+  const typeBadge = (t) => {
+    const map = {
+      macro:       { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',  label: 'Macro' },
+      asset:       { color: '#4ade80', bg: 'rgba(74,222,128,0.1)',  label: 'Asset' },
+      correlation: { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', label: 'Correlation' },
+      signals:     { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  label: 'Signals' },
+      seasonality: { color: '#34d399', bg: 'rgba(52,211,153,0.1)',  label: 'Seasonality' },
+    }
+    return map[t] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: t }
+  }
+
+  const pinnedNotes = notes.filter(n => n.is_pinned)
+  const regularNotes = notes.filter(n => !n.is_pinned)
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <Panel title={aiLanguage === 'uk' ? 'Дослідницькі нотатки' : 'Research Notes'}
+        right={
+          <div className="flex items-center gap-3">
+            <CustomSelect
+              value={typeFilter}
+              onChange={setTypeFilter}
+              minWidth="0"
+              options={typeOptions}
+            />
+            {notes.length > 0 && (
+              <button onClick={clearAll}
+                className="border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-500 hover:border-rose-900 hover:text-rose-400 transition">
+                {aiLanguage === 'uk' ? 'Очистити всі' : 'Clear All'}
+              </button>
+            )}
+          </div>
+        }
+      >
+        <div className="flex items-center gap-3 text-xs text-zinc-500">
+          <span>{notes.length} {aiLanguage === 'uk' ? 'нотаток' : 'notes'}</span>
+          {pinnedNotes.length > 0 && <span>· 📌 {pinnedNotes.length} {aiLanguage === 'uk' ? 'закріплено' : 'pinned'}</span>}
+        </div>
+      </Panel>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1,2,3].map(i => (
+            <div key={i} className="border border-zinc-900 p-4 space-y-2">
+              <div className="h-3 animate-pulse rounded bg-zinc-800 w-1/3" />
+              <div className="h-3 animate-pulse rounded bg-zinc-800 w-full" />
+              <div className="h-3 animate-pulse rounded bg-zinc-800 w-4/5" />
+            </div>
+          ))}
+        </div>
+      ) : notes.length === 0 ? (
+        <div className="border border-zinc-900 small-panel-color p-10 text-center">
+          <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '12px' }}>📝</div>
+          <div className="text-sm text-zinc-500">
+            {aiLanguage === 'uk'
+              ? 'Нотаток ще немає. Генеруй AI аналіз і натискай "Зберегти в нотатки".'
+              : 'No notes yet. Generate an AI analysis and click "Save to Notes".'}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {[...pinnedNotes, ...regularNotes].map(note => {
+            const badge = typeBadge(note.type)
+            const isExpanded = !!expanded[note.id]
+            const preview = note.content.slice(0, 180) + (note.content.length > 180 ? '...' : '')
+            const date = new Date(note.created_at).toLocaleDateString('en-GB', {
+              day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            })
+
+            return (
+              <div key={note.id} className="border border-zinc-900 small-panel-color"
+                style={{ borderColor: note.is_pinned ? 'rgba(251,191,36,0.25)' : undefined }}>
+                {/* Note header */}
+                <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-zinc-900">
+                  <div className="flex items-start gap-2 min-w-0">
+                    {note.is_pinned && <span style={{ fontSize:'13px', flexShrink:0, marginTop:'1px' }}>📌</span>}
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-zinc-100 truncate">{note.title}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span style={{
+                          fontSize:'9px', padding:'1px 6px', borderRadius:'3px',
+                          textTransform:'uppercase', letterSpacing:'0.1em',
+                          color: badge.color, background: badge.bg,
+                        }}>{badge.label}</span>
+                        {note.metadata?.symbol && (
+                          <span className="text-[10px] text-zinc-500 uppercase tracking-[0.1em]">
+                            {note.metadata.symbol}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-zinc-600">{date}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => togglePin(note.id)}
+                      title={note.is_pinned ? 'Unpin' : 'Pin'}
+                      style={{
+                        padding: '4px 6px', fontSize:'12px',
+                        color: note.is_pinned ? '#fbbf24' : '#475569',
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        transition: 'color 0.15s',
+                      }}>
+                      {note.is_pinned ? '📌' : '📍'}
+                    </button>
+                    <button onClick={() => deleteNote(note.id)}
+                      style={{
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        width:'24px', height:'24px',
+                        border:'1px solid rgba(255,255,255,0.08)',
+                        color:'#475569', background:'transparent', cursor:'pointer',
+                        fontSize:'12px', transition:'all 0.15s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(248,113,113,0.4)'; e.currentTarget.style.color='#f87171' }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; e.currentTarget.style.color='#475569' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                {/* Note content */}
+                <div className="px-4 py-3">
+                  <div className="text-sm leading-7 text-zinc-300">
+                    {isExpanded ? note.content : preview}
+                  </div>
+                  {note.content.length > 180 && (
+                    <button
+                      onClick={() => setExpanded(prev => ({ ...prev, [note.id]: !isExpanded }))}
+                      className="mt-2 text-[10px] uppercase tracking-[0.15em] text-blue-400 hover:text-blue-300 transition"
+                    >
+                      {isExpanded
+                        ? (aiLanguage === 'uk' ? '▲ Згорнути' : '▲ Collapse')
+                        : (aiLanguage === 'uk' ? '▼ Читати далі' : '▼ Read more')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // NOTE: this function reads `uiLanguage` from settings.
 // Make sure your Settings component saves uiLanguage to the same settings
 // object that GuideView receives (it already exists per your description).
@@ -7926,6 +8116,7 @@ setWorkspaceData({
   seasonality: <SeasonalityView assets={assets} seasonalityData={seasonalityData} openGuide={openGuide} aiLanguage={appSettings.aiLanguage} uiLanguage={appSettings.uiLanguage}/>,
 	signals: <SignalsView signals={signals} assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} seasonalityData={seasonalityData} openGuide={openGuide}/>, 
 	guide: <GuideView setActive={setActive} initialSection={guideSection} uiLanguage={uiLanguage} />,
+  research: <ResearchNotesView aiLanguage={appSettings.aiLanguage} />,
   update: <UpdateDataView updateState={updateState} updateBusy={updateBusy} onRun={runUpdate} schedulerState={schedulerState} timezone={appSettings.timezone || "Europe/Copenhagen"} />, 
 	settings: (
   <SettingsView

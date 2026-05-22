@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { BookmarkPlus, Bookmark } from "lucide-react";
 
 function renderAIText(text) {
   if (!text) return null;
@@ -16,17 +17,12 @@ function renderAIText(text) {
   });
 }
 
-/**
- * AIAnalysisPanel
- * Props:
- *   type        — "asset" | "macro" | "signals"
- *   data        — object passed to the backend prompt builder
- *   aiLanguage  — "en" | "uk"
- *   title       — panel header string (optional)
- *   autoLoad    — if true, fetches on mount (default false)
- *   compact     — if true, uses smaller padding (default false)
- *   fillHeight  — if true, section stretches to fill parent flex height
- */
+// Unique cache key per panel
+function cacheKey(type, data) {
+  const sym = data?.symbol || data?.type || "";
+  return `ai_cache_${type}_${sym}`;
+}
+
 export default function AIAnalysisPanel({
   type,
   data,
@@ -37,15 +33,44 @@ export default function AIAnalysisPanel({
   fillHeight = false,
 }) {
   const { t } = useTranslation();
-  const [state, setState] = useState("idle");
-  const [text, setText] = useState("");
-  const [error, setError] = useState("");
-  const [lastLanguage, setLastLanguage] = useState(null);
+  const key = cacheKey(type, data);
+
+  // Restore from sessionStorage on mount
+  const [state, setState] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.text && parsed.language === aiLanguage) return "done";
+      }
+    } catch {}
+    return "idle";
+  });
+
+  const [text, setText] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) return JSON.parse(cached).text || "";
+    } catch {}
+    return "";
+  });
+
+  const [error, setError]             = useState("");
+  const [lastLanguage, setLastLanguage] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) return JSON.parse(cached).language || null;
+    } catch {}
+    return null;
+  });
+  const [saved, setSaved]   = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const fetch_analysis = useCallback(async () => {
     setState("loading");
     setError("");
     setText("");
+    setSaved(false);
     try {
       const res = await fetch("/api/gpt/ai-analysis", {
         method: "POST",
@@ -57,18 +82,47 @@ export default function AIAnalysisPanel({
         throw new Error(err.detail || `HTTP ${res.status}`);
       }
       const json = await res.json();
-      setText(json.text || "");
+      const newText = json.text || "";
+      setText(newText);
       setLastLanguage(aiLanguage);
       setState("done");
+      // Cache in sessionStorage
+      try {
+        sessionStorage.setItem(key, JSON.stringify({ text: newText, language: aiLanguage }));
+      } catch {}
     } catch (err) {
       setError(err.message || "Unknown error");
       setState("error");
     }
-  }, [type, aiLanguage, data]);
+  }, [type, aiLanguage, data, key]);
+
+  const saveToNotes = useCallback(async () => {
+    if (!text || saving) return;
+    setSaving(true);
+    try {
+      const noteTitle = title
+        || (data?.symbol ? `${data.symbol} — ${type}` : type);
+      await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          title: noteTitle,
+          content: text,
+          metadata: {
+            symbol:   data?.symbol   || null,
+            sector:   data?.sector   || null,
+            language: aiLanguage,
+          },
+        }),
+      });
+      setSaved(true);
+    } catch {}
+    setSaving(false);
+  }, [text, type, title, data, aiLanguage, saving]);
 
   React.useEffect(() => {
     if (autoLoad) fetch_analysis();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const languageChanged = state === "done" && lastLanguage !== null && lastLanguage !== aiLanguage;
@@ -100,7 +154,7 @@ export default function AIAnalysisPanel({
             state === "loading"
               ? "cursor-not-allowed border-zinc-800 text-zinc-600"
               : languageChanged
-              ? " text-blue-50 hover:bg-blue-300/20"
+              ? "text-blue-50 hover:bg-blue-300/20"
               : state === "done"
               ? "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-blue-300"
               : "border-blue-500 bg-blue-500/10 text-blue-50 hover:bg-blue-500/20",
@@ -116,7 +170,7 @@ export default function AIAnalysisPanel({
         </button>
       </div>
 
-      {/* Body — fills remaining height when fillHeight=true */}
+      {/* Body */}
       <div
         className={compact ? "px-4 py-3" : "px-4 py-4"}
         style={fillHeight ? { flex: 1 } : {}}
@@ -141,9 +195,30 @@ export default function AIAnalysisPanel({
           </div>
         )}
         {state === "done" && text && (
-          <div className="space-y-1 text-sm text-zinc-300">
-            {renderAIText(text)}
-          </div>
+          <>
+            <div className="space-y-1 text-sm text-zinc-300">
+              {renderAIText(text)}
+            </div>
+            {/* Save to Notes button */}
+            <div className="mt-4 pt-3 border-t border-zinc-900">
+              <button
+                onClick={saveToNotes}
+                disabled={saving || saved}
+                className="flex items-center gap-2 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] transition hover:border-zinc-600 hover:text-zinc-200"
+                style={{
+                  color: saved ? '#4ade80' : '#71717a',
+                  borderColor: saved ? 'rgba(74,222,128,0.3)' : undefined,
+                  background: saved ? 'rgba(74,222,128,0.05)' : 'transparent',
+                  cursor: saved ? 'default' : saving ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {saved
+                  ? <><Bookmark size={12} />{aiLanguage === "uk" ? "Збережено" : "Saved"}</>
+                  : <><BookmarkPlus size={12} />{aiLanguage === "uk" ? "Зберегти в нотатки" : "Save to Notes"}</>
+                }
+              </button>
+            </div>
+          </>
         )}
         {languageChanged && state === "done" && (
           <div className="mt-3 border-t border-zinc-900 pt-3 text-[11px] text-zinc-600">
