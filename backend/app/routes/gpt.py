@@ -272,3 +272,21 @@ def gpt_summary(payload: SummaryRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/gpt/translate")
+async def translate_text(payload: dict):
+    text = payload.get("text", "")
+    target = payload.get("target", "uk")
+    if not text.strip():
+        return {"ok": False, "text": ""}
+
+    lang_name = "Ukrainian" if target == "uk" else "English"
+
+    try:
+        result = get_gemini_response(
+            system=f"You are a professional translator. Translate text to {lang_name}. Keep all formatting markers like **text**. Return only the translated text, nothing else.",
+            user=text
+        )
+        return {"ok": True, "text": result}
+    except Exception as e:
+        return {"ok": False, "text": str(e)}

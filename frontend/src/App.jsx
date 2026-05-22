@@ -7588,6 +7588,23 @@ function ResearchNotesView({ aiLanguage = "en" }) {
   const [typeFilter, setTypeFilter] = React.useState("all")
   const [expanded, setExpanded] = React.useState({})
   const [modalNote, setModalNote] = React.useState(null)
+  const [translations, setTranslations] = React.useState({}) // { [note.id]: { text, loading } }
+
+const translateNote = async (note) => {
+  const targetLang = note.metadata?.language === 'uk' ? 'en' : 'uk'
+  setTranslations(prev => ({ ...prev, [note.id]: { text: '', loading: true } }))
+  try {
+    const r = await fetch('/api/gpt/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: note.content, target: targetLang }),
+    })
+    const d = await r.json()
+    setTranslations(prev => ({ ...prev, [note.id]: { text: d.text, loading: false } }))
+  } catch {
+    setTranslations(prev => ({ ...prev, [note.id]: { text: '', loading: false } }))
+  }
+}
 
 // Блокуємо скрол фону коли модалка відкрита
 React.useEffect(() => {
@@ -7743,6 +7760,7 @@ React.useEffect(() => {
                   </div>
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
+                    
                     <button onClick={(e) => { e.stopPropagation(); togglePin(note.id) }}
                       title={note.is_pinned ? 'Unpin' : 'Pin'}
                       style={{
@@ -7771,7 +7789,10 @@ React.useEffect(() => {
                 {/* Note content */}
                 <div className="px-4 py-3">
                   <div className="text-sm leading-7 text-zinc-300">
-                    {renderNoteText(isExpanded ? note.content : preview)}
+                    {translations[note.id]?.loading
+                      ? <div className="flex items-center gap-2 text-zinc-500"><span style={{animation:'spin 1s linear infinite', display:'inline-block'}}>⟳</span> Translating...</div>
+                      : renderNoteText(translations[note.id]?.text || (isExpanded ? note.content : preview))
+                    }
                   </div>
                   {note.content.length > 180 && (
                     <button
@@ -7852,14 +7873,43 @@ React.useEffect(() => {
       </div>
       {/* Modal content — scrollable */}
       <div className="overflow-y-auto px-5 py-4" style={{ flex: 1 }}>
-        <div className="text-sm leading-7 text-zinc-300">
-          {renderNoteText(modalNote.content)}
+        {translations[modalNote.id]?.loading ? (
+        <div className="flex items-center gap-2 text-zinc-500 text-sm">
+          <span style={{ animation:'spin 1s linear infinite', display:'inline-block' }}>⟳</span>
+          Translating...
         </div>
+      ) : (
+        <div className="text-sm leading-7 text-zinc-300">
+          {renderNoteText(translations[modalNote.id]?.text || modalNote.content)}
+        </div>
+      )}
       </div>
       {/* Modal footer */}
       <div className="flex items-center gap-3 px-5 py-3 border-t border-zinc-900" style={{ flexShrink: 0 }}>
-        <button
-          onClick={() => { togglePin(modalNote.id); setModalNote(prev => prev ? {...prev, is_pinned: !prev.is_pinned} : null) }}
+      <button
+        onClick={() => {
+          if (translations[modalNote.id]?.text) {
+            setTranslations(prev => { const n = {...prev}; delete n[modalNote.id]; return n })
+          } else {
+            translateNote(modalNote)
+          }
+        }}
+        style={{
+          fontSize:'11px',
+          color: translations[modalNote.id]?.text ? '#60a5fa' : '#475569',
+          background: translations[modalNote.id]?.text ? 'rgba(96,165,250,0.08)' : 'transparent',
+          border: `1px solid ${translations[modalNote.id]?.text ? 'rgba(96,165,250,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          padding:'4px 10px', cursor:'pointer', transition:'all 0.15s',
+          textTransform:'uppercase', letterSpacing:'0.12em',
+        }}
+      >
+        {translations[modalNote.id]?.loading
+          ? '⟳ Translating...'
+          : translations[modalNote.id]?.text
+          ? '🌐 Show Original'
+          : '🌐 Translate'}
+      </button>
+      <button onClick={() => { togglePin(modalNote.id); setModalNote(prev => prev ? {...prev, is_pinned: !prev.is_pinned} : null) }}
           style={{
             fontSize:'11px', color: modalNote.is_pinned ? '#fbbf24' : '#475569',
             background:'transparent', border:'1px solid rgba(255,255,255,0.08)',
