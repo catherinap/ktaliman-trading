@@ -7709,9 +7709,12 @@ React.useEffect(() => {
               <div key={note.id} className="border border-zinc-900 small-panel-color"
                 style={{
                   borderColor: note.is_pinned ? 'rgba(251,191,36,0.25)' : undefined,
-                  cursor: 'pointer',
+                  cursor: 'default',
+                  transition: 'border-color 0.15s',
                 }}
-                onClick={() => setModalNote(note)}>
+                onClick={() => setModalNote(note)}
+                onMouseEnter={e => e.currentTarget.style.borderColor = note.is_pinned ? 'rgba(251,191,36,0.5)' : 'rgba(96,165,250,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = note.is_pinned ? 'rgba(251,191,36,0.25)' : ''}>
                 {/* Note header */}
                 <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-zinc-900">
                   <div className="flex items-start gap-2 min-w-0">
@@ -7800,7 +7803,7 @@ React.useEffect(() => {
       background: '#0d1117',
       border: '1px solid rgba(255,255,255,0.1)',
       boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
-    }}>
+    }}onClick={(e) => e.stopPropagation()}>
       {/* Modal header */}
       <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-zinc-900" style={{ flexShrink: 0 }}>
         <div>
