@@ -27,8 +27,8 @@ router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 _scheduler = BackgroundScheduler(timezone="UTC")
 _SCHEDULE = {
     "day_of_week": "fri",   # Friday
-    "hour":        20,      # 21:00 UTC = 16:00 EST / 17:00 EDT
-    "minute":      0,
+    "hour":        18,      # 21:00 UTC = 16:00 EST / 17:00 EDT
+    "minute":      30,
 }
 
 SCHEDULE_STATE = {
@@ -101,7 +101,7 @@ def get_scheduler_status():
     return {
         "scheduler_running": _scheduler.running,
         "enabled":           SCHEDULE_STATE["enabled"],
-        "schedule":          "Every Friday at 21:00 UTC (16:00 EST / 17:00 EDT)",
+        "schedule": "Every Friday at 18:30 UTC (20:30 CEST / Denmark time)",
         "next_run_utc":      next_run,
         "last_auto_run_utc": SCHEDULE_STATE["last_auto_run"],
         "worker_status":     worker_status,
