@@ -24,7 +24,7 @@ def get_gemini_response(system: str, user: str) -> str:
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         temperature=0.25,
-        max_tokens=600,
+        max_tokens=700,
         messages=[
             {"role": "system", "content": system},
             {"role": "user",   "content": user},
@@ -100,33 +100,62 @@ Max 200 words."""
 def macro_prompt(data: dict, language: str) -> str:
     def sleeve_str(assets):
         return ", ".join(f"{a.get('name')} [{fmt(a.get('funds_percentile_3y'))}]" for a in (assets or [])[:4])
-    growth = data.get("growth_score"); inflation = data.get("inflation_score")
-    policy = data.get("policy_score"); composite = data.get("composite")
+
+    growth    = data.get("growth_score")
+    inflation = data.get("inflation_score")
+    grains    = data.get("grains_score")
+    policy    = data.get("policy_score")
+    composite = data.get("composite")
+
+    # Sector rotation: find top and bottom sleeve
+    scores = {"Growth": growth, "Inflation": inflation, "Grains": grains, "Policy": policy}
+    valid = {k: v for k, v in scores.items() if v is not None}
+    rotation_note = ""
+    if len(valid) >= 2:
+        top    = max(valid, key=valid.get)
+        bottom = min(valid, key=valid.get)
+        spread = valid[top] - valid[bottom]
+        rotation_note = f"Sector rotation signal: funds favour {top} ({fmt(valid[top])}) over {bottom} ({fmt(valid[bottom])}), spread={fmt(spread)}"
+
+    # Crypto context
+    crypto_assets = data.get("crypto_assets", [])
+    crypto_note = ""
+    if crypto_assets:
+        crypto_note = "Crypto positioning: " + ", ".join(
+            f"{a.get('name')} [{fmt(a.get('funds_percentile_3y'))}]" for a in crypto_assets[:2]
+        )
+
     if language == "uk":
         return f"""Проаналізуй поточний макро-режим на основі COT даних:
 Growth (індекси): {fmt(growth)} | {sleeve_str(data.get('growth_assets', []))}
 Inflation (метали/енергія): {fmt(inflation)} | {sleeve_str(data.get('inflation_assets', []))}
+Grains (зерно/агро): {fmt(grains)} | {sleeve_str(data.get('grains_assets', []))}
 Policy (FX): {fmt(policy)} | {sleeve_str(data.get('policy_assets', []))}
 Composite: {fmt(composite)}
+{rotation_note}
+{crypto_note}
 Шкала: 0=3-річний мінімум, 100=3-річний максимум
 Структуруй відповідь:
 **Режим:** назви поточний макро-режим одним словосполученням
-**Домінуючий sleeve:** який sleeve веде і чому це важливо для трейдера
-**Основний наратив:** 2-3 речення про загальну картину
+**Ротація капіталу:** куди рухаються інституційні гроші між секторами
+**Основний наратив:** 2-3 речення про загальну картину включаючи агро та крипто
 **Ключовий ризик:** що може змінити поточний режим
-Максимум 180 слів."""
+Максимум 200 слів."""
     return f"""Analyze macro regime based on COT data:
 Growth (indices): {fmt(growth)} | {sleeve_str(data.get('growth_assets', []))}
 Inflation (metals/energy): {fmt(inflation)} | {sleeve_str(data.get('inflation_assets', []))}
+Grains (agricultural): {fmt(grains)} | {sleeve_str(data.get('grains_assets', []))}
 Policy (FX): {fmt(policy)} | {sleeve_str(data.get('policy_assets', []))}
 Composite: {fmt(composite)}
+{rotation_note}
+{crypto_note}
 Scale: 0=3-year low, 100=3-year high
 Structure your response:
 **Regime:** name current macro regime in one phrase
-**Dominant sleeve:** which sleeve leads and why it matters for a trader
-**Core narrative:** 2-3 sentences on the overall picture
+**Capital rotation:** where institutional money is moving between sectors
+**Core narrative:** 2-3 sentences on the overall picture including agri and crypto signals
 **Key risk:** what could shift the current regime
-Max 180 words."""
+Max 200 words."""
 
 def signals_prompt(data: dict, language: str) -> str:
     signals = data.get("signals", [])[:6]
@@ -139,12 +168,12 @@ def signals_prompt(data: dict, language: str) -> str:
         return f"""Проаналізуй топ COT сигнали поточного тижня:
 {lines}
 COT Index: 0=3-річний мінімум, 100=3-річний максимум
-State: active=активний зараз, aging=затухаючий, candidate=потребує підтвердження, stale=застарілий
+State: active=активний, aging=затухаючий, candidate=потребує підтвердження, stale=застарілий
 Структуруй відповідь:
-**Сигнал тижня:** найсильніший і чому саме він
-**Загальний bias:** Risk-On / Risk-Off / Mixed з обгрунтуванням
+**Сигнал тижня:** найсильніший і чому
+**Загальний bias:** Risk-On / Risk-Off / Mixed
 **Крос-активне підтвердження:** які сигнали підсилюють один одного
-**Застереження:** який сигнал найбільш ризикований або вимагає додаткового підтвердження
+**Застереження:** який сигнал найбільш ризикований
 Максимум 180 слів."""
     return f"""Analyze top COT signals for the current week:
 {lines}
@@ -169,25 +198,21 @@ def correlation_prompt(data: dict, language: str) -> str:
         return f"""Проаналізуй крос-активне COT позиціонування:
 Середнє узгодження: {fmt(avg_alignment)} | Середній розкид: {fmt(avg_distance)}
 Пари в одному секторі: {same_sector} | Крос-секторні пари: {cross_sector}
-Найбільш узгоджені пари (COT Index в дужках, шкала 0–100):
-{aligned_lines or "немає даних"}
-Найбільш протилежні пари (потенційні pair trades):
-{opposed_lines or "немає даних"}
+Найбільш узгоджені пари: {aligned_lines or "немає даних"}
+Найбільш протилежні пари: {opposed_lines or "немає даних"}
 Структуруй відповідь:
-**Загальна синхронізація:** ринок узгоджений чи фрагментований і що це означає
-**Домінуючий наратив:** яка macro тема зараз об'єднує найбільше активів
-**Найкращий pair trade:** найсильніша протилежна пара та логіка угоди
-**Попередження:** де є хибна кореляція або прихований ризик
+**Синхронізація:** ринок узгоджений чи фрагментований
+**Домінуючий наратив:** яка macro тема об'єднує найбільше активів
+**Найкращий pair trade:** найсильніша протилежна пара та логіка
+**Попередження:** де є прихований ризик
 Максимум 180 слів."""
     return f"""Analyze cross-asset COT positioning alignment:
 Average alignment: {fmt(avg_alignment)} | Average distance: {fmt(avg_distance)}
 Same-sector pairs: {same_sector} | Cross-sector pairs: {cross_sector}
-Most aligned pairs (COT Index in brackets, scale 0–100):
-{aligned_lines or "no data"}
-Most opposed pairs (potential pair trades):
-{opposed_lines or "no data"}
+Most aligned pairs: {aligned_lines or "no data"}
+Most opposed pairs: {opposed_lines or "no data"}
 Structure your response:
-**Overall synchronization:** is the market aligned or fragmented and what it means
+**Overall synchronization:** is the market aligned or fragmented
 **Dominant narrative:** which macro theme currently unites the most assets
 **Best pair trade:** strongest opposed pair and the trade logic
 **Warning:** where there is false correlation or hidden risk
@@ -200,40 +225,32 @@ def seasonality_prompt(data: dict, language: str) -> str:
     total = data.get("total_assets", 0)
     def row_line(r):
         cot = r.get("cot_index")
-        cot_str = f", COT Index={fmt(cot)}" if cot is not None else ""
+        cot_str = f", COT={fmt(cot)}" if cot is not None else ""
         return f"  {r.get('name')} ({r.get('symbol')}): Seasonal={fmt(r.get('current'))}{cot_str}"
-    top_lines = "\n".join(row_line(r) for r in data.get("top_assets", [])[:6])
+    top_lines    = "\n".join(row_line(r) for r in data.get("top_assets", [])[:6])
     bottom_lines = "\n".join(row_line(r) for r in data.get("bottom_assets", [])[:4])
     if language == "uk":
-        return f"""Проаналізуй сезонні COT тенденції для поточного місяця:
-Поточний місяць: {current_month}
-Активів з підтримуючою сезонністю (seasonal score вище 55): {supportive_count} з {total}
-Активів з несприятливою сезонністю (seasonal score нижче 45): {headwind_count} з {total}
-Найсильніші сезонні попутні вітри цього місяця:
-{top_lines or "немає даних"}
-Найсильніші сезонні зустрічні вітри:
-{bottom_lines or "немає даних"}
-Seasonal score: 0=мінімальне history позиціонування, 100=максимальне. COT Index: поточне позиціонування фондів.
+        return f"""Проаналізуй сезонні COT тенденції для {current_month}:
+Підтримуючих (score>55): {supportive_count}/{total} | Зустрічний вітер (score<45): {headwind_count}/{total}
+Топ tailwinds: {top_lines or "немає"}
+Топ headwinds: {bottom_lines or "немає"}
+Seasonal score: 0=мінімум, 100=максимум. COT=поточне позиціонування фондів.
 Структуруй відповідь:
-**Сезонний контекст місяця:** загальна картина для {current_month}
-**Збіжності:** де seasonal score та COT Index вказують в одному напрямку (найбільш надійні setup-и)
-**Суперечності:** де seasonal та COT розходяться — підвищена обережність
-**Практичний висновок:** 1-2 конкретних активи з найбільшим triple-confirm (COT + macro + seasonal)
+**Сезонний контекст:** загальна картина {current_month}
+**Збіжності:** де seasonal та COT збігаються (найнадійніші setups)
+**Суперечності:** де розходяться — обережність
+**Висновок:** 1-2 активи з найсильнішим triple-confirm
 Максимум 200 слів."""
-    return f"""Analyze seasonal COT tendencies for the current month:
-Current month: {current_month}
-Assets with supportive seasonality (seasonal score above 55): {supportive_count} of {total}
-Assets with seasonal headwind (seasonal score below 45): {headwind_count} of {total}
-Strongest seasonal tailwinds this month:
-{top_lines or "no data"}
-Strongest seasonal headwinds:
-{bottom_lines or "no data"}
-Seasonal score: 0=minimum historical positioning, 100=maximum. COT Index: current fund positioning.
+    return f"""Analyze seasonal COT tendencies for {current_month}:
+Supportive (score>55): {supportive_count}/{total} | Headwind (score<45): {headwind_count}/{total}
+Top tailwinds: {top_lines or "no data"}
+Top headwinds: {bottom_lines or "no data"}
+Seasonal score: 0=min historical, 100=max. COT=current fund positioning.
 Structure your response:
-**Monthly seasonal context:** overall picture for {current_month}
-**Confluences:** where seasonal score and COT Index point the same direction (most reliable setups)
-**Contradictions:** where seasonal and COT diverge — increased caution needed
-**Practical takeaway:** 1-2 specific assets with the strongest triple-confirm (COT + macro + seasonal)
+**Monthly context:** overall picture for {current_month}
+**Confluences:** where seasonal and COT align (most reliable setups)
+**Contradictions:** where they diverge — increased caution
+**Takeaway:** 1-2 assets with strongest triple-confirm (COT + macro + seasonal)
 Max 200 words."""
 
 PROMPT_BUILDERS = {
@@ -260,28 +277,13 @@ def ai_analysis(payload: AIRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Groq error: {str(e)}")
 
-class SummaryRequest(BaseModel):
-    prompt: str
-
-@router.post("/gpt/summary")
-def gpt_summary(payload: SummaryRequest):
-    try:
-        text = get_gemini_response(system="You are a senior macro and COT analyst.", user=payload.prompt)
-        return {"text": text}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
 @router.post("/gpt/translate")
 async def translate_text(payload: dict):
     text = payload.get("text", "")
     target = payload.get("target", "uk")
     if not text.strip():
         return {"ok": False, "text": ""}
-
     lang_name = "Ukrainian" if target == "uk" else "English"
-
     try:
         result = get_gemini_response(
             system=f"You are a professional translator. Translate text to {lang_name}. Keep all formatting markers like **text**. Return only the translated text, nothing else.",

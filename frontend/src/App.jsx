@@ -2126,13 +2126,16 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
             <AIAnalysisPanel
               type="macro"
               data={{
-                growth_score: sleeveScores.growth,
+                growth_score:    sleeveScores.growth,
                 inflation_score: sleeveScores.inflation,
-                policy_score: sleeveScores.policy,
-                composite: macroComposite,
-                growth_assets: findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+                grains_score:    sleeveScores.grains,
+                policy_score:    sleeveScores.policy,
+                composite:       macroComposite,
+                growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
                 inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
-                policy_assets: findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+                grains_assets:    findAssetsExact(assets, MACRO_SLEEVES.grains.members),
+                policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+                crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
               }}
               aiLanguage={aiLanguage}
               title="AI — Weekly Briefing"
@@ -3350,11 +3353,14 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           data={{
             growth_score:     growthScore,
             inflation_score:  inflationScore,
+            grains_score:     sleeveData.find((x) => x.key === "grains")?.score ?? null,
             policy_score:     policyScore,
             composite:        macroComposite,
             growth_assets:    sleeveData.find((x) => x.key === "growth")?.members || [],
             inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+            grains_assets:    sleeveData.find((x) => x.key === "grains")?.members || [],
             policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+            crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
           }}
           aiLanguage={aiLanguage}
           title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
@@ -3775,6 +3781,17 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
       return { ...row, asset }
     }).slice(0, 6)
   }, [rows, assets])
+  // COT-Seasonal alignment: assets where seasonal AND COT point same direction
+  const cotSeasonalAlignment = useMemo(() => {
+    const aligned = rows.filter(row => {
+      const asset = assets.find(a => a.symbol === row.symbol)
+      if (!asset) return false
+      const pct = Number(asset.funds_percentile_3y)
+      const seasonal = row.current
+      return (seasonal >= 55 && pct >= 55) || (seasonal <= 45 && pct <= 45)
+    })
+    return rows.length ? Math.round((aligned.length / rows.length) * 100) : 0
+  }, [rows, assets])
 
   const simpleGuide = useMemo(() => {
     if (narrative.breadth == null) {
@@ -3908,7 +3925,8 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
               { label: 'Universe',   value: rows.length,                                   color: '#93c5fd' },
               { label: 'Supportive', value: supportiveCount,                               color: '#4ade80' },
               { label: 'Headwinds',  value: headwindCount,                                 color: '#f87171' },
-              { label: 'Triple ✓',   value: tripleConfirm.length,                          color: '#a78bfa' },
+              { label: 'Triple ✓', value: tripleConfirm.length, color: '#a78bfa' },
+              { label: 'COT-Seas Align', value: `${cotSeasonalAlignment}%`, color: cotSeasonalAlignment >= 60 ? '#4ade80' : cotSeasonalAlignment <= 30 ? '#f87171' : '#fbbf24' },
             ].map(({ label, value, color }) => (
               <div key={label} className="small-panel-color p-2 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div style={{ fontSize: '18px', fontWeight: 700, color }}>{value}</div>
@@ -4653,7 +4671,21 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
             <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
-            <Metric label="Flow State"    value={asset.flow_state || "Neutral"} />
+            <Metric label="Flow State" value={asset.flow_state || "Neutral"} />
+            {asset.funds_index_wow_change != null && (
+              <div className="border border-zinc-900 p-2 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{
+                  fontSize: '15px', fontWeight: 700,
+                  color: asset.funds_index_wow_change > 0 ? '#4ade80'
+                      : asset.funds_index_wow_change < 0 ? '#f87171' : '#94a3b8',
+                }}>
+                  {asset.funds_index_wow_change > 0 ? '+' : ''}{asset.funds_index_wow_change.toFixed(1)}
+                </div>
+                <div style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '2px' }}>
+                  WoW Change
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Momentum bar */}
