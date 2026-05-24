@@ -5,7 +5,7 @@ Fetches via yfinance (free, no API key needed):
   - VIX  (^VIX)     — risk appetite / fear gauge
   - DXY  (DX-Y.NYB) — US Dollar Index
   - 10Y  (^TNX)     — 10-year Treasury yield
-  - 2Y   (^IRX)     — 2-year Treasury yield (proxy: 13-week)
+  - 2Y   (^FVX)     — 2-year Treasury yield (proxy: 13-week)
   - SPX  (^GSPC)    — S&P 500 price (regime confirmation)
 
 Derived:
@@ -33,7 +33,7 @@ def _fetch_yfinance():
         "vix":  "^VIX",
         "dxy":  "DX-Y.NYB",
         "t10y": "^TNX",
-        "t2y":  "^IRX",   # 13-week T-bill as 2Y proxy
+        "t2y":  "^FVX",   # 13-week T-bill as 2Y proxy
         "spx":  "^GSPC",
     }
 
