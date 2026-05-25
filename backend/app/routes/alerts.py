@@ -392,6 +392,9 @@ def run_alert_check(report_date: date | None = None) -> dict:
     saved    = save_alerts(detected, report_date)
     email_ok = send_email_alerts(saved) if saved else True
 
+    # Auto-cleanup: keep only last 90 days
+    cleanup_old_alerts(keep_days=90)
+
     return {
         "ok":           True,
         "report_date":  str(report_date),
@@ -458,6 +461,21 @@ class AlertSettings(BaseModel):
     email_enabled: bool
     email_to: str = ""
 
+def cleanup_old_alerts(keep_days: int = 90):
+    """
+    Delete alerts older than keep_days.
+    Called automatically after each run_alert_check.
+    Keeps last 90 days by default.
+    """
+    with engine.begin() as conn:
+        result = conn.execute(text("""
+            DELETE FROM alerts
+            WHERE created_at < NOW() - INTERVAL ':days days'
+        """.replace(':days', str(keep_days))))
+        deleted = result.rowcount
+    if deleted:
+        logger.info(f"[Alerts] Cleaned up {deleted} alerts older than {keep_days} days")
+    return deleted
 
 @router.post("/alerts/test-email")
 def test_email(settings: AlertSettings):

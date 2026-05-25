@@ -2085,9 +2085,10 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               <div className="p-4">
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { key: "growth", label: "Growth", color: "text-emerald-400" },
+                   { key: "growth",    label: "Growth",    color: "text-emerald-400" },
                     { key: "inflation", label: "Inflation", color: "text-blue-400" },
-                    { key: "policy", label: "Policy", color: "text-sky-400" },
+                    { key: "grains",    label: "Grains",    color: "text-lime-400" },
+                    { key: "policy",    label: "Policy",    color: "text-sky-400" },
                   ].map(({ key, label, color }) => {
                     const score = sleeveScores[key];
                     return (
@@ -3258,9 +3259,10 @@ function MacroView({ assets, aiLanguage, openGuide }) {
   )
 
   const macroComposite = averagePercentile([
-    { funds_percentile_3y: growthScore },
-    { funds_percentile_3y: inflationScore },
-    { funds_percentile_3y: policyScore }
+    { funds_percentile_3y: sleeveScores.growth },
+    { funds_percentile_3y: sleeveScores.inflation },
+    { funds_percentile_3y: sleeveScores.grains },
+    { funds_percentile_3y: sleeveScores.policy },
   ])
 
   // Sleeve label color
@@ -8235,34 +8237,28 @@ useEffect(() => {
     setLoading(true)
     setError('')
 
-    const [statusRes, heatmapRes, assetsRes, signalsRes, workspaceRes, seasonalityRes, calendarRes, newsRes] = await Promise.all([
+   const [statusRes, assetsRes, workspaceRes, seasonalityRes, calendarRes, newsRes] = await Promise.all([
   fetch('/api/system/status'),
-  fetch('/api/heatmap'),
   fetch('/api/assets'),
-  fetch('/api/signals'),
   fetch('/api/workspace'),
   fetch('/api/seasonality'),
   fetch('/api/calendar?limit=80'),
   fetch('/api/news?limit=200'),
 ])
 
-if (!statusRes.ok || !heatmapRes.ok || !assetsRes.ok || !signalsRes.ok || !workspaceRes.ok) {
-  throw new Error('Failed to load API data')
+    if (!statusRes.ok || !assetsRes.ok || !workspaceRes.ok) {
+      throw new Error('Failed to load API data')
 }
 
 const statusJson      = await statusRes.json()
-const heatmapJson     = await heatmapRes.json()
 const assetsJson      = await assetsRes.json()
-const signalsJson     = await signalsRes.json()
 const workspaceJson   = await workspaceRes.json()
 const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
 const calendarJson    = calendarRes.ok    ? await calendarRes.json()    : { items: [] }
 const newsJson        = newsRes?.ok       ? await newsRes.json()        : { items: [] }
 
 setStatus(statusJson)
-setHeatmap(heatmapJson.sectors || {})
 setAssets(assetsJson.items || [])
-setSignals(signalsJson.items || [])
 setSeasonalityData(seasonalityJson.items || [])
 setWorkspaceData({
   macro_regime: workspaceJson.macro_regime || null,
