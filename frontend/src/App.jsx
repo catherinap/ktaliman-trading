@@ -1879,7 +1879,7 @@ function ImpactBadge({ impact }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide, timezone = "Europe/Copenhagen" }) {
+function Workspace({workspaceData, setActive, setSelected, assets = [], aiLanguage = "en", openGuide, timezone = "Europe/Copenhagen" }) {
   const { t } = useTranslation()
   const [calImpact, setCalImpact] = React.useState("all")
   const [calCountry, setCalCountry] = React.useState("all")
@@ -2190,7 +2190,14 @@ function Workspace({ heatmap, workspaceData, setActive, setSelected, assets = []
               </div>
             </div>
             <div className="px-4 py-3 space-y-3">
-              {Object.entries(heatmap || {}).map(([sector, items]) => (
+              {Object.entries(
+                assets.reduce((acc, a) => {
+                  const s = a.sector || 'OTHER'
+                  if (!acc[s]) acc[s] = []
+                  acc[s].push(a)
+                  return acc
+                }, {})
+              ).map(([sector, items]) => (
                 <div key={sector}>
                   <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
                     style={{ color: "rgba(148,163,184,0.35)" }}>{sector}</div>
@@ -8114,7 +8121,6 @@ export default function App() {
   const [selected, setSelected] = useState(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [status, setStatus] = useState(null)
-  const [heatmap, setHeatmap] = useState({})
   const [assets, setAssets] = useState([])
   const [signals, setSignals] = useState([])
   const [seasonalityData, setSeasonalityData] = useState([])
@@ -8329,7 +8335,7 @@ setWorkspaceData({
 }, []);
 
   const view = { 
-  workspace: <Workspace heatmap={heatmap} workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide} timezone={appSettings.timezone || "Europe/Copenhagen"}/>, 
+  workspace: <Workspace workspaceData={workspaceData} setActive={setActive} setSelected={setSelected} assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide} timezone={appSettings.timezone || "Europe/Copenhagen"}/>, 
   macro: <MacroView assets={assets} aiLanguage={appSettings.aiLanguage} openGuide={openGuide}/>, 
   summary: <Summary assets={assets} setActive={setActive} setSelected={setSelected} openGuide={openGuide}/>,
   watchlist: <WatchlistView assets={assets} setActive={setActive} setSelected={setSelected} aiLanguage={appSettings.aiLanguage} watchlist={watchlist} setWatchlist={setWatchlist} />,
