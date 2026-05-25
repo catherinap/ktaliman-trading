@@ -200,7 +200,7 @@ export default function AIAnalysisPanel({
               {renderAIText(text)}
             </div>
             {/* Save to Notes button */}
-            <div className="mt-4 pt-3">
+            <div className="mt-4 pt-3 flex items-center gap-2">
               <button
                 onClick={saveToNotes}
                 disabled={saving || saved}
@@ -216,6 +216,20 @@ export default function AIAnalysisPanel({
                   ? <><Bookmark size={12} />{aiLanguage === "uk" ? "Збережено" : "Saved"}</>
                   : <><BookmarkPlus size={12} />{aiLanguage === "uk" ? "Зберегти в нотатки" : "Save to Notes"}</>
                 }
+              </button>
+
+              {/* Clear button — скидає текст але не видаляє з нотаток */}
+              <button
+                onClick={() => {
+                  setText('')
+                  setState('idle')
+                  setSaved(false)
+                  try { sessionStorage.removeItem(key) } catch {}
+                }}
+                className="flex items-center gap-2 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:border-zinc-600 hover:text-zinc-400 transition"
+                style={{ background: 'transparent', cursor: 'pointer' }}
+              >
+                {aiLanguage === "uk" ? "Очистити" : "Clear"}
               </button>
             </div>
           </>

@@ -3265,12 +3265,12 @@ function MacroView({ assets, aiLanguage, openGuide }) {
     [growthScore, inflationScore, policyScore, t]
   )
 
-  const macroComposite = averagePercentile([
-    { funds_percentile_3y: sleeveScores.growth },
-    { funds_percentile_3y: sleeveScores.inflation },
-    { funds_percentile_3y: sleeveScores.grains },
-    { funds_percentile_3y: sleeveScores.policy },
-  ])
+const macroComposite = averagePercentile([
+  { funds_percentile_3y: growthScore },
+  { funds_percentile_3y: inflationScore },
+  { funds_percentile_3y: sleeveData.find(x => x.key === 'grains')?.score ?? null },
+  { funds_percentile_3y: policyScore },
+])
 
   // Sleeve label color
   const sleeveColor = (key) => {
@@ -3362,8 +3362,8 @@ function MacroView({ assets, aiLanguage, openGuide }) {
           data={{
             growth_score:     growthScore,
             inflation_score:  inflationScore,
-            grains_score:     sleeveData.find((x) => x.key === "grains")?.score ?? null,
-            policy_score:     policyScore,
+            grains_score: sleeveData.find((x) => x.key === "grains")?.score ?? null,
+            policy_score: policyScore,
             composite:        macroComposite,
             growth_assets:    sleeveData.find((x) => x.key === "growth")?.members || [],
             inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
@@ -5063,10 +5063,12 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   const growthScore = macroSleeves.find((x) => x.key === 'growth')?.score ?? null
   const inflationScore = macroSleeves.find((x) => x.key === 'inflation')?.score ?? null
   const policyScore = macroSleeves.find((x) => x.key === 'policy')?.score ?? null
+  const grainsScore = macroSleeves.find((x) => x.key === 'grains')?.score ?? null
 
   const macroComposite = averagePercentile([
     { funds_percentile_3y: growthScore },
     { funds_percentile_3y: inflationScore },
+    { funds_percentile_3y: grainsScore },
     { funds_percentile_3y: policyScore },
   ])
 
@@ -5239,7 +5241,130 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           </div>
         </div>
       </Panel>
+      
+{/* ── SHARP POSITION CHANGES ── */}
+{(() => {
+  const sharpMoves = assets
+    .filter(a => a.funds_index_wow_change != null && Math.abs(a.funds_index_wow_change) >= 6)
+    .sort((a, b) => Math.abs(b.funds_index_wow_change) - Math.abs(a.funds_index_wow_change))
+    .slice(0, 8)
+  if (!sharpMoves.length) return null
+  return (
+    <div className="border border-zinc-900 small-panel-color">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-900">
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 8px rgba(251,191,36,0.9)', flexShrink: 0 }} />
+        <span className="text-[11px] uppercase tracking-[0.28em] text-amber-300 font-semibold">
+          Sharp Position Changes This Week
+        </span>
+        <span className="ml-auto text-[10px] text-zinc-500">WoW ≥ 6pts</span>
+      </div>
+      <div className="grid gap-px md:grid-cols-2 xl:grid-cols-4">
+        {sharpMoves.map(a => {
+          const wow = a.funds_index_wow_change
+          const isUp = wow > 0
+          const dc = isUp ? '#4ade80' : '#f87171'
+          const pct = Number(a.funds_percentile_3y)
+          return (
+            <button
+              key={a.symbol}
+              onClick={() => { setSelected(a.symbol); setActive('explorer') }}
+              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left border-r border-zinc-900 last:border-r-0"
+            >
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{a.name}</div>
+                <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+                  {a.symbol} · {normalizeSector(a.sector)}
+                </div>
+                <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>
+                  COT Index: <span style={{ color: pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>{pct.toFixed(0)}</span>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
+                  {isUp ? '+' : ''}{wow.toFixed(1)}
+                </div>
+                <div style={{ fontSize: '10px', color: dc, marginTop: '2px' }}>
+                  {isUp ? '▲ Buying' : '▼ Selling'}
+                </div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+})()}
 
+{/* ── CROWDED WARNINGS ── */}
+{(() => {
+  const crowded = assets.filter(a => {
+    const pct = Number(a.funds_percentile_3y)
+    return pct >= 88 || pct <= 12
+  }).sort((a, b) => {
+    const da = Math.abs(Number(a.funds_percentile_3y) - 50)
+    const db = Math.abs(Number(b.funds_percentile_3y) - 50)
+    return db - da
+  })
+  if (!crowded.length) return null
+  return (
+    <div style={{ border: '1px solid rgba(248,113,113,0.35)', background: 'rgba(248,113,113,0.04)' }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: 'rgba(248,113,113,0.2)' }}>
+        <span style={{ fontSize: '16px' }}>⚠️</span>
+        <span className="text-[11px] uppercase tracking-[0.28em] text-rose-400 font-semibold">
+          Crowded Positioning Warnings
+        </span>
+        <span className="ml-auto text-[10px] text-zinc-500">
+          {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
+        </span>
+      </div>
+      <div className="px-4 py-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        {crowded.map(a => {
+          const pct = Number(a.funds_percentile_3y)
+          const isLong = pct >= 88
+          const dc = isLong ? '#4ade80' : '#f87171'
+          const label = isLong ? 'Crowded Long' : 'Crowded Short'
+          const warning = isLong
+            ? 'Funds at cycle high — mean-reversion risk elevated'
+            : 'Funds at cycle low — short squeeze risk elevated'
+          return (
+            <button
+              key={a.symbol}
+              onClick={() => { setSelected(a.symbol); setActive('explorer') }}
+              className="text-left transition hover:bg-white/[0.02]"
+              style={{ border: `1px solid ${dc}25`, padding: '12px', background: `${dc}06` }}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9' }}>{a.name}</div>
+                  <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+                    {a.symbol} · {normalizeSector(a.sector)}
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: '20px', fontWeight: 800, color: dc, lineHeight: 1, flexShrink: 0,
+                  textShadow: `0 0 12px ${dc}`,
+                }}>
+                  {pct.toFixed(0)}
+                </div>
+              </div>
+              <div style={{
+                fontSize: '10px', fontWeight: 700, color: dc,
+                textTransform: 'uppercase', letterSpacing: '0.12em',
+                marginBottom: '4px',
+              }}>
+                {label}
+              </div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', lineHeight: 1.5 }}>
+                {warning}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+})()}
+          
       <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
         <Panel
           title="Ranked Signals"
