@@ -5189,59 +5189,6 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </div>
       </Panel>
 
-      <Panel
-        title="Filters"
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">State</div>
-            <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
-              options={[{value:"all",label:"All"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
-                {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
-          </div>
-
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">Direction</div>
-            <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
-              options={[{value:"all",label:"All"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
-          </div>
-
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">Sector</div>
-            <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
-              options={sectors.map((s) => ({ value: s, label: s === "all" ? "All" : s }))} />
-          </div>
-
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">Minimum Score</div>
-            <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
-              options={[{value:"0",label:"0+"},{value:"40",label:"40+"},{value:"55",label:"55+"},{value:"70",label:"70+"},{value:"85",label:"85+"}]} />
-          </div>
-
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">Sort By</div>
-            <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
-              options={[{value:"priority",label:"Priority"},{value:"quality",label:"Entry Quality"},
-                {value:"freshness",label:"Freshness"},{value:"age",label:"Age"}]} />
-          </div>
-
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.22em] text-slate-200">Alerts Only</div>
-            <button
-              onClick={() => setAlertsOnly((v) => !v)}
-              className={cls(
-                'w-full border px-3 py-2 text-sm transition',
-                alertsOnly
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
-                  : 'border-zinc-900 bg-[#080808] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-              )}
-            >
-              {alertsOnly ? 'Enabled' : 'Disabled'}
-            </button>
-          </div>
-        </div>
-      </Panel>
-      
 {/* ── SHARP POSITION CHANGES ── */}
 {(() => {
   const sharpMoves = assets
@@ -5301,15 +5248,13 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     const pct = Number(a.funds_percentile_3y)
     return pct >= 88 || pct <= 12
   }).sort((a, b) => {
-    const da = Math.abs(Number(a.funds_percentile_3y) - 50)
-    const db = Math.abs(Number(b.funds_percentile_3y) - 50)
-    return db - da
+    return Math.abs(Number(b.funds_percentile_3y) - 50) - Math.abs(Number(a.funds_percentile_3y) - 50)
   })
   if (!crowded.length) return null
   return (
-    <div style={{ border: '1px solid rgba(248,113,113,0.35)', background: 'rgba(248,113,113,0.04)' }}>
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: 'rgba(248,113,113,0.2)' }}>
-        <span style={{ fontSize: '16px' }}>⚠️</span>
+    <div className="border border-zinc-900 small-panel-color">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-900">
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.9)', flexShrink: 0 }} />
         <span className="text-[11px] uppercase tracking-[0.28em] text-rose-400 font-semibold">
           Crowded Positioning Warnings
         </span>
@@ -5317,45 +5262,38 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
         </span>
       </div>
-      <div className="px-4 py-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-px md:grid-cols-2 xl:grid-cols-4">
         {crowded.map(a => {
           const pct = Number(a.funds_percentile_3y)
           const isLong = pct >= 88
           const dc = isLong ? '#4ade80' : '#f87171'
-          const label = isLong ? 'Crowded Long' : 'Crowded Short'
-          const warning = isLong
-            ? 'Funds at cycle high — mean-reversion risk elevated'
-            : 'Funds at cycle low — short squeeze risk elevated'
           return (
             <button
               key={a.symbol}
               onClick={() => { setSelected(a.symbol); setActive('explorer') }}
-              className="text-left transition hover:bg-white/[0.02]"
-              style={{ border: `1px solid ${dc}25`, padding: '12px', background: `${dc}06` }}
+              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left border-r border-zinc-900 last:border-r-0"
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9' }}>{a.name}</div>
-                  <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
-                    {a.symbol} · {normalizeSector(a.sector)}
-                  </div>
+              <div>
+                <div className="text-sm font-semibold text-zinc-100">{a.name}</div>
+                <div className="mt-0.5 text-[9px] uppercase tracking-[0.1em] text-zinc-500">
+                  {a.symbol} · {normalizeSector(a.sector)}
                 </div>
-                <div style={{
-                  fontSize: '20px', fontWeight: 800, color: dc, lineHeight: 1, flexShrink: 0,
-                  textShadow: `0 0 12px ${dc}`,
-                }}>
+                <div className="mt-1.5 text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: dc }}>
+                  {isLong ? 'Crowded Long' : 'Crowded Short'}
+                </div>
+                <div className="mt-0.5 text-[10px] text-zinc-500 leading-4">
+                  {isLong
+                    ? 'Mean-reversion risk elevated'
+                    : 'Short squeeze risk elevated'}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
                   {pct.toFixed(0)}
                 </div>
-              </div>
-              <div style={{
-                fontSize: '10px', fontWeight: 700, color: dc,
-                textTransform: 'uppercase', letterSpacing: '0.12em',
-                marginBottom: '4px',
-              }}>
-                {label}
-              </div>
-              <div style={{ fontSize: '10px', color: '#94a3b8', lineHeight: 1.5 }}>
-                {warning}
+                <div className="text-[9px] uppercase tracking-[0.1em] text-zinc-500 mt-0.5">
+                  COT Index
+                </div>
               </div>
             </button>
           )
@@ -5366,10 +5304,36 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 })()}
           
       <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-        <Panel
-          title="Ranked Signals"
-          right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
-        >
+       <Panel
+        title="Ranked Signals"
+        right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
+      >
+        {/* Filters inline */}
+        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 mb-4 pb-4 border-b border-zinc-900">
+          <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
+            options={[{value:"all",label:"All States"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
+              {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
+          <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
+            options={[{value:"all",label:"All Directions"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
+          <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
+            options={sectors.map((s) => ({ value: s, label: s === "all" ? "All Sectors" : s }))} />
+          <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
+            options={[{value:"0",label:"Score 0+"},{value:"40",label:"Score 40+"},{value:"55",label:"Score 55+"},{value:"70",label:"Score 70+"}]} />
+          <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
+            options={[{value:"priority",label:"Sort: Priority"},{value:"quality",label:"Sort: Quality"},
+              {value:"freshness",label:"Sort: Freshness"},{value:"age",label:"Sort: Age"}]} />
+          <button
+            onClick={() => setAlertsOnly((v) => !v)}
+            className={cls(
+              'border px-3 py-2 text-[11px] uppercase tracking-[0.18em] transition w-full',
+              alertsOnly
+                ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+                : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+            )}
+          >
+            {alertsOnly ? '⚡ Alerts On' : 'Alerts Only'}
+          </button>
+        </div>
           <div className="space-y-3">
             {filteredSignals.length ? filteredSignals.map((signal) => (
               <button
