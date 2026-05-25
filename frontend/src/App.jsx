@@ -5000,8 +5000,8 @@ function SignalHistoryTable({ items, loading }) {
                 <th className="px-3 py-2 text-left">Dir</th>
                 <th className="px-3 py-2 text-left">State</th>
                 <th className="px-3 py-2 text-right">Weeks</th>
-                <th className="px-3 py-2 text-right">Current</th>
-                <th className="px-3 py-2 text-right">Peak</th>
+                <th className="px-3 py-2 text-right">COT Index</th>
+                <th className="px-3 py-2 text-left">Flow</th>
                 <th className="px-3 py-2 text-left">First seen</th>
                 <th className="px-3 py-2 text-left">Trend (8w→now)</th>
               </tr>
@@ -5025,8 +5025,8 @@ function SignalHistoryTable({ items, loading }) {
                   <td className={cls("px-3 py-2 text-right tabular-nums font-medium", flowColor(s.current_score))}>
                     {s.current_score != null ? s.current_score.toFixed(1) : '—'}
                   </td>
-                  <td className={cls("px-3 py-2 text-right tabular-nums", flowColor(s.peak_score))}>
-                    {s.peak_score != null ? s.peak_score.toFixed(1) : '—'}
+                  <td className="px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-zinc-400">
+                    {s.flow_state || '—'}
                   </td>
                   <td className="px-3 py-2 text-slate-200 tabular-nums text-xs">
                     {fmtDate(s.first_seen_date)}
@@ -5096,7 +5096,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       direction:       s.direction,
       current_state:   s.state,
       current_score:   s.percentile,
-      peak_score:      s.percentile,
+      peak_score: s.percentile,
+      flow_state: assets.find(a => a.symbol === s.symbol)?.flow_state || null,
       weeks_active:    inferSignalAgeWeeks(assets.find(a => a.symbol === s.symbol)),
       first_seen_date: (() => {
         const a = assets.find(x => x.symbol === s.symbol)
