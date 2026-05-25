@@ -5151,14 +5151,24 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
       {/* Tabs */}
       <div className="flex border-b border-zinc-900 justify-between ">
-        <div>{[{key:'live',label:'Live Signals'},{key:'history',label:'Signal History'}].map((tab) => (
-          <button key={tab.key} onClick={() => setHistoryTab(tab.key)}
-            className={cls('border-b-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.22em] transition',
-              historyTab === tab.key ? 'border-amber-400 text-zinc-100' : 'border-transparent text-slate-200 hover:text-zinc-300'
-            )}>
-            {tab.label}
-          </button>
-        ))}</div>
+        <div className="flex flex-wrap gap-2">
+  {[
+    { key: 'live',    label: 'Live Signals'},
+    { key: 'history', label: 'Signal History'},
+  ].map((tab) => (
+    <button key={tab.key} onClick={() => setHistoryTab(tab.key)}
+      className={`min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
+        historyTab === tab.key
+          ? 'border-blue-400 bg-zinc-950 text-zinc-100'
+          : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+      }`}
+      style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
+    >
+      <span>{tab.icon}</span>
+      <span>{tab.label}</span>
+    </button>
+  ))}
+</div>
         {/* Sync Signal History */}
         <button
             onClick={async () => {
