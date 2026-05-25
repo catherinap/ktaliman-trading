@@ -83,6 +83,36 @@ def classify_state(percentile: float, direction: str, weeks_active: int) -> str:
 
     return "candidate"
 
+def calculate_peak_from_history(symbol: str, direction: str, first_seen_date) -> float | None:
+    """
+    Calculate real peak score from cot_analytics history.
+    For long signals: max percentile since first_seen_date
+    For short signals: min percentile since first_seen_date
+    """
+    with engine.connect() as conn:
+        if direction == 'long':
+            result = conn.execute(text("""
+                SELECT MAX(
+                    CASE WHEN source_type='TFF'
+                    THEN leveraged_funds_percentile_3y
+                    ELSE managed_money_percentile_3y END
+                )
+                FROM cot_analytics
+                WHERE symbol = :symbol
+                  AND report_date >= :since
+            """), {"symbol": symbol, "since": first_seen_date}).scalar()
+        else:
+            result = conn.execute(text("""
+                SELECT MIN(
+                    CASE WHEN source_type='TFF'
+                    THEN leveraged_funds_percentile_3y
+                    ELSE managed_money_percentile_3y END
+                )
+                FROM cot_analytics
+                WHERE symbol = :symbol
+                  AND report_date >= :since
+            """), {"symbol": symbol, "since": first_seen_date}).scalar()
+    return float(result) if result is not None else None
 
 def signal_direction(percentile):
     if percentile is None: return None
@@ -254,4 +284,17 @@ def get_signal_history(active_only: bool = False, limit: int = 200):
                   "became_active_date","became_aging_date","invalidated_date"]:
             if d.get(f): d[f] = str(d[f])
         items.append(d)
+    # Enrich peak_score from real history for active/aging signals
+    for item in items:
+        if item.get('current_state') in ('active', 'aging') and item.get('first_seen_date'):
+            try:
+                from datetime import date
+                since = date.fromisoformat(item['first_seen_date'])
+                real_peak = calculate_peak_from_history(
+                    item['symbol'], item['direction'], since
+                )
+                if real_peak is not None:
+                    item['peak_score'] = real_peak
+            except Exception:
+                pass
     return {"items": items, "total": len(items)}

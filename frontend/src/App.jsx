@@ -5096,7 +5096,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       direction:       s.direction,
       current_state:   s.state,
       current_score:   s.percentile,
-      peak_score: s.percentile,
+      peak_score: null,  // буде завантажено з бази через /api/signals/history
       flow_state: assets.find(a => a.symbol === s.symbol)?.flow_state || null,
       weeks_active:    inferSignalAgeWeeks(assets.find(a => a.symbol === s.symbol)),
       first_seen_date: (() => {
