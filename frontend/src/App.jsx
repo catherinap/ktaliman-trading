@@ -1939,8 +1939,8 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
     const isLong = signal.direction === "long"
     const isShort= signal.direction === "short"
     const color  = isLong ? "#4ade80" : isShort ? "#f87171" : "#94a3b8"
-    const bgColor= isLong ? "rgba(74,222,128,0.06)" : isShort ? "rgba(248,113,113,0.06)" : "rgba(255,255,255,0.03)"
-    const borderC= isLong ? "rgba(74,222,128,0.18)" : isShort ? "rgba(248,113,113,0.18)" : "rgba(255,255,255,0.07)"
+    const bgColor= isLong ? "rgba(74,222,128,0.2)" : isShort ? "rgba(248,113,113,0.2)" : "rgba(255,255,255,0.03)"
+    const borderC= isLong ? "rgb(74, 222, 128)" : isShort ? "rgb(248, 113, 113)" : "rgba(255,255,255,0.07)"
     const size = 100, r = 38, cx = 50, cy = 50
     const circ = 2 * Math.PI * r
     const dash = circ * pct
@@ -1959,15 +1959,15 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       >
         <div style={{ position: "relative", width: size, height: size }}>
           <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="12" />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
               strokeDasharray={`${dash} ${circ - dash}`}
               style={{ filter: `drop-shadow(0 0 5px ${color}60)`, transition: "stroke-dasharray 0.6s ease" }}
             />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: "12px", color, lineHeight: 1, marginBottom: "1px" }}>
+            <span style={{ fontSize: "16px", color, lineHeight: 1, marginBottom: "1px" }}>
               {isLong ? "↑" : isShort ? "↓" : "→"}
             </span>
             <span style={{ fontSize: "20px", fontWeight: "700", color, lineHeight: 1 }}>
@@ -1976,20 +1976,20 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
           </div>
         </div>
         <div style={{ marginTop: "8px", textAlign: "center" }}>
-          <div style={{ fontSize: "12px", fontWeight: "600", color: "#f1f5f9", lineHeight: 1.2 }}>
+          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--dots-color)", lineHeight: 1.2 }}>
             {signal.asset}
           </div>
           <div style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.14em",
-            color: "rgba(148,163,184,0.45)", marginTop: "3px" }}>
+            color: "#f1f5f9", marginTop: "3px" }}>
             {signal.symbol} · {signal.sector}
           </div>
         </div>
         <div style={{ marginTop: "6px", textAlign: "center" }}>
-          <div style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.2em",
+          <div style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em",
             fontWeight: "600", color }}>
             {isLong ? "Long" : isShort ? "Short" : "Neutral"}
           </div>
-          <div style={{ fontSize: "10px", color: "rgba(148,163,184,0.35)", marginTop: "2px" }}>
+          <div style={{ fontSize: "10px", color: "rgba(173, 193, 221, 0.88)", marginTop: "2px" }}>
             COT {formatPercentile(signal.percentile)}
           </div>
         </div>
@@ -2005,10 +2005,10 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
   const wowClr = wow > 0 ? "#4ade80" : wow < 0 ? "#f87171" : "#64748b"
   const bg = pct >= 90 ? "rgba(248, 113, 113, 0.3)" : pct >= 65 ? "rgba(74,222,128,0.3)"
            : pct <= 10 ? "rgba(74,222,128,0.3)"  : pct <= 35 ? "rgba(248,113,113,0.3)"
-           : "rgba(255,255,255,0.03)"
+           : "rgba(255,255,255,0.1)"
   const border = pct >= 90 ? "rgb(248, 113, 113)" : pct >= 65 ? "rgb(74, 222, 128)"
                : pct <= 10 ? "rgb(74, 222, 128)"  : pct <= 35 ? "rgb(248, 113, 113)"
-               : "rgba(255,255,255,0.08)"
+               : "rgba(255, 255, 255, 0.2)"
   const arrow = dir === "rising" ? "↑" : dir === "falling" ? "↓" : "→"
 
   return (
@@ -2023,16 +2023,16 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.15)"}
       onMouseLeave={(e) => e.currentTarget.style.filter = "brightness(1)"}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: "10px", color: "var(--dots-color)", textTransform: "uppercase",
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-center", gap:"5px"}}>
+        <span style={{ fontSize: "8px", color: "var(--dots-color)", textTransform: "uppercase",
           letterSpacing: "0.12em", lineHeight: 1 }}>{a.symbol}</span>
         {wow != null && (
-          <span style={{ fontSize: "6px", color: wowClr, lineHeight: 1, fontWeight: 600 }}>
+          <span style={{ fontSize: "8px", color: wowClr, lineHeight: 1, fontWeight: 400 }}>
             {arrow}{Math.abs(wow).toFixed(1)}
           </span>
         )}
       </div>
-      <span style={{ fontSize: "12px", fontWeight: "700", color, lineHeight: 1.1, marginTop: "4px" }}>
+      <span style={{ fontSize: "10px", fontWeight: "700", color, lineHeight: 1.1, marginTop: "4px" }}>
         {pct != null ? pct.toFixed(0) : "—"}
       </span>
       <span style={{ fontSize: "8px", color: "rgba(185, 206, 235, 0.8)", marginTop: "4px",
@@ -2064,7 +2064,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       <div className="space-y-4">
 
         {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 0.8fr 1fr", alignItems: "start"}}>
+        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 0.7fr 1.2fr", alignItems: "start"}}>
 
           {/* LEFT col: Macro Context + Macro Regime stacked */}
           <MacroContextPanel aiLanguage={aiLanguage}/>
