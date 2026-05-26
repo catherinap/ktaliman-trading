@@ -124,7 +124,7 @@ section {
   box-shadow: 0 1px 0 var(--box-shadow-color) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
-.metric-card>div, .small-panel-color {
+.small-panel-color {
   border: .0625rem solid var(--accent-border) !important;
   background: var(--panel-color-light) !important;
   border-radius: 8px !important;
