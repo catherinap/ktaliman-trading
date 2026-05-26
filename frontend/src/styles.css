@@ -124,6 +124,10 @@ section {
   box-shadow: 0 1px 0 var(--box-shadow-color) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
+section.title-border>div:first-of-type {
+  border-bottom: 1px solid var(--panels-border) !important;
+}
+
 .small-panel-color {
   border: .0625rem solid var(--accent-border) !important;
   background: var(--panel-color-light) !important;
@@ -142,7 +146,7 @@ section {
 }
 
 .heatmap-cells {
-  border-radius: 5px !important;
+  border-radius: 3px !important;
 }
 
 /* ALL borders → subtle white */
@@ -295,7 +299,7 @@ button { border-radius: 8px !important; transition: all 0.15s !important; }
 }
 /* Gap between panels */
 .space-y-4>*+* {
-  margin-top: 1rem !important;
+  margin-top: 12px !important;
 }
 
 .space-y-3>*+* {

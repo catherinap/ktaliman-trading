@@ -129,12 +129,11 @@ export default function AIAnalysisPanel({
   const panelTitle = title || (aiLanguage === "uk" ? "AI-Аналіз" : "AI Analysis");
 
   return (
-    <section
-      className="border border-zinc-800"
+    <section className="title-border"
       style={fillHeight ? { display: "flex", flexDirection: "column", flex: 1 } : {}}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3" style={{ flexShrink: 0 }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">

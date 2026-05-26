@@ -1707,7 +1707,7 @@ function AlertDrawer({ open, onClose }) {
       {/* Drawer */}
       <div className="fixed right-0 top-0 z-50 flex h-screen w-[400px] flex-col default-bg shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+        <div className="flex items-center justify-between border-b px-4 py-3" style={{borderColor: 'var(--panels-border)'}}>
           <span className="text-[11px] uppercase tracking-[0.25em]">
             COT Alerts
           </span>
@@ -1754,7 +1754,7 @@ function AlertDrawer({ open, onClose }) {
                   key={alert.id}
                   className={cls(
                     "border-l-2 px-4 py-3 transition",
-                    !alert.is_read ? severityTone(alert.severity) : "border-zinc-900 text-zinc-600"
+                    !alert.is_read ? severityTone(alert.severity) : " border-zinc-900 text-zinc-600"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -1831,7 +1831,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
         </button>
  
         {/* Page title */}
-        <span className="text-zinc-400">
+        <span className="text-blue-100">
           {t(NAV_ITEMS.find((n) => n.key === active)?.labelKey || 'nav.workspace')}
         </span>
       </div>
@@ -2067,13 +2067,13 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       <div className="space-y-4">
 
         {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 0.7fr 1.2fr", alignItems: "stretch "}}>
+        <div className="grid gap-3 mt-3" style={{ gridTemplateColumns: "1fr 0.7fr 1.2fr", alignItems: "stretch "}}>
 
           {/* LEFT col: Macro Context + Macro Regime stacked */}
           <MacroContextPanel aiLanguage={aiLanguage}/>
 
-          <section className="flex flex-col">
-            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <section className="flex flex-col title-border">
+            <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
                 <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
@@ -2123,7 +2123,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             </div>
           </section>
             
-          <div className="flex gap-2 flex-col">
+          <div className="flex gap-3 flex-col">
           {/* AI Briefing fills remaining space + expands with content */}
           <AIAnalysisPanel
             type="macro"
@@ -2143,8 +2143,8 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             title="AI — Weekly Briefing"
               fillHeight={true} />  
             
-           <section className="border border-zinc-900" style={{ flexShrink: 0 }}>
-            <div className="border-b border-zinc-900 px-4 py-3">
+           <section className="title-border" style={{ flexShrink: 0 }}>
+            <div className="px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                   <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
@@ -2171,10 +2171,10 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
         </div>
 
         {/* ══ ROW 2: 2 equal cols*/}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>  
+        <div className="grid gap-3" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>  
           {/* Top Active Signals — 3×2 circles */}
-          <section className="border border-zinc-900 min-h-full">
-            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <section className="min-h-full title-border">
+            <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                 <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
@@ -2198,8 +2198,8 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
           </section>
             
           {/* COT Heatmap compact */}
-          <section className="border border-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+          <section className="title-border">
+            <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                   <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
@@ -2237,11 +2237,11 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
         </div>
 
         {/* ══ ROW 3: 2 equal cols — Calendar | News */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
-          <section className="border border-zinc-900">
-            <div className="border-b border-zinc-900 px-3 py-4 shrink-0">
+          <section className="title-border">
+            <div className="px-3 py-4 shrink-0">
               <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
@@ -2372,8 +2372,8 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
           </section>
 
           {/* Market News */}
-          <section className="border border-zinc-900 ">
-            <div className="border-b border-zinc-900 px-3 py-4">
+          <section className="title-border">
+            <div className="px-3 py-4">
               <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
@@ -2799,8 +2799,8 @@ function HistoricalDataView({ assets }) {
     <div className="space-y-4">
 
       {/* ── Controls ──────────────────────────────────────────────────────── */}
-      <section className="border border-zinc-900 ">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-900 px-4 py-3">
+      <section className="title-border">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
             Historical COT Data
           </span>
@@ -2881,7 +2881,7 @@ function HistoricalDataView({ assets }) {
       </section>
 
       {loading && (
-        <section className="border border-zinc-900  p-6">
+        <section className="p-6 title-border">
           <div className="space-y-2">
             {[100, 88, 75, 60].map((w, i) => (
               <div key={i} className="h-3 animate-pulse rounded bg-zinc-800" style={{ width: `${w}%` }} />
@@ -2898,8 +2898,8 @@ function HistoricalDataView({ assets }) {
 
       {/* ── Charts ────────────────────────────────────────────────────────── */}
       {!loading && !error && chartData.length > 0 && (
-        <section className="border border-zinc-900 ">
-          <div className="border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
+        <section className="title-border">
+          <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-[12px] uppercase tracking-[0.25em] text-zinc-200">
               Charts — {data?.name}
             </span>
@@ -2917,8 +2917,8 @@ function HistoricalDataView({ assets }) {
 
       {/* ── Table ─────────────────────────────────────────────────────────── */}
       {!loading && !error && filteredRows.length > 0 && (
-        <section className="border border-zinc-900 ">
-          <div className="border-b border-zinc-900 px-4 py-3">
+        <section className="title-border">
+          <div className="px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
               Data Table
             </span>
@@ -3110,9 +3110,9 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   }
 
   return (
-    <section className="default-bg">
+    <section className="default-bg title-border">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-sky-400" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
@@ -3282,7 +3282,7 @@ const macroComposite = averagePercentile([
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+    <div className="grid gap-3 xl:grid-cols-[1.3fr_0.7fr]">
       {/* ── LEFT COLUMN ── */}
       <div className="space-y-4">
 
@@ -3377,13 +3377,13 @@ const macroComposite = averagePercentile([
         />
 
         {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="default-bg p-3">
+        <div className="grid grid-cols-2 gap-3">
+            <div className="small-panel-color p-3">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Sleeve Dispersion</div>
               <div className="text-xl font-semibold text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
             </div>
-            <div className="default-bg p-3">
+            <div className="small-panel-color p-3">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Macro Phase</div>
               <div className="text-xl font-semibold text-zinc-100">{macroPhase(macroComposite, t)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
@@ -3482,7 +3482,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
     <div className="space-y-4">
 
       {/* ── HEADER ── */}
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
         <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
         <div className="grid gap-3 md:grid-cols-[0.9fr_1.1fr]">
           <div className="grid gap-3 md:grid-cols-2">
@@ -3539,7 +3539,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 
 
       {/* ── MAIN GRID ── */}
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
 
         {/* ── LEFT ── */}
         <div className="space-y-4">
@@ -3876,10 +3876,10 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
   return (
     <div className="space-y-4">
       {/* ── TOP ROW: Header + AI ── */}
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_1fr]">
         <div className="default-bg">
           <div>
-            <div className="border-b border-zinc-900 flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]">
+            <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]" style={{borderColor: 'var(--panels-border)'}}>
               <div className="flex items-center gap-2">
                 <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
                 <div className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t("panels.seasonality")}</div>
@@ -4093,7 +4093,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
         )}
       </div>  
 
-      <div className="grid gap-4 xl:grid-cols-[1.5fr_0.5fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.45fr_0.55fr]">
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
             <div className="small-panel-color p-3 text-sm text-zinc-300">
@@ -4110,18 +4110,18 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="min-w-[880px]">
+          <div>
+            <div className="min-w-[865px]">
               <div className="grid grid-cols-[128px_repeat(12,minmax(0,1fr))] gap-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">
                 <div>Asset</div>
                 {SEASONAL_MONTHS.map((m) => (
                   <div key={m} className="text-center">{m}</div>
                 ))}
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2">  
                 {rows.map((row) => (
-                  <div key={row.symbol} className="grid grid-cols-[128px_repeat(12,minmax(0,1fr))] gap-1">
-                    <div className="flex items-center default-bg px-3 py-1 heatmap-cells">
+                  <div key={row.symbol} className="grid grid-cols-[108px_repeat(12,minmax(0,1fr))] gap-1">
+                    <div className="flex items-center default-bg px-2 py-1 heatmap-cells">
                       <div>
                         <div className="text-[10px] text-slate-200">{row.name}</div>
                         <div className="text-[10px] text-zinc-400">{normalizeSector(row.sector)}</div>
@@ -4678,13 +4678,13 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       </Panel>
 
       {/* ── MAIN GRID ── */}
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
 
         {/* ── LEFT COLUMN ── */}
         <div className="space-y-4">
 
           {/* Metrics row */}
-          <div className="grid gap-4 md:grid-cols-4 metric-card">
+          <div className="grid gap-3 md:grid-cols-4 metric-card">
             <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
             <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
@@ -5167,8 +5167,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     <div className="space-y-4">
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-900 justify-between ">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex justify-between">
+        <div className="flex flex-wrap gap-3">
   {[
     { key: 'live',    label: 'Live Signals'},
     { key: 'history', label: 'Signal History'},
@@ -5177,7 +5177,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       className={`min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
         historyTab === tab.key
           ? 'border-blue-400 bg-zinc-950 text-zinc-100'
-          : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+          : 'small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
       }`}
       style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
     >
@@ -5207,7 +5207,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
       <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
             
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 metric-card">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 metric-card">
           <Metric label="Tracked Signals" value={engine.counts.total} />
           <Metric label="Active" value={engine.counts.active} />
           <Metric label="Aging" value={engine.counts.aging} />
@@ -5329,7 +5329,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   )
 })()}
           
-      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
        <Panel
         title="Ranked Signals"
         right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
@@ -5673,7 +5673,7 @@ const fmtUtc = (iso) => {
   }
  
   return (
-    <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid gap-3 xl:grid-cols-[0.9fr_1.1fr]">
       <div className="space-y-4">
  
         {/* Manual run */}
@@ -5964,8 +5964,8 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
   if (watchedAssets.length === 0) {
     return (
       <div className="space-y-4">
-        <section className="border border-zinc-900 ">
-          <div className="border-b border-zinc-900 px-4 py-3">
+        <section className="title-border">
+          <div className="px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
               {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
             </span>
@@ -5987,8 +5987,8 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
     <div className="space-y-4">
  
       {/* Header + Add */}
-      <section className="border border-zinc-900 ">
-        <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+      <section className="title-border">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
@@ -8503,7 +8503,7 @@ setWorkspaceData({
           open={alertDrawerOpen}
           onClose={() => setAlertDrawerOpen(false)}
         />
-        <div className="flex-1 p-4 md:p-6">
+        <div className="flex-1 p-4 md:p-5">
           {loading
             ? <Panel title="Loading"><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
             : error
