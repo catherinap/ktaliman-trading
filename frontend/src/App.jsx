@@ -2003,11 +2003,11 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
   const dir = a.funds_index_direction
   const color  = pct >= 65 ? "#4ade80" : pct <= 35 ? "#f87171" : "#94a3b8"
   const wowClr = wow > 0 ? "#4ade80" : wow < 0 ? "#f87171" : "#64748b"
-  const bg = pct >= 90 ? "rgba(248,113,113,0.18)" : pct >= 65 ? "rgba(74,222,128,0.1)"
-           : pct <= 10 ? "rgba(74,222,128,0.18)"  : pct <= 35 ? "rgba(248,113,113,0.1)"
+  const bg = pct >= 90 ? "rgba(248, 113, 113, 0.3)" : pct >= 65 ? "rgba(74,222,128,0.3)"
+           : pct <= 10 ? "rgba(74,222,128,0.3)"  : pct <= 35 ? "rgba(248,113,113,0.3)"
            : "rgba(255,255,255,0.03)"
-  const border = pct >= 90 ? "rgba(248,113,113,0.4)" : pct >= 65 ? "rgba(74,222,128,0.25)"
-               : pct <= 10 ? "rgba(74,222,128,0.4)"  : pct <= 35 ? "rgba(248,113,113,0.25)"
+  const border = pct >= 90 ? "rgb(248, 113, 113)" : pct >= 65 ? "rgb(74, 222, 128)"
+               : pct <= 10 ? "rgb(74, 222, 128)"  : pct <= 35 ? "rgb(248, 113, 113)"
                : "rgba(255,255,255,0.08)"
   const arrow = dir === "rising" ? "↑" : dir === "falling" ? "↓" : "→"
 
@@ -2016,7 +2016,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       title={a.name}
       style={{
         display: "flex", flexDirection: "column", alignItems: "flex-start",
-        padding: "4px 5px", borderRadius: "10px",
+        padding: "4px 5px", borderRadius: "8px",
         background: bg, border: `1px solid ${border}`,
         cursor: "pointer", transition: "filter 0.15s", width: "100%",
       }}
@@ -2024,7 +2024,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       onMouseLeave={(e) => e.currentTarget.style.filter = "brightness(1)"}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: "8px", color: "rgba(148,163,184,0.6)", textTransform: "uppercase",
+        <span style={{ fontSize: "10px", color: "var(--dots-color)", textTransform: "uppercase",
           letterSpacing: "0.12em", lineHeight: 1 }}>{a.symbol}</span>
         {wow != null && (
           <span style={{ fontSize: "6px", color: wowClr, lineHeight: 1, fontWeight: 600 }}>
@@ -2035,7 +2035,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       <span style={{ fontSize: "12px", fontWeight: "700", color, lineHeight: 1.1, marginTop: "4px" }}>
         {pct != null ? pct.toFixed(0) : "—"}
       </span>
-      <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", marginTop: "4px",
+      <span style={{ fontSize: "8px", color: "rgba(185, 206, 235, 0.8)", marginTop: "4px",
         textTransform: "uppercase", letterSpacing: "0.1em" }}>
         {a.flow_state || "Neutral"}
       </span>
@@ -2060,157 +2060,117 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
   return (
     <><div className="flex justify-end">
       <GuideButton sectionKey="workspace" openGuide={openGuide} />
-    </div><div className="space-y-4">
+    </div>
+      <div className="space-y-4">
 
         {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1.1fr 0.9fr"}}>
+        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "1fr 0.8fr 1fr", alignItems: "start"}}>
 
           {/* LEFT col: Macro Context + Macro Regime stacked */}
-          <div className="space-y-4">
-            <MacroContextPanel aiLanguage={aiLanguage} />
+          <MacroContextPanel aiLanguage={aiLanguage}/>
 
-            <section className="border border-zinc-900 ">
-              <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
-                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-                  {t("panels.macroRegime")}
-                  </span>
-                </div>
-                
-                <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
-                  {macroLabel(macroComposite, t)}
+          <section className="flex flex-col min-h-full">
+            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+                <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
+                {t("panels.macroRegime")}
                 </span>
               </div>
-              <div className="p-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                   { key: "growth",    label: "Growth",    color: "text-emerald-400" },
-                    { key: "inflation", label: "Inflation", color: "text-blue-400" },
-                    { key: "grains",    label: "Grains",    color: "text-lime-400" },
-                    { key: "policy",    label: "Policy",    color: "text-sky-400" },
-                  ].map(({ key, label, color }) => {
-                    const score = sleeveScores[key];
-                    return (
-                      <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
-                        <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
-                        <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
-                          {score != null ? score.toFixed(1) : "n/a"}
-                        </div>
-                        <div className="mt-1 text-[10px] text-zinc-600">{macroLabel(score, t)}</div>
-                        <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                          <div className={cls("h-full rounded-full", macroTone(score).replace("text-", "bg-"))}
-                            style={{ width: `${Math.max(2, score ?? 0)}%`, transition: "width 0.6s ease" }} />
-                        </div>
+              
+              <span className={cls("text-xs uppercase tracking-[0.22em]", macroTone(macroComposite))}>
+                {macroLabel(macroComposite, t)}
+              </span>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: "growth",    label: "Growth",    color: "text-emerald-400" },
+                  { key: "inflation", label: "Inflation", color: "text-blue-400" },
+                  { key: "grains",    label: "Grains",    color: "text-lime-400" },
+                  { key: "policy",    label: "Policy",    color: "text-sky-400" },
+                ].map(({ key, label, color }) => {
+                  const score = sleeveScores[key];
+                  return (
+                    <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+                      <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
+                      <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
+                        {score != null ? score.toFixed(1) : "n/a"}
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="uppercase tracking-[0.2em] text-zinc-600">Composite</span>
-                    <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
-                      {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 text-xs leading-5 text-slate-200">
-                    {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          {/* RIGHT col: Alert Feed + AI Briefing (fills remaining height) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {/* AI Briefing fills remaining space + expands with content */}
-            <AIAnalysisPanel
-              type="macro"
-              data={{
-                growth_score:    sleeveScores.growth,
-                inflation_score: sleeveScores.inflation,
-                grains_score:    sleeveScores.grains,
-                policy_score:    sleeveScores.policy,
-                composite:       macroComposite,
-                growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
-                inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
-                grains_assets:    findAssetsExact(assets, MACRO_SLEEVES.grains.members),
-                policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
-                crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
-              }}
-              aiLanguage={aiLanguage}
-              title="AI — Weekly Briefing"
-              fillHeight={true} />
-            <section className="border border-zinc-900" style={{ flexShrink: 0 }}>
-              <div className="border-b border-zinc-900 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
-                    <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
-                </div>
-              </div>
-              <div className="divide-y divide-zinc-900">
-                {alertFeed.length === 0 ? (
-                  <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
-                ) : alertFeed.map((alert) => (
-                  <div key={alert.id} className="px-4 py-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
-                      <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
-                        alertImpactTone(alert.impact))}>
-                        {alert.impact}
-                      </span>
+                      <div className="mt-1 text-[10px] text-zinc-600">{macroLabel(score, t)}</div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <div className={cls("h-full rounded-full", macroTone(score).replace("text-", "bg-"))}
+                          style={{ width: `${Math.max(2, score ?? 0)}%`, transition: "width 0.6s ease" }} />
+                      </div>
                     </div>
-                    <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </section>
-          </div>
-        </div>
-
-        {/* ══ ROW 2: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1.1fr 0.9fr" }}>
-
-          {/* COT Heatmap compact */}
-          <section className="border border-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
-                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-                    {t("panels.cotFlowHeatmap")}
+              <div className="mt-16 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-[0.2em]">Composite</span>
+                  <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
+                    {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
                   </span>
                 </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] text-zinc-700">0</span>
-                <div style={{
-                  width: "60px", height: "3px", borderRadius: "2px",
-                  background: "linear-gradient(90deg, #f87171, rgba(148,163,184,0.3) 50%, #4ade80)"
-                }} />
-                <span className="text-[9px] text-zinc-700">100</span>
+                <div className="mt-1.5 text-xs leading-5 text-slate-200">
+                  {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
+                </div>
               </div>
             </div>
-            <div className="px-4 py-3 space-y-3">
-              {Object.entries(
-                assets.reduce((acc, a) => {
-                  const s = a.sector || 'OTHER'
-                  if (!acc[s]) acc[s] = []
-                  acc[s].push(a)
-                  return acc
-                }, {})
-              ).map(([sector, items]) => (
-                <div key={sector}>
-                  <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
-                    style={{ color: "rgba(148,163,184,0.35)" }}>{sector}</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: "6px" }}>
-                    {items.map((a) => <HeatmapCard key={a.symbol} a={a} />)}
+          </section>
+            
+          <div className="flex gap-2 flex-col">
+          {/* AI Briefing fills remaining space + expands with content */}
+          <AIAnalysisPanel
+            type="macro"
+            data={{
+              growth_score:    sleeveScores.growth,
+              inflation_score: sleeveScores.inflation,
+              grains_score:    sleeveScores.grains,
+              policy_score:    sleeveScores.policy,
+              composite:       macroComposite,
+              growth_assets:    findAssetsExact(assets, MACRO_SLEEVES.growth.members),
+              inflation_assets: findAssetsExact(assets, MACRO_SLEEVES.inflation.members),
+              grains_assets:    findAssetsExact(assets, MACRO_SLEEVES.grains.members),
+              policy_assets:    findAssetsExact(assets, MACRO_SLEEVES.policy.members),
+              crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
+            }}
+            aiLanguage={aiLanguage}
+            title="AI — Weekly Briefing"
+              fillHeight={true} />  
+            
+           <section className="border border-zinc-900" style={{ flexShrink: 0 }}>
+            <div className="border-b border-zinc-900 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
+              </div>
+            </div>
+            <div className="divide-y divide-zinc-900">
+              {alertFeed.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
+              ) : alertFeed.map((alert) => (
+                <div key={alert.id} className="px-4 py-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
+                    <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
+                      alertImpactTone(alert.impact))}>
+                      {alert.impact}
+                    </span>
                   </div>
+                  <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
                 </div>
               ))}
             </div>
-          </section>
+          </section>   
+          </div>        
+        </div>
 
+        {/* ══ ROW 2: 2 equal cols*/}
+        <div className="grid gap-4" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>  
           {/* Top Active Signals — 3×2 circles */}
-          <section className="border border-zinc-900">
+          <section className="border border-zinc-900 min-h-full">
             <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
@@ -2227,15 +2187,53 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               {topSignals.length === 0 ? (
                 <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", maxHeight: "100%" }}>
                   {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
                 </div>
               )}
             </div>
           </section>
+            
+          {/* COT Heatmap compact */}
+          <section className="border border-zinc-900">
+            <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
+                    {t("panels.cotFlowHeatmap")}
+                  </span>
+                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-zinc-200">0</span>
+                <div style={{
+                  width: "60px", height: "3px", borderRadius: "2px",
+                  background: "linear-gradient(90deg, #f87171, rgba(148,163,184,0.3) 50%, #4ade80)"
+                }} />
+                <span className="text-[9px] text-zinc200">100</span>
+              </div>
+            </div>
+            <div className="px-4 py-3 space-y-3">
+              {Object.entries(
+                assets.reduce((acc, a) => {
+                  const s = a.sector || 'OTHER'
+                  if (!acc[s]) acc[s] = []
+                  acc[s].push(a)
+                  return acc
+                }, {})
+              ).map(([sector, items]) => (
+                <div key={sector}>
+                  <div className="mb-1.5 text-[9px] uppercase tracking-[0.25em]"
+                    style={{ color: "white" }}>{sector}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: "6px" }}>
+                    {items.map((a) => <HeatmapCard key={a.symbol} a={a} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
-        {/* ══ ROW 3: 3 equal cols — Calendar | News | - */}
+        {/* ══ ROW 3: 2 equal cols — Calendar | News */}
         <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
@@ -2370,114 +2368,114 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             </div>
           </section>
 
-{/* Market News */}
-<section className="border border-zinc-900 ">
-  <div className="border-b border-zinc-900 px-3 py-4">
-    <div className="flex items-center justify-between gap-2 mb-4">
-      <div className="flex items-center gap-2">
-        <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
-          <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
-            {t("panels.marketNews")}
-          </span>
-      </div>
-    </div>
-    <div className="flex items-center gap-2 flex-wrap">
-      <CustomSelect
-        value={newsCategory}
-        onChange={setNewsCategory}
-        minWidth="0"
-        placeholder="All Categories"
-        options={[
-          {value:"all",          label:"All Categories"},
-          {value:"POLICY",       label:"Policy"},
-          {value:"MACRO",        label:"Macro"},
-          {value:"MARKETS",      label:"Markets"},
-          {value:"FOREX",        label:"Forex"},
-          {value:"FINANCE",      label:"Finance"},
-          {value:"COT",          label:"COT"},
-          {value:"CRYPTO",       label:"Crypto"},
-        ]}
-      />
-      <CustomSelect
-        value={newsSource}
-        onChange={setNewsSource}
-        minWidth="0"
-        placeholder="All Sources"
-        options={[
-          {value:"all",              label:"All Sources"},
-          {value:"Federal Reserve",  label:"Federal Reserve"},
-          {value:"ECB",              label:"ECB"},
-          {value:"CFTC",             label:"CFTC"},
-          {value:"BLS",              label:"BLS"},
-          {value:"ForexLive",        label:"ForexLive"},
-          {value:"MarketWatch",      label:"MarketWatch"},
-          {value:"Investing.com",    label:"Investing.com"},
-          {value:"Yahoo Finance",    label:"Yahoo Finance"},
-        ]}
-      />
-      <CustomSelect
-        value={newsImportance}
-        onChange={setNewsImportance}
-        minWidth="0"
-        placeholder="All Priority"
-        options={[
-          {value:"all",    label:"All Priority"},
-          {value:"high",   label:"High"},
-          {value:"medium", label:"Medium"},
-          {value:"low",    label:"Low"},
-        ]}
-      />
-    </div>
-  </div>
-  <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-    {news.length === 0 ? (
-      <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
-    ) : [...news]
-        .filter(item => newsCategory === "all" || item.category === newsCategory)
-        .filter(item => newsSource === "all" || item.source === newsSource)
-        .filter(item => newsImportance === "all" || item.importance === newsImportance)
-        .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""))
-        .map((item) => {
-          const url = item.url && item.url !== "#" ? item.url : null
-          const isHigh = item.importance === "high"
-          const isMed  = item.importance === "medium"
-          const pubDate = item.published_at ? new Date(item.published_at) : null
-          const dateStr = pubDate ? pubDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""
-          const timeStr = pubDate ? pubDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""
-          return (
-            <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
-              className={`block px-3 py-2.5 transition ${isHigh ? 'news-item-high' : isMed ? 'news-item-medium' : ''}`}
-              style={{ textDecoration: "none" }}
-              onClick={e => { if (!url) e.preventDefault() }}
-            >
-              <div className="flex items-center justify-between gap-2 mb-0.5">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={cls("text-[9px] uppercase tracking-[0.18em] shrink-0 font-semibold", categoryTone(item.category))}>
-                    {item.category}
-                  </span>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#93c5fd', letterSpacing: '0.04em', flexShrink: 0 }}>
-                    {item.source}
-                  </span>
+          {/* Market News */}
+          <section className="border border-zinc-900 ">
+            <div className="border-b border-zinc-900 px-3 py-4">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
+                    <span className="text-[11px] uppercase tracking-[0.35em] text-slate-200">
+                      {t("panels.marketNews")}
+                    </span>
                 </div>
-                {dateStr && (
-                  <span style={{ fontSize: '10px', color: '#60a5fa', whiteSpace: 'nowrap', flexShrink: 0, opacity: 0.7 }}>
-                    {dateStr} {timeStr}
-                  </span>
-                )}
               </div>
-              <div className="text-sm leading-5" style={{ color: '#e2e8f0', fontWeight: 400 }}>
-                {item.title || "Untitled"}
+              <div className="flex items-center gap-2 flex-wrap">
+                <CustomSelect
+                  value={newsCategory}
+                  onChange={setNewsCategory}
+                  minWidth="0"
+                  placeholder="All Categories"
+                  options={[
+                    {value:"all",          label:"All Categories"},
+                    {value:"POLICY",       label:"Policy"},
+                    {value:"MACRO",        label:"Macro"},
+                    {value:"MARKETS",      label:"Markets"},
+                    {value:"FOREX",        label:"Forex"},
+                    {value:"FINANCE",      label:"Finance"},
+                    {value:"COT",          label:"COT"},
+                    {value:"CRYPTO",       label:"Crypto"},
+                  ]}
+                />
+                <CustomSelect
+                  value={newsSource}
+                  onChange={setNewsSource}
+                  minWidth="0"
+                  placeholder="All Sources"
+                  options={[
+                    {value:"all",              label:"All Sources"},
+                    {value:"Federal Reserve",  label:"Federal Reserve"},
+                    {value:"ECB",              label:"ECB"},
+                    {value:"CFTC",             label:"CFTC"},
+                    {value:"BLS",              label:"BLS"},
+                    {value:"ForexLive",        label:"ForexLive"},
+                    {value:"MarketWatch",      label:"MarketWatch"},
+                    {value:"Investing.com",    label:"Investing.com"},
+                    {value:"Yahoo Finance",    label:"Yahoo Finance"},
+                  ]}
+                />
+                <CustomSelect
+                  value={newsImportance}
+                  onChange={setNewsImportance}
+                  minWidth="0"
+                  placeholder="All Priority"
+                  options={[
+                    {value:"all",    label:"All Priority"},
+                    {value:"high",   label:"High"},
+                    {value:"medium", label:"Medium"},
+                    {value:"low",    label:"Low"},
+                  ]}
+                />
               </div>
-              {item.summary && item.summary !== item.title && (
-                <div className="text-xs leading-4 mt-0.5" style={{ color: '#7191bd' }}>
-                  {item.summary.slice(0, 120)}{item.summary.length > 120 ? '…' : ''}
-                </div>
-              )}
-            </a>
-          )
-        })}
-  </div>
-</section>
+            </div>
+            <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+              {news.length === 0 ? (
+                <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
+              ) : [...news]
+                  .filter(item => newsCategory === "all" || item.category === newsCategory)
+                  .filter(item => newsSource === "all" || item.source === newsSource)
+                  .filter(item => newsImportance === "all" || item.importance === newsImportance)
+                  .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""))
+                  .map((item) => {
+                    const url = item.url && item.url !== "#" ? item.url : null
+                    const isHigh = item.importance === "high"
+                    const isMed  = item.importance === "medium"
+                    const pubDate = item.published_at ? new Date(item.published_at) : null
+                    const dateStr = pubDate ? pubDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""
+                    const timeStr = pubDate ? pubDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""
+                    return (
+                      <a key={item.id} href={url || undefined} target="_blank" rel="noopener noreferrer"
+                        className={`block px-3 py-2.5 transition ${isHigh ? 'news-item-high' : isMed ? 'news-item-medium' : ''}`}
+                        style={{ textDecoration: "none" }}
+                        onClick={e => { if (!url) e.preventDefault() }}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={cls("text-[9px] uppercase tracking-[0.18em] shrink-0 font-semibold", categoryTone(item.category))}>
+                              {item.category}
+                            </span>
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#93c5fd', letterSpacing: '0.04em', flexShrink: 0 }}>
+                              {item.source}
+                            </span>
+                          </div>
+                          {dateStr && (
+                            <span style={{ fontSize: '10px', color: '#60a5fa', whiteSpace: 'nowrap', flexShrink: 0, opacity: 0.7 }}>
+                              {dateStr} {timeStr}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm leading-5" style={{ color: '#e2e8f0', fontWeight: 400 }}>
+                          {item.title || "Untitled"}
+                        </div>
+                        {item.summary && item.summary !== item.title && (
+                          <div className="text-xs leading-4 mt-0.5" style={{ color: '#7191bd' }}>
+                            {item.summary.slice(0, 120)}{item.summary.length > 120 ? '…' : ''}
+                          </div>
+                        )}
+                      </a>
+                    )
+                  })}
+            </div>
+          </section>
         </div>
       </div></>
   )
@@ -3109,7 +3107,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   }
 
   return (
-    <section className="border border-zinc-900 ">
+    <section className="border border-zinc-900 min-h-full">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -3158,7 +3156,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
       {/* Items */}
       {data?.items?.length > 0 && (
         <div className="p-4 space-y-3">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
             {data.items.map((item) => (
               <div key={item.key} className={cls("border p-3 space-y-2", itemBg(item))}>
                 {/* Label + regime badge */}
@@ -3282,15 +3280,15 @@ const macroComposite = averagePercentile([
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
-
       {/* ── LEFT COLUMN ── */}
       <div className="space-y-4">
 
         {/* 1. MACRO COMPOSITE — sleeve overview + verdict */}
+        
         <Panel title={t("panels.macroComposite")} right={<GuideButton sectionKey="macro" openGuide={openGuide} />}>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="default-bg p-3 border border-zinc-900">
+              <div key={sleeve.key} className="small-panel-color p-3 border border-zinc-900 ">
                 <div className={cls('text-[10px] uppercase tracking-[0.24em] mb-1', sleeveColor(sleeve.key))}>
                   {sleeve.title}
                 </div>
@@ -3377,34 +3375,34 @@ const macroComposite = averagePercentile([
 
         {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
         <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="default-bg p-3 border border-zinc-900">
+            <div className="default-bg p-3">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Sleeve Dispersion</div>
               <div className="text-xl font-semibold text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
             </div>
-            <div className="default-bg p-3 border border-zinc-900">
+            <div className="default-bg p-3">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Macro Phase</div>
               <div className="text-xl font-semibold text-zinc-100">{macroPhase(macroComposite, t)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
             </div>
           </div>
           {/* 3. NARRATIVE SUMMARY */}
-        <div className="default-bg p-4 border border-zinc-900">
+        <div className="default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Narrative Summary</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
         </div>
 
         {/* 4. WHAT TO WATCH */}
-        <div className="default-bg p-4 border border-zinc-900">
+        <div className="default-bg p-4">
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">What To Watch</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
         </div>
         {/* 4. INTERPRETATION + TRADING RELEVANCE */}
-        <div className="p-4 default-bg border border-zinc-900">
+        <div className="p-4 default-bg">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Interpretation</div>
             <div className="text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
           </div>
-        <div className="p-4 default-bg border border-zinc-900">
+        <div className="p-4 default-bg">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Trading Relevance</div>
             <div className="text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
           </div>
@@ -3879,7 +3877,10 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
         <div className="default-bg">
           <div>
             <div className="border-b border-zinc-900 flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]">
-              <div className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t("panels.seasonality")}</div>
+              <div className="flex items-center gap-2">
+                <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+                <div className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t("panels.seasonality")}</div>
+              </div>
               <GuideButton sectionKey="seasonality" openGuide={openGuide} />
             </div>
             <div className="text-xs text-zinc-500 mt-1 px-5">
@@ -3929,7 +3930,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
             </div>
           </div>
           {/* Metrics */}
-          <div className="grid grid-cols-4 gap-2 px-5 pb-3">
+          <div className="grid grid-cols-4 gap-2 px-5 pb-3 metric-card">
             {[
               { label: 'Universe',   value: rows.length,                                   color: '#93c5fd' },
               { label: 'Supportive', value: supportiveCount,                               color: '#4ade80' },
@@ -3937,7 +3938,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
               { label: 'Triple ✓', value: tripleConfirm.length, color: '#a78bfa' },
               { label: 'COT-Seas Align', value: `${cotSeasonalAlignment}%`, color: cotSeasonalAlignment >= 60 ? '#4ade80' : cotSeasonalAlignment <= 30 ? '#f87171' : '#fbbf24' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="small-panel-color p-2 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div key={label} className="small-panel-color p-2 text-center">
                 <div style={{ fontSize: '18px', fontWeight: 700, color }}>{value}</div>
                 <div style={{ fontSize: '12px', color: '#f2f7ff', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '2px' }}>{label}</div>
               </div>
@@ -4160,49 +4161,52 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
 
       <div className="space-y-4"> 
       {/* Current Month Ranking — compact */}
-      <div className="default-bg">
-        <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-100 mb-3 py-3 px-4 border-b border-zinc-900 flex items-center justify-between">
-          <span>{currentMonth} Ranking</span>
-          <span style={{ fontSize: '10px', color: '#475569', fontWeight: 400 }}>{rows.length} assets</span>
-        </div>
-        <div className="px-2" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-          {rows.map((row, i) => (
-            <div key={row.symbol} className="flex  mb-2 items-center gap-3 py-1.5 pr-4 border-b border-zinc-900 last:border-b-0">
-              {/* Rank */}
-              <div style={{ fontSize: '10px', color: '#374151', fontWeight: 700, width: '16px', flexShrink: 0, textAlign: 'right' }}>
-                {i + 1}
-              </div>
-              {/* Name + sector */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#f1f5f9', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {row.name}
-                </div>
-                <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  {row.symbol}
-                </div>
-              </div>
-              {/* Bar + score */}
-              <div style={{ width: '80px', flexShrink: 0 }}>
-                <div style={{ height: '6px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', marginBottom: '3px', overflow: 'visible' }}>
-                  <div style={{
-                    width: `${Math.max(4, row.current)}%`, height: '100%', borderRadius: '2px',
-                    background: row.current >= 55 ? '#4ade80' : row.current <= 45 ? '#f87171' : '#fbbf24',
-                    boxShadow: row.current >= 55
-                      ? '0 0 6px rgba(74,222,128,0.7)'
-                      : row.current <= 45 ? '0 0 6px rgba(248,113,113,0.7)'
-                      : '0 0 6px rgba(251,191,36,0.5)',
-                  }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className={cls('text-[10px] font-bold', seasonalBiasTone(row.current))}>
-                    {formatPercentile(row.current)}
-                  </span>
-                </div>
-              </div>
+        <div className="default-bg">
+          <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-100 mb-3 py-3 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--panels-border)' }}>
+            <div className="flex items-center gap-2">
+              <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+              <span>{currentMonth} Ranking</span>
+              <span style={{ fontSize: '10px', color: '#475569', fontWeight: 400 }}>{rows.length} assets</span>
             </div>
-          ))}
+          </div>
+          <div className="px-2" style={{ maxHeight: '100%', overflowY: 'auto' }}>
+            {rows.map((row, i) => (
+              <div key={row.symbol} className="flex  mb-2 items-center gap-3 py-1.5 pr-4 border-b border-zinc-900 last:border-b-0">
+                {/* Rank */}
+                <div style={{ fontSize: '10px', color: '#374151', fontWeight: 700, width: '16px', flexShrink: 0, textAlign: 'right' }}>
+                  {i + 1}
+                </div>
+                {/* Name + sector */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f1f5f9', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {row.name}
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    {row.symbol}
+                  </div>
+                </div>
+                {/* Bar + score */}
+                <div style={{ width: '80px', flexShrink: 0 }}>
+                  <div style={{ height: '6px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', marginBottom: '3px', overflow: 'visible' }}>
+                    <div style={{
+                      width: `${Math.max(4, row.current)}%`, height: '100%', borderRadius: '2px',
+                      background: row.current >= 55 ? '#4ade80' : row.current <= 45 ? '#f87171' : '#fbbf24',
+                      boxShadow: row.current >= 55
+                        ? '0 0 6px rgba(74,222,128,0.7)'
+                        : row.current <= 45 ? '0 0 6px rgba(248,113,113,0.7)'
+                        : '0 0 6px rgba(251,191,36,0.5)',
+                    }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className={cls('text-[10px] font-bold', seasonalBiasTone(row.current))}>
+                      {formatPercentile(row.current)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
         <Panel title={simpleGuide.title}>
           <div className="space-y-3 text-sm leading-7 text-zinc-300">
             <div>{simpleGuide.summary}</div>
