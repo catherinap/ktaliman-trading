@@ -127,15 +127,15 @@ function MomentumBadge({ asset, size = "md" }) {
   const isSmall = size === "sm"
  
   return (
-    <div className={cls("flex items-center gap-1.5", isSmall ? "text-[10px]" : "text-xs")}>
+    <div className={cls("flex items-center gap-1.5", isSmall ? "text-[10px]" : "text-md")}>
       {/* Direction arrow */}
-      <span className={cls("font-bold tabular-nums", dirColor, isSmall ? "text-xs" : "text-sm")}>
+      <span className={cls("font-bold tabular-nums", dirColor, isSmall ? "text-md" : "text-md")}>
         {arrow}
       </span>
  
       {/* WoW change */}
       {wow != null && (
-        <span className={cls("tabular-nums uppercase tracking-[0.14em]", dirColor)}>
+        <span className={cls("tabular-nums font-bold uppercase tracking-[0.14em]", dirColor)}>
           {wow > 0 ? "+" : ""}{wow.toFixed(1)}
         </span>
       )}
@@ -147,7 +147,7 @@ function MomentumBadge({ asset, size = "md" }) {
  
       {/* 3w / 8w avg — only in md size */}
       {!isSmall && avg3w != null && avg8w != null && (
-        <span className="text-zinc-600 tabular-nums">
+        <span className="text-zinc-400 tabular-nums">
           3w:{avg3w.toFixed(0)} · 8w:{avg8w.toFixed(0)}
         </span>
       )}
@@ -2234,7 +2234,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
         </div>
 
         {/* ══ ROW 3: 2 equal cols — Calendar | News */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "0.9fr 1.1fr", alignItems: "start" }}>
 
           {/* Economic Calendar */}
           <section className="border border-zinc-900">
@@ -3107,7 +3107,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   }
 
   return (
-    <section className="border border-zinc-900 min-h-full">
+    <section className="border border-zinc-900">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -3488,14 +3488,14 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
             <Metric label="Avg Distance"  value={formatPercentile(avgDistance)} />
           </div>
-          <div className="flex flex-col gap-8 border border-zinc-900 small-panel-color py-4 px-3">
+          <div className="flex flex-col gap-7 small-panel-color py-4 px-3">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-1">Market Alignment</div>
-              <div className="text-lg font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
-              <div className="text-[10px] text-zinc-600 mt-0.5">{sameSectorPairs} same · {crossSectorPairs} cross-sector</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] mb-1">Market Alignment</div>
+              <div className="text-[20px] font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
+              <div className="text-[10px] text-zinc-400 mt-0.5">{sameSectorPairs} same · {crossSectorPairs} cross-sector</div>
             </div>
             <div className="flex-1">
-              <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <div style={{
                   width: `${Math.max(4, 100 - (avgDistance ?? 50))}%`,
                   height: '100%', borderRadius: '9999px',
@@ -3503,7 +3503,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                   boxShadow: `0 0 8px ${alignmentColor}80`,
                 }} />
               </div>
-              <div className="flex justify-between text-[9px] uppercase tracking-[0.12em] text-zinc-600 mt-1">
+              <div className="flex justify-between text-[9px] uppercase tracking-[0.12em] text-zinc-200 mt-1.5">
                 <span>Fragmented</span><span>Synchronized</span>
               </div>
             </div>
@@ -3647,51 +3647,35 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 
         {/* ── RIGHT ── */}
         <div className="space-y-4">
-
-        <div className="border border-zinc-900 small-panel-color p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
-          <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
-        </div>
-
-        <div className="border border-zinc-900 small-panel-color p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
-          <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
-        </div>
-
-        <div className="border border-zinc-900 small-panel-color p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
-          <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
-        </div>
-
-                    {/* COMPACT TOP PAIRS — side by side */}
+          {/* COMPACT TOP PAIRS — side by side */}
           <div className="grid gap-4 md:grid-cols-2">
 
             {/* Aligned */}
             <div className="border border-zinc-900 small-panel-color p-3">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-emerald-400 mb-3">
+              <div className="text-[12px] uppercase tracking-[0.25em] text-emerald-400 mb-3">
                 ● Top Aligned
               </div>
               <div className="space-y-1.5">
                 {alignedPairs.map((pair) => (
-                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 last:border-b-0">
+                  <div key={pair.key} className="flex items-center justify-between gap-1 py-1.5 last:border-b-0">
                     <div className="min-w-0">
-                      <div className="text-xs text-zinc-200 truncate">
+                      <div className="text-md truncate" style={{color:"var(--dots-color)"}}>
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
                       </div>
-                      <div className="text-[9px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-200">
                         {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Distance bar */}
-                      <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: 60, height: 5, borderRadius: 9999, background: 'rgba(15, 15, 15, 0.90)', overflow: 'hidden' }}>
                         <div style={{
                           width: `${100 - pair.distance}%`, height: '100%',
                           borderRadius: 9999, background: '#4ade80',
                           boxShadow: '0 0 4px rgba(74,222,128,0.6)',
                         }} />
                       </div>
-                      <span style={{ fontSize: '10px', color: '#4ade80', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: '11px', color: '#4ade80', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                         {Math.round(pair.distance)}
                       </span>
                     </div>
@@ -3702,30 +3686,30 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 
             {/* Opposed */}
             <div className="border border-zinc-900 small-panel-color p-3">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-rose-400 mb-3">
+              <div className="text-[12px] uppercase tracking-[0.25em] text-rose-400 mb-3">
                 ● Top Opposed
               </div>
               <div className="space-y-1.5">
                 {opposedPairs.map((pair) => (
-                  <div key={pair.key} className="flex items-center justify-between gap-2 py-1.5 last:border-b-0">
+                  <div key={pair.key} className="flex items-center justify-between gap-1 py-1.5 last:border-b-0">
                     <div className="min-w-0">
-                      <div className="text-xs text-zinc-200 truncate">
+                      <div className="text-md text-zinc-200 truncate" style={{color:"var(--dots-color)"}}>
                         {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
                       </div>
-                      <div className="text-[9px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-200">
                         {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Distance bar */}
-                      <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: 60, height: 5, borderRadius: 9999, background: 'rgba(15, 15, 15, 0.90)', overflow: 'hidden' }}>
                         <div style={{
                           width: `${pair.distance}%`, height: '100%',
                           borderRadius: 9999, background: '#f87171',
                           boxShadow: '0 0 4px rgba(248,113,113,0.6)',
                         }} />
                       </div>
-                      <span style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: '11px', color: '#f87171', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                         {Math.round(pair.distance)}
                       </span>
                     </div>
@@ -3735,6 +3719,22 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
 
           </div>
+
+        <div className="default-bg p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
+        </div>
+
+        <div className="default-bg p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
+        </div>
+
+        <div className="default-bg p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
+          <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -4685,28 +4685,14 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
             <Metric label="Flow State" value={asset.flow_state || "Neutral"} />
-            {asset.funds_index_wow_change != null && (
-              <div className="border border-zinc-900 p-2 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                <div style={{
-                  fontSize: '15px', fontWeight: 700,
-                  color: asset.funds_index_wow_change > 0 ? '#4ade80'
-                      : asset.funds_index_wow_change < 0 ? '#f87171' : '#94a3b8',
-                }}>
-                  {asset.funds_index_wow_change > 0 ? '+' : ''}{asset.funds_index_wow_change.toFixed(1)}
-                </div>
-                <div style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '2px' }}>
-                  WoW Change
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Momentum bar */}
-          <div className="bg-[#080808] px-4 py-3">
+          <div className="small-panel-color px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Momentum</span>
               <MomentumBadge asset={asset} size="md" />
-              <div className="flex items-center gap-6 text-[11px] text-slate-200">
+              <div className="flex items-center gap-6 text-[12px] text-slate-200">
                 {asset.funds_index_3w_avg != null && (
                   <span>3w avg: <span className={flowColor(asset.funds_index_3w_avg)}>
                     {asset.funds_index_3w_avg.toFixed(1)}

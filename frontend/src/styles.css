@@ -58,6 +58,9 @@ aside nav {
 
 aside nav::-webkit-scrollbar { display: none; }
 
+.full-height {
+  min-height: 100%;
+}
 /* Active nav — gradient pill */
 aside button[class*="border-blue-5"],
 aside button[class*="border-amber-4"], .ai-button {
@@ -121,14 +124,10 @@ section {
   box-shadow: 0 1px 0 var(--box-shadow-color) inset, 0 4px 24px rgba(0,0,0,0.25) !important;
 }
 
-.small-panel-color {
-background-color: var(--panel-color-light) !important;
-border-radius: 8px !important;
-}
-
-.metric-card>div {
+.metric-card>div, .small-panel-color {
   border: .0625rem solid var(--accent-border) !important;
-  background: #082a71 !important;
+  background: var(--panel-color-light) !important;
+  border-radius: 8px !important;
 }
 
 /* Inner cards */
