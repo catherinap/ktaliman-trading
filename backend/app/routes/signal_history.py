@@ -247,6 +247,34 @@ def run_backfill():
     threading.Thread(target=backfill_signal_history, daemon=True).start()
     return {"ok": True, "message": "Backfill started. Takes 1-2 min. Then check /api/signals/history."}
 
+@router.get("/signals/peaks")
+def get_signal_peaks():
+    """
+    Returns peak scores calculated from full COT history for all
+    currently directional assets. Used by frontend hybrid approach.
+    """
+    with engine.connect() as conn:
+        # Get all currently directional assets with their first directional date
+        rows = conn.execute(text("""
+            SELECT DISTINCT ON (symbol)
+                symbol, direction, first_seen_date
+            FROM signal_history
+            WHERE resolved_date IS NULL
+            ORDER BY symbol, first_seen_date DESC
+        """)).mappings().all()
+
+    peaks = {}
+    for row in rows:
+        peak = calculate_peak_from_history(
+            row["symbol"], row["direction"], row["first_seen_date"]
+        )
+        if peak is not None:
+            peaks[row["symbol"]] = {
+                "peak_score":     peak,
+                "direction":      row["direction"],
+                "first_seen_date": str(row["first_seen_date"]),
+            }
+    return {"peaks": peaks}
 
 @router.get("/signals/history")
 def get_signal_history(active_only: bool = False, limit: int = 200):

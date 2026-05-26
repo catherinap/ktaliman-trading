@@ -5001,6 +5001,7 @@ function SignalHistoryTable({ items, loading }) {
                 <th className="px-3 py-2 text-left">State</th>
                 <th className="px-3 py-2 text-right">Weeks</th>
                 <th className="px-3 py-2 text-right">COT Index</th>
+                <th className="px-3 py-2 text-right">Peak</th>
                 <th className="px-3 py-2 text-left">Flow</th>
                 <th className="px-3 py-2 text-left">First seen</th>
                 <th className="px-3 py-2 text-left">Trend (8w→now)</th>
@@ -5024,6 +5025,9 @@ function SignalHistoryTable({ items, loading }) {
                   </td>
                   <td className={cls("px-3 py-2 text-right tabular-nums font-medium", flowColor(s.current_score))}>
                     {s.current_score != null ? s.current_score.toFixed(1) : '—'}
+                  </td>
+                  <td className={cls("px-3 py-2 text-right tabular-nums", flowColor(s.peak_score))}>
+                    {s.peak_score != null ? s.peak_score.toFixed(1) : '—'}
                   </td>
                   <td className="px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-zinc-400">
                     {s.flow_state || '—'}
@@ -5119,6 +5123,16 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       })(),
     }))
   }, [engine.signals, assets])
+
+  const [peakScores, setPeakScores] = React.useState({})
+
+React.useEffect(() => {
+  fetch('/api/signals/peaks')
+    .then(r => r.json())
+    .then(d => setPeakScores(d.peaks || {}))
+    .catch(() => {})
+}, [])
+  
   const [sortBy, setSortBy] = useState('priority')
 
   const sectors = useMemo(() => {
