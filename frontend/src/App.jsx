@@ -1095,7 +1095,7 @@ function MiniSparkline({ values = [], positive = true }) {
   const fill = positive ? 'rgba(52,211,153,0.12)' : 'rgba(245,158,11,0.12)'
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-[84px] w-full rounded border border-zinc-900 bg-[#080808] p-2" preserveAspectRatio="none" aria-hidden="true">
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-[84px] w-full rounded small-panel-color p-2" preserveAspectRatio="none" aria-hidden="true">
       <polyline fill={fill} stroke="none" points={area} />
       <polyline fill="none" stroke={stroke} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" points={points} />
     </svg>
@@ -2092,7 +2092,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                 ].map(({ key, label, color }) => {
                   const score = sleeveScores[key];
                   return (
-                    <div key={key} className="border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+                    <div key={key} className="small-panel-color p-3" style={{ borderRadius: "10px" }}>
                       <div className={cls("text-[10px] uppercase tracking-[0.22em]", color)}>{label}</div>
                       <div className={cls("mt-1.5 text-xl font-semibold tabular-nums", macroTone(score))}>
                         {score != null ? score.toFixed(1) : "n/a"}
@@ -2106,7 +2106,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   );
                 })}
               </div>
-              <div className="mt-16 border border-zinc-900 small-panel-color p-3" style={{ borderRadius: "10px" }}>
+              <div className="mt-16 small-panel-color p-3" style={{ borderRadius: "10px" }}>
                 <div className="flex items-center justify-between text-xs">
                   <span className="uppercase tracking-[0.2em]">Composite</span>
                   <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
@@ -3107,7 +3107,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   }
 
   return (
-    <section className="border border-zinc-900">
+    <section className="default-bg">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -3120,7 +3120,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
           {data?.macro_regime && (
             <span className={cls("text-[11px] uppercase tracking-[0.22em]", regimeTone(data.macro_regime))}>
               {data.macro_regime}
-            </span>
+            </span> 
           )}
           <button
             onClick={load}
@@ -3288,7 +3288,7 @@ const macroComposite = averagePercentile([
         <Panel title={t("panels.macroComposite")} right={<GuideButton sectionKey="macro" openGuide={openGuide} />}>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="small-panel-color p-3 border border-zinc-900 ">
+              <div key={sleeve.key} className="small-panel-color p-3 small-panel-color ">
                 <div className={cls('text-[10px] uppercase tracking-[0.24em] mb-1', sleeveColor(sleeve.key))}>
                   {sleeve.title}
                 </div>
@@ -3314,7 +3314,7 @@ const macroComposite = averagePercentile([
         <Panel title={t("panels.sleeveDetail")}>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             {sleeveData.map((sleeve) => (
-              <div key={sleeve.key} className="border border-zinc-900 small-panel-color p-3">
+              <div key={sleeve.key} className="small-panel-color p-3">
                 <div className="flex items-center justify-between mb-3">
                   <div className={cls('text-[10px] uppercase tracking-[0.2em]', sleeveColor(sleeve.key))}>
                     {sleeve.title}
@@ -3651,7 +3651,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
           <div className="grid gap-4 md:grid-cols-2">
 
             {/* Aligned */}
-            <div className="border border-zinc-900 small-panel-color p-3">
+            <div className="small-panel-color p-3">
               <div className="text-[12px] uppercase tracking-[0.25em] text-emerald-400 mb-3">
                 ● Top Aligned
               </div>
@@ -3685,7 +3685,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
 
             {/* Opposed */}
-            <div className="border border-zinc-900 small-panel-color p-3">
+            <div className="small-panel-color p-3">
               <div className="text-[12px] uppercase tracking-[0.25em] text-rose-400 mb-3">
                 ● Top Opposed
               </div>
@@ -4038,7 +4038,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
               const cotColor = pct >= 65 ? '#4ade80' : '#f87171'
               const cotDir   = pct >= 65 ? 'Long' : 'Short'
               return (
-                <div key={symbol} className="p-3 small-panel-color" style={{ border: '1px solid var(--accent-border)'}}>
+                <div key={symbol} className="p-3 default-bg">
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', marginBottom: '6px' }}>{name}</div>
                   <div className="flex flex-wrap gap-1 mb-3">
                     <span style={{ fontSize: '9px', color: '#4ade80', background: 'rgba(74,222,128,0.08)',  
@@ -4061,7 +4061,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
                         position: 'absolute', top: 0, bottom: 0,
                         left: `${(monthIndex / 12) * 100}%`,
                         width: `${100 / 12}%`,
-                        background: 'rgba(251,191,36,0.12)',
+                        background: 'var(--accent-alpha)',
                         borderLeft: '1px solid rgba(251,191,36,0.5)',
                         pointerEvents: 'none',
                       }} />
@@ -4093,15 +4093,15 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
       <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to read green</div>
               <div className="mt-2">Green means the calendar month has been more supportive for that asset.</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to read red</div>
               <div className="mt-2">Red means that month has historically been less supportive or weaker.</div>
             </div>
-            <div className="border border-zinc-900 small-panel-color p-3 text-sm text-zinc-300">
+            <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Amber outline</div>
               <div className="mt-2">The outlined column marks the current month, so you know where to focus first.</div>
             </div>
@@ -4210,24 +4210,24 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
         <Panel title={simpleGuide.title}>
           <div className="space-y-3 text-sm leading-7 text-zinc-300">
             <div>{simpleGuide.summary}</div>
-            <div className="border border-zinc-900 small-panel-color p-3 text-zinc-400">{simpleGuide.takeaway}</div>
+            <div className="small-panel-color p-3 text-zinc-400">{simpleGuide.takeaway}</div>
           </div>
         </Panel>
         {/* Narrative blocks — column */}
         <div className="space-y-3">
-          <div className="border border-zinc-900 default-bg p-4">
+          <div className="default-bg p-4">
             <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
               Narrative Summary
             </div>
             <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.summary}</div>
           </div>
-          <div className="border border-zinc-900 default-bg p-4">
+          <div className="default-bg p-4">
             <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
               Trading Relevance
             </div>
             <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.tradingRelevance}</div>
           </div>
-          <div className="border border-zinc-900 default-bg p-4">
+          <div className="default-bg p-4">
             <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
               What To Watch
             </div>
@@ -4762,7 +4762,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   <span className={flowColor(profile.pct)}>{formatPercentile(profile.pct)}</span>
                   <span>Constructive</span>
                 </div>
-                <div className="border border-zinc-900 p-3 text-xs text-blue-400 small-panel-color mt-2">
+                <div className="p-3 text-xs text-blue-400 small-panel-color mt-2">
                   {profile.setupSummary}
                 </div>
               </div>
@@ -4788,7 +4788,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             title={t("panels.assetCharts")}
             right={<span className="text-[10px] uppercase tracking-[0.22em] text-slate-200">seasonal context</span>}
           >
-            <div className="border border-zinc-900 small-panel-color p-4">
+            <div className="p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">
                 Seasonal Curve
               </div>
@@ -4832,7 +4832,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
               {profile.checklist.map((item, idx) => (
                 <div
                   key={`${item.label}-${idx}`}
-                  className="flex items-start gap-3 border border-zinc-900 small-panel-color p-3"
+                  className="flex items-start gap-3 small-panel-color p-3"
                 >
                   <div
                     className={cls(
@@ -4868,7 +4868,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   <button
                     key={peer.symbol}
                     onClick={() => setSelected(peer.symbol)}
-                    className="w-full border border-zinc-900 small-panel-color p-3 text-left hover:border-zinc-700 transition"
+                    className="w-full small-panel-color p-3 text-left"
                   >
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-zinc-100">{peer.name}</div>
@@ -5220,13 +5220,13 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     .slice(0, 8)
   if (!sharpMoves.length) return null
   return (
-    <div className="border border-zinc-900 small-panel-color">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-900">
+    <div className="default-bg">
+      <div className="flex items-center gap-3 px-4 py-3 default-bg">
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 8px rgba(251,191,36,0.9)', flexShrink: 0 }} />
-        <span className="text-[11px] uppercase tracking-[0.28em] text-amber-300 font-semibold">
+        <span className="text-[11px] uppercase tracking-[0.28em] font-semibold" style={{borderColor: "var(--panels-border)"}}>
           Sharp Position Changes This Week
         </span>
-        <span className="ml-auto text-[10px] text-zinc-500">WoW ≥ 6pts</span>
+        <span className="ml-auto text-[10px] text-zinc-200">WoW ≥ 6pts</span>
       </div>
       <div className="grid gap-px md:grid-cols-2 xl:grid-cols-4">
         {sharpMoves.map(a => {
@@ -5238,14 +5238,13 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             <button
               key={a.symbol}
               onClick={() => { setSelected(a.symbol); setActive('explorer') }}
-              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left border-r border-zinc-900 last:border-r-0"
-            >
+              className="flex items-center justify-between gap-4 px-4 py-3 small-panel-color text-left last:border-r-0 hover:bg-white/[0.03] transition">
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{a.name}</div>
-                <div style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+                <div style={{ fontSize: '9px', color: '#638cc4', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
                   {a.symbol} · {normalizeSector(a.sector)}
                 </div>
-                <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>
+                <div style={{ fontSize: '10px', color: '#f4f8fe', marginTop: '2px' }}>
                   COT Index: <span style={{ color: pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>{pct.toFixed(0)}</span>
                 </div>
               </div>
@@ -5275,10 +5274,10 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   })
   if (!crowded.length) return null
   return (
-    <div className="border border-zinc-900 small-panel-color">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-900">
+    <div className="default-bg">
+      <div className="flex items-center gap-3 px-4 py-3 default-bg">
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.9)', flexShrink: 0 }} />
-        <span className="text-[11px] uppercase tracking-[0.28em] text-rose-400 font-semibold">
+        <span className="text-[11px] uppercase tracking-[0.28em] font-semibold" style={{borderColor: "var(--panels-border)"}}>
           Crowded Positioning Warnings
         </span>
         <span className="ml-auto text-[10px] text-zinc-500">
@@ -5294,17 +5293,17 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             <button
               key={a.symbol}
               onClick={() => { setSelected(a.symbol); setActive('explorer') }}
-              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left border-r border-zinc-900 last:border-r-0"
+              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left small-panel-color last:border-r-0"
             >
               <div>
                 <div className="text-sm font-semibold text-zinc-100">{a.name}</div>
-                <div className="mt-0.5 text-[9px] uppercase tracking-[0.1em] text-zinc-500">
+                <div className="mt-0.5 text-[9px] uppercase tracking-[0.1em]" style={{ color: '#638cc4' }}>
                   {a.symbol} · {normalizeSector(a.sector)}
                 </div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: dc }}>
                   {isLong ? 'Crowded Long' : 'Crowded Short'}
                 </div>
-                <div className="mt-0.5 text-[10px] text-zinc-500 leading-4">
+                <div className="mt-0.5 text-[10px] leading-4">
                   {isLong
                     ? 'Mean-reversion risk elevated'
                     : 'Short squeeze risk elevated'}
@@ -5332,7 +5331,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
       >
         {/* Filters inline */}
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 mb-4 pb-4 border-b border-zinc-900">
+        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 mb-4 pb-4">
           <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
             options={[{value:"all",label:"All States"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
               {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
@@ -5365,7 +5364,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   setSelected(signal.symbol)
                   setActive('explorer')
                 }}
-                className="w-full border border-zinc-900 small-panel-color p-4 text-left transition hover:border-zinc-700"
+                className="w-full default-bg p-4 text-left transition"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -5409,16 +5408,16 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                 </div>
 
                 <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs">
-                  <div className="border border-zinc-900 bg-zinc-950 p-2 text-zinc-400">
+                  <div className="small-panel-color p-2 text-zinc-400">
                     Signal: <span className="text-zinc-200">{signal.signalLabel}</span>
                   </div>
-                  <div className="border border-zinc-900 bg-zinc-950 p-2 text-zinc-400">
+                  <div className="small-panel-color p-2 text-zinc-400">
                     Flow: <span className="text-zinc-200">{signal.flowState}</span>
                   </div>
-                  <div className="border border-zinc-900 bg-zinc-950 p-2 text-zinc-400">
+                  <div className="small-panel-color p-2 text-zinc-400">
                     Macro: <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
                   </div>
-                  <div className="border border-zinc-900 bg-zinc-950 p-2 text-zinc-400">
+                  <div className="small-panel-color p-2 text-zinc-400">
                     Seasonality: <span className="text-zinc-200">{formatPercentile(signal.seasonalityScore)}</span>
                   </div>
                 </div>
@@ -5496,7 +5495,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         }
 
         return (
-          <div key={s.symbol} className="border border-zinc-900 small-panel-color p-4">
+          <div key={s.symbol} className="default-bg p-4">
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
@@ -5530,9 +5529,9 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                 { label: '3w avg',        value: avg3 != null ? avg3.toFixed(1) : '—' },
                 { label: '8w avg',        value: avg8 != null ? avg8.toFixed(1) : '—' },
               ].map(({ label, value }) => (
-                <div key={label} className="border border-zinc-900 px-2 py-1.5 text-center" style={{ background:'rgba(255,255,255,0.02)' }}>
+                <div key={label} className="small-panel-color px-2 py-1.5 text-center">
                   <div style={{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }}>{value}</div>
-                  <div style={{ fontSize:'8px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:'1px' }}>{label}</div>
+                  <div style={{ fontSize:'8px', color:'#519aff', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:'1px' }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -6058,7 +6057,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
  
   const idxBg = idx >= 90 ? "border-rose-800/50 bg-rose-950/20"
               : idx <= 10 ? "border-emerald-800/50 bg-emerald-950/20"
-              : "border-zinc-800 bg-[#080808]"
+              : "default-bg"
  
   return (
     <div className={cls("border p-4 space-y-3 transition hover:brightness-110", idxBg)}>
@@ -6084,14 +6083,14 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
       {/* Key metrics */}
       <div className="grid grid-cols-3 gap-2">
         {/* COT Index */}
-        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+        <div className="small-panel-color p-2 text-center">
           <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Index</div>
           <div className={cls("mt-1 text-base font-semibold tabular-nums", flowColor(idx))}>
             {idx != null ? idx.toFixed(1) : "n/a"}
           </div>
         </div>
         {/* Momentum */}
-        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+        <div className="small-panel-color p-2 text-center">
           <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Momentum</div>
           <div className={cls(
             "mt-1 text-sm font-medium",
@@ -6104,7 +6103,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
           </div>
         </div>
         {/* Flow State */}
-        <div className="border border-zinc-900 small-panel-color p-2 text-center">
+        <div className="small-panel-color p-2 text-center">
           <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Flow</div>
           <div className={cls("mt-1 text-[10px] uppercase tracking-[0.14em]", flowColor(idx))}>
             {asset.flow_state || "Neutral"}
@@ -6133,7 +6132,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
       {/* Open in Explorer */}
       <button
         onClick={() => onOpen(asset.symbol)}
-        className="w-full border border-zinc-800 py-1.5 text-[10px] uppercase tracking-[0.22em] text-slate-200 hover:border-zinc-700 hover:text-zinc-300 transition"
+        className="w-full default-bg py-1.5 text-[10px] uppercase tracking-[0.22em] text-slate-200"
       >
         {aiLanguage === "uk" ? "Відкрити аналіз →" : "Open in Explorer →"}
       </button>
@@ -7876,7 +7875,7 @@ React.useEffect(() => {
             })
 
             return (
-              <div key={note.id} className="border border-zinc-900 small-panel-color"
+              <div key={note.id} className="border rounded-[8px] border-blue-900"
                 style={{
                   borderColor: note.is_pinned ? 'rgba(251,191,36,0.25)' : undefined,
                   cursor: 'default',
