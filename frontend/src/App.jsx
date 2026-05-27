@@ -3547,18 +3547,17 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
           {/* CORRELATION HEATMAP */}
           <Panel title="Correlation Matrix">
             <div className="overflow-x-auto">
-              <table style={{ borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed', width: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed', width: '100%' }}>
                 <thead>
                   <tr>
                     {/* Empty corner — no minWidth */}
                     <th style={{ padding: '2px 4px 4px 0', width: '38px', minWidth: '38px' }} />
                     {universeAssets.map(a => (
                       <th key={a.symbol} style={{
-                        padding: '2px 0 6px', textAlign: 'center',
-                        width: '34px', minWidth: '34px',            
-                        color: '#64748b', fontWeight: 600,
-                        fontSize: '9px', letterSpacing: '0.08em',
-                        textTransform: 'uppercase', whiteSpace: 'nowrap',
+                        padding: '2px 2px 6px', textAlign: 'center',
+                        color: '#64748b', fontWeight: 600, fontSize: '9px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                        width: `${100 / (universeAssets.length + 1)}%`,
                       }}>
                         {shortName(a.name)}
                       </th>
@@ -3584,8 +3583,8 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                             <td key={colAsset.symbol}
                               onMouseEnter={() => { setHoveredRow(rowAsset.symbol); setHoveredCol(colAsset.symbol) }}
                               style={{
-                                padding: '0', textAlign: 'center',
-                                width: '30px', height: '30px', minWidth: '30px',
+                                padding: '4px 2px', textAlign: 'center',
+                                height: '28px',
                                 background:  hoveredRow === rowAsset.symbol || hoveredCol === colAsset.symbol
                                   ? 'rgba(96,165,250,0.08)'
                                   : 'rgba(255,255,255,0.02)',
@@ -3604,8 +3603,8 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                             title={`${rowAsset.name} ↔ ${colAsset.name}: gap ${dist != null ? Math.round(dist) : '—'}`}
                             onMouseEnter={() => { setHoveredRow(rowAsset.symbol); setHoveredCol(colAsset.symbol) }}
                             style={{
-                              padding: '0', textAlign: 'center',
-                              width: '30px', height: '30px', minWidth: '30px',
+                              padding: '4px 2px', textAlign: 'center',
+                              height: '28px',
                               background:hoveredRow === rowAsset.symbol && hoveredCol === colAsset.symbol
                                 ? 'transparent'  // виділяємо тільки через border, без зміни фону
                                 : hoveredRow === rowAsset.symbol || hoveredCol === colAsset.symbol
