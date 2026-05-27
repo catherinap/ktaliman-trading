@@ -5205,242 +5205,249 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </Panel>
       ) : (<>
 
-      <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
-            
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 metric-card">
-          <Metric label="Tracked Signals" value={engine.counts.total} />
-          <Metric label="Active" value={engine.counts.active} />
-          <Metric label="Aging" value={engine.counts.aging} />
-          <Metric label="Invalidated" value={engine.counts.invalidated} />
-          <Metric label="Alert Feed" value={engine.counts.alerts} />
-        </div>
-      </Panel>
-
-{/* ── SHARP POSITION CHANGES ── */}
-{(() => {
-  const sharpMoves = assets
-    .filter(a => a.funds_index_wow_change != null && Math.abs(a.funds_index_wow_change) >= 6)
-    .sort((a, b) => Math.abs(b.funds_index_wow_change) - Math.abs(a.funds_index_wow_change))
-    .slice(0, 8)
-  if (!sharpMoves.length) return null
-  return (
-  <Panel title="Sharp Position Changes" right={
-    <div className="flex items-center gap-2">
-      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 7px rgba(251,191,36,0.9)' }} />
-      <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">WoW ≥ 6pts</span>
+<div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+  <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 metric-card">
+      <Metric label="Tracked Signals" value={engine.counts.total} />
+      <Metric label="Active"          value={engine.counts.active} />
+      <Metric label="Aging"           value={engine.counts.aging} />
+      <Metric label="Invalidated"     value={engine.counts.invalidated} />
+      <Metric label="Alert Feed"      value={engine.counts.alerts} />
     </div>
-    }>
-   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {sharpMoves.map(a => {
-          const wow = a.funds_index_wow_change
-          const isUp = wow > 0
-          const dc = isUp ? '#4ade80' : '#f87171'
-          const pct = Number(a.funds_percentile_3y)
-          return (
-            <button
-              key={a.symbol}
-              onClick={() => { setSelected(a.symbol); setActive('explorer') }}
-              className="flex items-center justify-between gap-4 px-4 py-3 small-panel-color text-left last:border-r-0 hover:bg-white/[0.03] transition">
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{a.name}</div>
-                <div style={{ fontSize: '9px', color: '#638cc4', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
-                  {a.symbol} · {normalizeSector(a.sector)}
-                </div>
-                <div style={{ fontSize: '10px', color: '#f4f8fe', marginTop: '2px' }}>
-                  COT Index: <span style={{ color: pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>{pct.toFixed(0)}</span>
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
-                  {isUp ? '+' : ''}{wow.toFixed(1)}
-                </div>
-                <div style={{ fontSize: '10px', color: dc, marginTop: '2px' }}>
-                  {isUp ? '▲ Buying' : '▼ Selling'}
-                </div>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-    </Panel>
-  )
-})()}
-
-{/* ── CROWDED WARNINGS ── */}
-{(() => {
-  const crowded = assets.filter(a => {
-    const pct = Number(a.funds_percentile_3y)
-    return pct >= 88 || pct <= 12
-  }).sort((a, b) => {
-    return Math.abs(Number(b.funds_percentile_3y) - 50) - Math.abs(Number(a.funds_percentile_3y) - 50)
-  })
-  if (!crowded.length) return null
-  return (
-    <Panel title="Crowded Positioning Warnings" right={
+  </Panel>
+  <AIAnalysisPanel
+    type="signals"
+    data={{ signals: engine.signals.slice(0, 8).map(s => ({
+      asset: s.asset, symbol: s.symbol, direction: s.direction,
+      percentile: s.percentile, state: s.state,
+      entryQualityScore: s.entryQualityScore, sector: s.sector,
+    }))}}
+    aiLanguage={aiLanguage}
+    title={aiLanguage === 'uk' ? 'AI — Аналіз сигналів' : 'AI — Signal Analysis'}
+  />
+    </div>
+          
+<div className="grid gap-4 xl:grid-cols-2">
+  {/* ── SHARP POSITION CHANGES ── */}
+  {(() => {
+    const sharpMoves = assets
+      .filter(a => a.funds_index_wow_change != null && Math.abs(a.funds_index_wow_change) >= 6)
+      .sort((a, b) => Math.abs(b.funds_index_wow_change) - Math.abs(a.funds_index_wow_change))
+      .slice(0, 8)
+    if (!sharpMoves.length) return null
+    return (
+    <Panel title="Sharp Position Changes" right={
       <div className="flex items-center gap-2">
-        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 7px rgba(248,113,113,0.9)' }} />
-        <span className="text-[10px] uppercase tracking-[0.2em] text-rose-400">
-          {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
-        </span>
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 7px rgba(251,191,36,0.9)' }} />
+        <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">WoW ≥ 6pts</span>
       </div>
       }>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {crowded.map(a => {
-          const pct = Number(a.funds_percentile_3y)
-          const isLong = pct >= 88
-          const dc = isLong ? '#4ade80' : '#f87171'
-          return (
-            <button
-              key={a.symbol}
-              onClick={() => { setSelected(a.symbol); setActive('explorer') }}
-              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left small-panel-color last:border-r-0"
-            >
-              <div>
-                <div className="text-sm font-semibold text-zinc-100">{a.name}</div>
-                <div className="mt-0.5 text-[9px] uppercase tracking-[0.1em]" style={{ color: '#638cc4' }}>
-                  {a.symbol} · {normalizeSector(a.sector)}
-                </div>
-                <div className="mt-1.5 text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: dc }}>
-                  {isLong ? 'Crowded Long' : 'Crowded Short'}
-                </div>
-                <div className="mt-0.5 text-[10px] leading-4">
-                  {isLong
-                    ? 'Mean-reversion risk elevated'
-                    : 'Short squeeze risk elevated'}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
-                  {pct.toFixed(0)}
-                </div>
-                <div className="text-[9px] uppercase tracking-[0.1em] text-zinc-500 mt-0.5">
-                  COT Index
-                </div>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-    </Panel>
-  )
-})()}
-          
-      <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-       <Panel
-        title="Ranked Signals"
-        right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
-      >
-        {/* Filters inline */}
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 mb-4 pb-4">
-          <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
-            options={[{value:"all",label:"All States"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
-              {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
-          <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
-            options={[{value:"all",label:"All Directions"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
-          <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
-            options={sectors.map((s) => ({ value: s, label: s === "all" ? "All Sectors" : s }))} />
-          <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
-            options={[{value:"0",label:"Score 0+"},{value:"40",label:"Score 40+"},{value:"55",label:"Score 55+"},{value:"70",label:"Score 70+"}]} />
-          <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
-            options={[{value:"priority",label:"Sort: Priority"},{value:"quality",label:"Sort: Quality"},
-              {value:"freshness",label:"Sort: Freshness"},{value:"age",label:"Sort: Age"}]} />
-          <button
-            onClick={() => setAlertsOnly((v) => !v)}
-            className={cls(
-              'border px-3 py-2 text-[11px] uppercase tracking-[0.18em] transition w-full',
-              alertsOnly
-                ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
-                : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-            )}
-          >
-            {alertsOnly ? '⚡ Alerts On' : 'Alerts Only'}
-          </button>
-        </div>
-          <div className="space-y-3">
-            {filteredSignals.length ? filteredSignals.map((signal) => (
+    <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          {sharpMoves.map(a => {
+            const wow = a.funds_index_wow_change
+            const isUp = wow > 0
+            const dc = isUp ? '#4ade80' : '#f87171'
+            const pct = Number(a.funds_percentile_3y)
+            return (
               <button
-                key={signal.id}
-                onClick={() => {
-                  setSelected(signal.symbol)
-                  setActive('explorer')
-                }}
-                className="w-full default-bg p-4 text-left transition"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm text-zinc-100">{signal.asset}</div>
-                    <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-200">
-                      {signal.symbol} · {signal.sector}
-                    </div>
+                key={a.symbol}
+                onClick={() => { setSelected(a.symbol); setActive('explorer') }}
+                className="flex items-center justify-between gap-4 px-4 py-3 small-panel-color text-left last:border-r-0 hover:bg-white/[0.03] transition">
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f1f5f9' }}>{a.name}</div>
+                  <div style={{ fontSize: '9px', color: '#638cc4', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+                    {a.symbol} · {normalizeSector(a.sector)}
                   </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={cls('inline-flex items-center border px-2 py-1 text-[10px] uppercase tracking-[0.22em]', stateTone(signal.state))}>
-                      {stateLabel(signal.state)}
-                    </span>
-                    <span className={cls('text-[11px] uppercase tracking-[0.2em]', directionTone(signal.direction))}>
-                      {directionLabel(signal.direction)}
-                    </span>
+                  <div style={{ fontSize: '10px', color: '#f4f8fe', marginTop: '2px' }}>
+                    COT Index: <span style={{ color: pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>{pct.toFixed(0)}</span>
                   </div>
                 </div>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-5">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Priority</div>
-                    <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.priorityScore)}</div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
+                    {isUp ? '+' : ''}{wow.toFixed(1)}
                   </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Entry</div>
-                    <div className="mt-1 text-sm text-zinc-100">{signal.conviction}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Freshness</div>
-                    <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.freshnessScore)}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Age</div>
-                    <div className="mt-1 text-sm text-zinc-100">{signal.ageWeeks}w</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Regime</div>
-                    <div className="mt-1 text-sm text-zinc-100">{signal.regime}</div>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs">
-                  <div className="small-panel-color p-2 text-zinc-400">
-                    Signal: <span className="text-zinc-200">{signal.signalLabel}</span>
-                  </div>
-                  <div className="small-panel-color p-2 text-zinc-400">
-                    Flow: <span className="text-zinc-200">{signal.flowState}</span>
-                  </div>
-                  <div className="small-panel-color p-2 text-zinc-400">
-                    Macro: <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
-                  </div>
-                  <div className="small-panel-color p-2 text-zinc-400">
-                    Seasonality: <span className="text-zinc-200">{formatPercentile(signal.seasonalityScore)}</span>
+                  <div style={{ fontSize: '12px', color: dc, marginTop: '2px' }}>
+                    {isUp ? '▲ Buying' : '▼ Selling'}
                   </div>
                 </div>
               </button>
-            )) : (
-              <div className="text-sm text-zinc-400">No signals match the active filters.</div>
-            )}
-          </div>
-        </Panel>
+            )
+          })}
+        </div>
+      </Panel>
+    )
+  })()}
 
-        <div className="space-y-4">
-          <AIAnalysisPanel
-            type="signals"
-            data={{ signals: engine.signals.slice(0, 6) }}
-            aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI-Аналіз сигналів" : "AI Signal Analysis"}
-              />
-              
-          <Panel
-  title="Assets In Play"
-  right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">this week's top setups</span>}
+  {/* ── CROWDED WARNINGS ── */}
+  {(() => {
+    const crowded = assets.filter(a => {
+      const pct = Number(a.funds_percentile_3y)
+      return pct >= 88 || pct <= 12
+    }).sort((a, b) => {
+      return Math.abs(Number(b.funds_percentile_3y) - 50) - Math.abs(Number(a.funds_percentile_3y) - 50)
+    })
+    if (!crowded.length) return null
+    return (
+      <Panel title="Crowded Positioning Warnings" right={
+        <div className="flex items-center gap-2">
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 7px rgba(248,113,113,0.9)' }} />
+          <span className="text-[10px] uppercase tracking-[0.2em] text-rose-400">
+            {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
+          </span>
+        </div>
+        }>
+        <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          {crowded.map(a => {
+            const pct = Number(a.funds_percentile_3y)
+            const isLong = pct >= 88
+            const dc = isLong ? '#4ade80' : '#f87171'
+            return (
+              <button
+                key={a.symbol}
+                onClick={() => { setSelected(a.symbol); setActive('explorer') }}
+                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/[0.03] transition text-left small-panel-color last:border-r-0"
+              >
+                <div>
+                  <div className="text-sm font-semibold text-zinc-100">{a.name}</div>
+                  <div className="mt-0.5 text-[9px] uppercase tracking-[0.1em]" style={{ color: '#638cc4' }}>
+                    {a.symbol} · {normalizeSector(a.sector)}
+                  </div>
+                  <div className="mt-0.5 text-[10px] leading-4">
+                    {isLong
+                      ? 'Mean-reversion risk elevated'
+                      : 'Short squeeze risk elevated'}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
+                    {pct.toFixed(0)}
+                  </div>
+                  <div className="text-[9px] uppercase tracking-[0.1em] text-zinc-500 mt-0.5">
+                    COT Index
+                  </div>
+                  <div className="text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: dc }}>
+                    {isLong ? 'Crowded Long' : 'Crowded Short'}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </Panel>
+    )
+  })()}
+</div>
+
+          
+<div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
+  <Panel
+  title="Ranked Signals"
+  right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
 >
-  <div className="space-y-3">
+  {/* Filters inline */}
+  <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 pb-4">
+    <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
+      options={[{value:"all",label:"All States"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
+        {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
+    <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
+      options={[{value:"all",label:"All Bias"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
+    <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
+      options={sectors.map((s) => ({ value: s, label: s === "all" ? "All Sectors" : s }))} />
+    <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
+      options={[{value:"0",label:"Score 0+"},{value:"40",label:"Score 40+"},{value:"55",label:"Score 55+"},{value:"70",label:"Score 70+"}]} />
+    <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
+      options={[{value:"priority",label:"Priority"},{value:"quality",label:"Quality"},
+        {value:"freshness",label:"Freshness"},{value:"age",label:"Age"}]} />
+    <button
+      onClick={() => setAlertsOnly((v) => !v)}
+      className={cls(
+        'border px-1 py-1 text-[10px] tracking-[0.18em] transition w-full',
+        alertsOnly
+          ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+          : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+      )}
+    >
+      {alertsOnly ? '⚡ Alerts On' : 'Alerts Only'}
+    </button>
+  </div>
+    <div className="space-y-3">
+      {filteredSignals.length ? filteredSignals.map((signal) => (
+        <button
+          key={signal.id}
+          onClick={() => {
+            setSelected(signal.symbol)
+            setActive('explorer')
+          }}
+          className="w-full default-bg p-4 text-left transition"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-sm text-zinc-100">{signal.asset}</div>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-200">
+                {signal.symbol} · {signal.sector}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cls('inline-flex items-center border px-2 py-1 text-[10px] uppercase tracking-[0.22em]', stateTone(signal.state))}>
+                {stateLabel(signal.state)}
+              </span>
+              <span className={cls('text-[11px] uppercase tracking-[0.2em]', directionTone(signal.direction))}>
+                {directionLabel(signal.direction)}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-5">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Priority</div>
+              <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.priorityScore)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Entry</div>
+              <div className="mt-1 text-sm text-zinc-100">{signal.conviction}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Freshness</div>
+              <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.freshnessScore)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Age</div>
+              <div className="mt-1 text-sm text-zinc-100">{signal.ageWeeks}w</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Regime</div>
+              <div className="mt-1 text-sm text-zinc-100">{signal.regime}</div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs">
+            <div className="small-panel-color p-2 text-zinc-400">
+              Signal: <span className="text-zinc-200">{signal.signalLabel}</span>
+            </div>
+            <div className="small-panel-color p-2 text-zinc-400">
+              Flow: <span className="text-zinc-200">{signal.flowState}</span>
+            </div>
+            <div className="small-panel-color p-2 text-zinc-400">
+              Macro: <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
+            </div>
+            <div className="small-panel-color p-2 text-zinc-400">
+              Seasonality: <span className="text-zinc-200">{formatPercentile(signal.seasonalityScore)}</span>
+            </div>
+          </div>
+        </button>
+      )) : (
+        <div className="text-sm text-zinc-400">No signals match the active filters.</div>
+      )}
+    </div>
+  </Panel>
+
+  <div className="space-y-4">
+    <Panel
+      title="Assets In Play"
+      right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">this week's top setups</span>}
+    >
+    <div className="space-y-3">
     {engine.signals
       .filter(s => s.state === 'active' || s.state === 'aging')
       .sort((a, b) => b.priorityScore - a.priorityScore)
