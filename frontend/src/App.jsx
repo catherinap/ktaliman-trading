@@ -4774,7 +4774,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           </Panel>
 
           {/* Contextual Interpretation + GPT Commentary */}
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             <Panel title={t("panels.contextualInterpretation")}>
               <div className="space-y-1">
                 {renderNarrative(profile.contextualInterpretation)}
@@ -5205,9 +5205,9 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         </Panel>
       ) : (<>
 
-<div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+<div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
   <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 metric-card">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 metric-card">
       <Metric label="Tracked Signals" value={engine.counts.total} />
       <Metric label="Active"          value={engine.counts.active} />
       <Metric label="Aging"           value={engine.counts.aging} />
@@ -5227,7 +5227,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   />
     </div>
           
-<div className="grid gap-4 xl:grid-cols-2">
+<div className="grid gap-3 xl:grid-cols-2">
   {/* ── SHARP POSITION CHANGES ── */}
   {(() => {
     const sharpMoves = assets
@@ -5242,7 +5242,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">WoW ≥ 6pts</span>
       </div>
       }>
-    <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+    <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
           {sharpMoves.map(a => {
             const wow = a.funds_index_wow_change
             const isUp = wow > 0
@@ -5296,7 +5296,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           </span>
         </div>
         }>
-        <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="grid gap-3  " style={{ gridTemplateColumns: '1fr 1fr' }}>
           {crowded.map(a => {
             const pct = Number(a.funds_percentile_3y)
             const isLong = pct >= 88
