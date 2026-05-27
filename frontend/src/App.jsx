@@ -5224,15 +5224,13 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     .slice(0, 8)
   if (!sharpMoves.length) return null
   return (
-    <div className="default-bg">
-      <div className="flex items-center gap-3 px-4 py-3 default-bg">
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 8px rgba(251,191,36,0.9)', flexShrink: 0 }} />
-        <span className="text-[11px] uppercase tracking-[0.28em] font-semibold" style={{borderColor: "var(--panels-border)"}}>
-          Sharp Position Changes This Week
-        </span>
-        <span className="ml-auto text-[10px] text-zinc-200">WoW ≥ 6pts</span>
-      </div>
-      <div className="grid gap-px md:grid-cols-2 xl:grid-cols-4">
+  <Panel title="Sharp Position Changes" right={
+    <div className="flex items-center gap-2">
+      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 7px rgba(251,191,36,0.9)' }} />
+      <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">WoW ≥ 6pts</span>
+    </div>
+    }>
+   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {sharpMoves.map(a => {
           const wow = a.funds_index_wow_change
           const isUp = wow > 0
@@ -5264,7 +5262,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           )
         })}
       </div>
-    </div>
+    </Panel>
   )
 })()}
 
@@ -5278,17 +5276,15 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   })
   if (!crowded.length) return null
   return (
-    <div className="default-bg">
-      <div className="flex items-center gap-3 px-4 py-3 default-bg">
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.9)', flexShrink: 0 }} />
-        <span className="text-[11px] uppercase tracking-[0.28em] font-semibold" style={{borderColor: "var(--panels-border)"}}>
-          Crowded Positioning Warnings
-        </span>
-        <span className="ml-auto text-[10px] text-zinc-500">
+    <Panel title="Crowded Positioning Warnings" right={
+      <div className="flex items-center gap-2">
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 7px rgba(248,113,113,0.9)' }} />
+        <span className="text-[10px] uppercase tracking-[0.2em] text-rose-400">
           {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
         </span>
       </div>
-      <div className="grid gap-px md:grid-cols-2 xl:grid-cols-4">
+      }>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {crowded.map(a => {
           const pct = Number(a.funds_percentile_3y)
           const isLong = pct >= 88
@@ -5325,7 +5321,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           )
         })}
       </div>
-    </div>
+    </Panel>
   )
 })()}
           
