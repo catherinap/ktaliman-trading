@@ -18,6 +18,7 @@
   --news-medium-bg: rgba(251, 191, 36, 0.2);
   --news-medium-bg-hover: rgba(251, 191, 36, 0.3);
   --box-shadow-color: rgba(1, 4, 15, 0.974);
+  --green-color: #4ade80;
 }
 * { box-sizing: border-box; }
 
@@ -361,6 +362,38 @@ th.sticky .left-0 {
 
 .cal-item-medium:hover {
   background: linear-gradient(90deg, var(--news-medium-bg-hover) 0%, transparent 65%) !important;
+}
+
+.active-status {
+  padding: 1px 5px;
+    margin-top: 3px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(74, 222, 128);
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.aging-status {
+    padding: 1px 5px;
+    margin-top: 3px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(251, 191, 36);
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.short-dir {
+  color: var(--news-high-border);
+  text-shadow: rgba(248, 113, 113, 0.9) 0px 0px 7px;
+}
+
+.long-dir {
+  color: var(--green-color);
+    text-shadow: rgba(74, 222, 128, 0.9) 0px 0px 7px;
 }
 
 /* ── Focus ──────────────────────────────────────────────────────────────── */

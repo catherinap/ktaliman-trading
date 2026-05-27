@@ -515,8 +515,8 @@ function classifySignalState({ direction, percentile, ageWeeks, entryQualityScor
 }
 
 function stateTone(state) {
-  if (state === 'active') return 'text-emerald-300 border-emerald-700/40 bg-emerald-500/5'
-  if (state === 'aging') return 'text-amber-300 border-amber-700/40 bg-amber-500/5'
+  if (state === 'active') return 'active-status'
+  if (state === 'aging') return 'aging-status'
   if (state === 'stale') return 'text-zinc-400 border-zinc-700/40 bg-zinc-500/5'
   if (state === 'invalidated') return 'text-rose-300 border-rose-700/40 bg-rose-500/5'
   return 'text-sky-300 border-sky-700/40 bg-sky-500/5'
@@ -531,8 +531,8 @@ function stateLabel(state) {
 }
 
 function directionTone(direction) {
-  if (direction === 'long') return 'text-emerald-300'
-  if (direction === 'short') return 'text-rose-300'
+  if (direction === 'long') return 'long-dir'
+  if (direction === 'short') return 'short-dir'
   return 'text-zinc-400'
 }
 
@@ -1867,9 +1867,9 @@ function Panel({ title, children, right }) {
 
 function Metric({ label, value }) {
   return (
-    <div className="border p-3" style={{ background: 'var(--panel-color-light)', borderColor: 'var(--accent-border)', borderRadius: '10px' }}>
-      <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{label}</div>
-      <div className="mt-2 text-zinc-100">{value}</div>
+    <div className="p-2 border" style={{ background: 'var(--panel-color-light)', borderColor: 'var(--accent-border)', borderRadius: '8px' }}>
+      <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200">{label}</div>
+      <div className="mt-1 text-zinc-100">{value}</div>
     </div>
   )
 }
@@ -2157,7 +2157,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                 <div key={alert.id} className="px-4 py-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
-                    <span className={cls("shrink-0 border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
+                    <span className={cls("shrink-0 border rounded-[3px] px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
                       alertImpactTone(alert.impact))}>
                       {alert.impact}
                     </span>
@@ -3586,9 +3586,9 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                                 padding: '4px 2px', textAlign: 'center',
                                 height: '28px',
                                 background:  hoveredRow === rowAsset.symbol || hoveredCol === colAsset.symbol
-                                  ? 'rgba(96,165,250,0.08)'
-                                  : 'rgba(255,255,255,0.02)',
-                                color: '#2d3748',
+                                  ? 'rgba(5, 16, 32, 0.93)'
+                                  : 'rgba(1, 7, 24, 0.06)',
+                                color: '#444e5f',
                                 cursor: 'crosshair',
                               }}
                             >
@@ -3661,8 +3661,8 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                 {alignedPairs.map((pair) => (
                   <div key={pair.key} className="flex items-center justify-between gap-1 py-1.5 last:border-b-0">
                     <div className="min-w-0">
-                      <div className="text-md truncate" style={{color:"var(--dots-color)"}}>
-                        {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
+                      <div className="text-[14px] truncate" style={{color:"#4ade80", fontWeight: 700}}>
+                        {shortName(pair.left.name)} - {shortName(pair.right.name)}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-200">
                         {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
@@ -3695,8 +3695,8 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                 {opposedPairs.map((pair) => (
                   <div key={pair.key} className="flex items-center justify-between gap-1 py-1.5 last:border-b-0">
                     <div className="min-w-0">
-                      <div className="text-md text-zinc-200 truncate" style={{color:"var(--dots-color)"}}>
-                        {shortName(pair.left.name)} ↔ {shortName(pair.right.name)}
+                      <div className="text-[14px] text-zinc-200 truncate" style={{color:"#f87171", fontWeight: 700}}>
+                        {shortName(pair.left.name)} - {shortName(pair.right.name)}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-200">
                         {formatPercentile(pair.leftPct)} / {formatPercentile(pair.rightPct)}
@@ -5207,7 +5207,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
   <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 metric-card">
-      <Metric label="Tracked Signals" value={engine.counts.total} />
+      <Metric label="Signals" value={engine.counts.total} />
       <Metric label="Active"          value={engine.counts.active} />
       <Metric label="Aging"           value={engine.counts.aging} />
       <Metric label="Invalidated"     value={engine.counts.invalidated} />
@@ -5245,7 +5245,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           {sharpMoves.map(a => {
             const wow = a.funds_index_wow_change
             const isUp = wow > 0
-            const dc = isUp ? '#4ade80' : '#f87171'
+            const dc = isUp ? 'long-dir' : 'short-dir'
             const pct = Number(a.funds_percentile_3y)
             return (
               <button
@@ -5262,10 +5262,10 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
+                  <div className={dc} style={{ fontSize: '18px', fontWeight: 800, lineHeight: 1 }}>
                     {isUp ? '+' : ''}{wow.toFixed(1)}
                   </div>
-                  <div style={{ fontSize: '12px', color: dc, marginTop: '2px' }}>
+                  <div className={dc} style={{ fontSize: '12px', marginTop: '2px' }}>
                     {isUp ? '▲ Buying' : '▼ Selling'}
                   </div>
                 </div>
@@ -5299,7 +5299,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           {crowded.map(a => {
             const pct = Number(a.funds_percentile_3y)
             const isLong = pct >= 88
-            const dc = isLong ? '#4ade80' : '#f87171'
+            const dc = isLong ? 'long-dir' : 'short-dir'
             return (
               <button
                 key={a.symbol}
@@ -5318,13 +5318,13 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: dc, lineHeight: 1 }}>
+                  <div className={dc} style={{ fontSize: '18px', fontWeight: 800, lineHeight: 1 }}>
                     {pct.toFixed(0)}
                   </div>
                   <div className="text-[9px] uppercase tracking-[0.1em] text-zinc-500 mt-0.5">
                     COT Index
                   </div>
-                  <div className="text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: dc }}>
+                  <div className={dc} style={{textTransform: 'uppercase', fontSize: '10px'}}>
                     {isLong ? 'Crowded Long' : 'Crowded Short'}
                   </div>
                 </div>
@@ -5338,7 +5338,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 </div>
 
           
-<div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
+<div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
   <Panel
   title="Ranked Signals"
   right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
@@ -5388,7 +5388,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className={cls('inline-flex items-center border px-2 py-1 text-[10px] uppercase tracking-[0.22em]', stateTone(signal.state))}>
+              <span className={cls('inline-flex items-center border rounded-[3px] px-[5px] py-[1px] text-[10px] uppercase tracking-[0.22em]', stateTone(signal.state))}>
                 {stateLabel(signal.state)}
               </span>
               <span className={cls('text-[11px] uppercase tracking-[0.2em]', directionTone(signal.direction))}>
@@ -5505,25 +5505,26 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9' }}>{s.asset}</span>
-                  <span style={{ fontSize:'9px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.symbol} · {s.sector}</span>
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize:'14px', fontWeight:400, color:'#f1f5f9' }}>{s.asset} ·</span>
+                  <span style={{ fontSize:'10px', color:'#f1f5f9', textTransform:'uppercase', letterSpacing:'0.1em', paddingTop: '3px' }}>{s.symbol} · {s.sector}</span>
                   <span style={{
-                    fontSize:'9px', padding:'1px 5px', borderRadius:'3px', textTransform:'uppercase', letterSpacing:'0.08em',
+                    fontSize:'10px', padding:'1px 5px',marginTop: '3px' , borderRadius:'3px', textTransform:'uppercase', letterSpacing:'0.08em',
                     color: s.state==='active' ? '#4ade80' : '#fbbf24',
                     background: s.state==='active' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
                     border: `1px solid ${s.state==='active' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
                   }}>{s.state}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize:'11px', fontWeight:700, color:dc }}>{isLong ? '↑ Long' : '↓ Short'}</span>
-                  <span style={{ fontSize:'10px', color:'#475569' }}>{ast?.flow_state || ''}</span>
+                  <span style={{ fontSize:'12px', fontWeight:700, color:dc }}>{isLong ? '↑ Long' : '↓ Short'}</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '11px', color: '#6085ff' }}>{ast?.flow_state || ''}</span></div>
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 {pct != null && <div style={{ fontSize:'22px', fontWeight:800, color:dc, lineHeight:1 }}>{pct.toFixed(0)}</div>}
-                <div style={{ fontSize:'9px', color:'#475569', letterSpacing:'0.08em', textTransform:'uppercase' }}>COT index</div>
-                {wow != null && <div style={{ fontSize:'9px', color: wow>0?'#4ade80':'#f87171', marginTop:'2px' }}>{wow>0?'+':''}{wow.toFixed(1)} this week</div>}
+                <div style={{ fontSize:'10px', color:'#6085ff', letterSpacing:'0.08em' }}>COT Index</div>
+                {wow != null && <div style={{ fontSize:'11px', color: wow>0?'#4ade80':'#f87171'}}>{wow>0?'+':''}{wow.toFixed(1)} this week</div>}
               </div>
             </div>
 
@@ -5535,29 +5536,29 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                 { label: '3w avg',        value: avg3 != null ? avg3.toFixed(1) : '—' },
                 { label: '8w avg',        value: avg8 != null ? avg8.toFixed(1) : '—' },
               ].map(({ label, value }) => (
-                <div key={label} className="small-panel-color px-2 py-1.5 text-center">
+                <div key={label} className="small-panel-color px-1 py-1.5 text-center">
                   <div style={{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }}>{value}</div>
-                  <div style={{ fontSize:'8px', color:'#519aff', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:'1px' }}>{label}</div>
+                  <div style={{ fontSize:'9px', color:'#a9cdff', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:'1px' }}>{label}</div>
                 </div>
               ))}
             </div>
 
             {/* Why */}
             <div className="mb-2">
-              <div style={{ fontSize:'9px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Why this signal</div>
-              <div style={{ fontSize:'11px', color:'#cbd5e1', lineHeight:'1.65' }}>{why}</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Why this signal</div>
+              <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{why}</div>
             </div>
 
             {/* What to do */}
             <div className="mb-2">
-              <div style={{ fontSize:'9px', fontWeight:700, color:'#60a5fa', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>What to do</div>
-              <div style={{ fontSize:'11px', color:'#cbd5e1', lineHeight:'1.65' }}>{action}</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#60a5fa', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>What to do</div>
+              <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{action}</div>
             </div>
 
             {/* Risk */}
             <div>
-              <div style={{ fontSize:'9px', fontWeight:700, color:'#f87171', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Risk note</div>
-              <div style={{ fontSize:'11px', color:'#94a3b8', lineHeight:'1.65' }}>{risk}</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#f87171', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Risk note</div>
+              <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{risk}</div>
             </div>
           </div>
         )
