@@ -2308,7 +2308,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   const isPast = event.datetime ? new Date(event.datetime) < new Date() : false;
                   return (
                     <div key={`${event.id}-${idx}`}
-                       className={isHigh ? 'cal-item-high' : isMed ? 'cal-item-medium' : ''}>
+                      className={`px-4 py-2 ${isHigh ? 'cal-item-high' : isMed ? 'cal-item-medium' : ''}`}>
                       {/* Row 1: time + currency + title + importance */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="calendar-row flex items-center gap-2 min-w-0 flex-1">
