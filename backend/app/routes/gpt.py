@@ -48,6 +48,7 @@ def system_prompt(language: str) -> str:
             "Ти старший макроекономічний аналітик та спеціаліст з COT звітів CFTC. "
             "Відповідай ВИКЛЮЧНО українською мовою. "
             "Використовуй природну фінансову термінологію. "
+            "Слово 'contrarian' завжди перекладай як 'контраріанський'. "
             "Будь конкретним, лаконічним та практично корисним для активного трейдера. "
             "Не повторюй вхідні дані — інтерпретуй їх. "
             "Форматуй заголовки жирним через **заголовок:**"
@@ -69,12 +70,19 @@ def asset_prompt(data: dict, language: str) -> str:
     extra = ""
     if am_net is not None: extra += f"Asset Manager Net: {fmt_num(am_net)}\n"
     if producer_net is not None: extra += f"Producer/Merchant Net: {fmt_num(producer_net)}\n"
-    contrarian_signal = data.get("contrarian_signal")
-    contrarian_label  = data.get("contrarian_label")
-    contrarian_note   = ""
+    contrarian_signal     = data.get("contrarian_signal")
+    contrarian_label      = data.get("contrarian_label")
+    contrarian_confidence = data.get("contrarian_confidence")
+    contrarian_note       = ""
     if contrarian_signal:
-      contrarian_note = f"\nIMPORTANT - Contrarian COT Read: {contrarian_signal} — {contrarian_label} ({contrarian_confidence})"
-      contrarian_note += f"\nThis asset has a contrarian warning. The direct COT positioning is one thing, but the contrarian read suggests the opposite price direction is likely. Please explicitly mention both the direct positioning AND the contrarian implication in your analysis. Explain WHY the contrarian signal applies here."
+        conf_str = f" ({contrarian_confidence})" if contrarian_confidence else ""
+        contrarian_note = (
+            f"\nIMPORTANT — Contrarian COT Read: {contrarian_signal} — {contrarian_label}{conf_str}\n"
+            f"This asset has a contrarian warning. The direct COT positioning is one thing, "
+            f"but the contrarian read suggests the opposite price direction is more likely. "
+            f"Please explicitly mention BOTH the direct positioning AND the contrarian implication. "
+            f"Explain WHY the contrarian signal applies here in simple terms."
+        )
 
     if language == "uk":
         return f"""Проаналізуй поточне COT позиціонування:
@@ -87,10 +95,10 @@ Dealer Net: {fmt_num(dealer_net)}
 Open Interest: {fmt_num(oi)}
 Структуруй відповідь:
 **Поточний стан:** що говорять цифри про інституційне позиціонування
-**Контекст:** що це означає для цього активу прямо зараз
-**На що дивитись:** конкретний тригер або подія наступного тижня
+**Контекст:** 2-3 речення — що це означає для цього активу прямо зараз, включаючи поточний ринковий контекст
+**На що дивитись:** одна конкретна річ для моніторингу наступного тижня — наприклад конкретний поріг COT (наприклад "якщо WoW зміна стане від'ємною") або ціновий рівень, а не загальне твердження
 **Bias:** Bullish / Bearish / Neutral з коротким обгрунтуванням
-Максимум 200 слів."""
+Максимум 300 слів."""
     return f"""Analyze current COT positioning:
 Asset: {name} ({symbol}) | Sector: {sector}
 COT Index (0=3y low, 100=3y high): {fmt(cot_index)}
@@ -101,9 +109,9 @@ Dealer Net: {fmt_num(dealer_net)}
 Structure your response:
 **Current State:** what the numbers say about institutional positioning
 **Context:** what this means for this asset right now
-**What to Watch:** specific trigger or event for next week
+**What to Watch:** one specific, concrete thing to monitor next week — ideally a COT threshold (e.g. "if WoW change turns negative") or a price level, not a general statement
 **Bias:** Bullish / Bearish / Neutral with brief reasoning
-Max 200 words."""
+Max 300 words."""
 
 def macro_prompt(data: dict, language: str) -> str:
     def sleeve_str(assets):
