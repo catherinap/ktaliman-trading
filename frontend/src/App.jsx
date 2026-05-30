@@ -4490,6 +4490,38 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 
     const conviction = Math.abs(safe - 50) * 2;
 
+    // Equity indices use contrarian interpretation
+const isEquity = ['SPX', 'NDX', 'DJIA', 'RTY', 'VIX'].includes(sym)
+
+const contrarianRead = (() => {
+  if (!isEquity) return null
+  if (safe <= 15) return {
+    signal: 'CONTRARIAN BULLISH',
+    color: '#4ade80',
+    label: 'Capitulation / Bottom',
+    text: 'Speculators are at a 3-year short extreme. Historically this marks capitulation — not a time to follow the crowd short, but to watch for a squeeze setup. Smart money often fades this extreme.',
+  }
+  if (safe <= 35) return {
+    signal: 'CONTRARIAN WATCH',
+    color: '#fbbf24',
+    label: 'Accumulation Zone',
+    text: 'Speculators are heavily short on equities. This is the zone where institutional accumulation often begins quietly. Direct COT says bearish — but contrarian logic says watch for a reversal catalyst.',
+  }
+  if (safe >= 85) return {
+    signal: 'CONTRARIAN BEARISH',
+    color: '#f87171',
+    label: 'Euphoria / Distribution',
+    text: 'Speculators are at a 3-year long extreme on equities. This marks potential euphoria — not a time to chase longs, but to watch for distribution. Mean-reversion risk is elevated.',
+  }
+  if (safe >= 65) return {
+    signal: 'CONTRARIAN WATCH',
+    color: '#fbbf24',
+    label: 'Distribution Zone',
+    text: 'Speculators are heavily long on equities. Direct COT confirms the trend — but contrarian logic flags elevated risk of a top forming. Tighten stops on new longs.',
+  }
+  return null
+})()
+
     const crowding =
       safe >= 90 || safe <= 10 ? "Extreme" :
       safe >= 75 || safe <= 25 ? "Elevated" : "Moderate";
@@ -4540,9 +4572,10 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       contextualInterpretation += `**Constructive positioning.** This is the sweet spot for trend trades. Funds are clearly positioned long but haven't reached the crowded extreme. `;
     } else if (safe <= 10) {
       contextualInterpretation += `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive catalyst could spark a sharp squeeze. `;
+    } else if (safe <= 15) {
+      contextualInterpretation += `**Extreme short — capitulation zone.** Funds are near a 3-year short extreme. Contrarian risk is high — any positive catalyst could trigger a sharp squeeze.`
     } else if (safe <= 35) {
-      contextualInterpretation += `**Bearish positioning.** Funds lean short without being at extremes. The backdrop supports selling rallies rather than buying dips. `;
-    } else {
+      contextualInterpretation += `**Bearish positioning.** Funds are positioned short below the 35 threshold.`    } else {
       contextualInterpretation += `**Neutral zone.** Positioning alone provides no directional edge. Conviction from other sources is needed before acting. `;
     }
     if (trendLine) contextualInterpretation += `${trendLine} `;
@@ -4571,7 +4604,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 
     return {
       pct: safe, conviction, crowding, setupBias,
-      setupSummary, contextualInterpretation, gptCommentary, checklist,
+      setupSummary, contextualInterpretation, gptCommentary, checklist, contrarianRead,  
     };
   }, [asset]);
 
@@ -4862,6 +4895,48 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             </div>
           </Panel>
 
+                    {/* Contrarian Read — тільки для equity indices */}
+{profile.contrarianRead && (
+  <div className="default-bg">
+    <div className="flex items-center gap-2 border-b px-4 py-3" style={{ borderColor: 'var(--panels-border)'}}>
+      <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+      <div className="text-[11px] uppercase tracking-[0.22em]">
+      Contrarian COT Read
+      </div>
+    </div>         
+    <div className="p-4">
+      <div className="flex items-start gap-3 mb-3">
+        <div style={{
+          padding: '2px 10px', borderRadius: '3px', flexShrink: 0,
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: profile.contrarianRead.color,
+          background: `${profile.contrarianRead.color}12`,
+          border: `1px solid ${profile.contrarianRead.color}30`,
+        }}>
+        {profile.contrarianRead.signal}
+      </div>
+      <div style={{ fontSize: '11px', color: profile.contrarianRead.color, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        {profile.contrarianRead.label}
+      </div>
+    </div>
+    <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.65' }}>
+      {profile.contrarianRead.text}
+    </div>
+    <div className="mt-3 pt-3flex items-center gap-2">
+      <div style={{ fontSize: '10px', color: '#cfe2fd', letterSpacing: '0.08em' }}>
+        COT Direct: <span style={{ color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>
+          {profile.setupBias} ({profile.pct.toFixed(0)})
+        </span>
+        {' · '}
+        Contrarian: <span style={{ color: profile.contrarianRead.color, fontWeight: 600 }}>
+          {profile.contrarianRead.signal.replace('CONTRARIAN ', '')}
+        </span>
+      </div>
+    </div>
+    </div>
+  </div>
+)}
 
           {/* Sector Peers */}
           <Panel title={t("panels.sectorPeers")}>
@@ -4889,7 +4964,6 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
               )}
             </div>
           </Panel>
-
         </div>
       </div>
     </div>
@@ -6997,7 +7071,98 @@ If you are already in a profitable long position and the seasonal curve shows th
 
 Якщо ви вже знаходитеся в прибутковій довгій позиції і сезонна крива показує, що поточний місяць є останнім зеленим місяцем перед кількома червоними місяцями — це сильний сигнал для фіксації прибутку або підтягування стоп-лоссу, навіть якщо Індекс COT ще знаходиться в бичачій зоні.`
         }
-      }
+      },
+      {
+  title: {
+    en: "Contrarian COT Reading for Equity Indices",
+    uk: "Контраріанське читання COT для фондових індексів"
+  },
+  content: {
+    en: `[[BOLD_UPPER]]Why equity indices need a different interpretation[[/]]
+
+For commodities and currencies, large speculators (hedge funds and CTAs) are generally considered smart money — they tend to be right about the direction of the trend. Following their positioning directly makes sense: if funds are long, the trend is up.
+
+For equity indices (S&P 500, Nasdaq, Dow Jones, Russell 2000) the logic is different. Speculators on equity futures tend to be momentum-driven and often get caught at extremes. When everyone has already gone short, who is left to sell? This is the foundation of the contrarian approach.
+
+[[BOLD_UPPER]]The direct approach versus the contrarian approach[[/]]
+
+[[BOLD]]Direct COT approach[[/]] asks: what are funds doing right now? If they are short (COT Index below 35), the signal is bearish. This works well for trending markets and for commodities.
+
+[[BOLD]]Contrarian COT approach[[/]] asks: what does this positioning extreme tell us about the future? If speculators are at a 3-year short extreme on equities, they have already positioned for a decline. Most of the bearish move may already be priced in. Any positive catalyst — better earnings, a Fed pivot, geopolitical resolution — can trigger a sharp short squeeze because so many people need to cover simultaneously.
+
+[[BOLD_UPPER]]The four contrarian zones for equity indices[[/]]
+
+[[BOLD]]COT Index 0 to 15 — Capitulation / Bottom zone[[/]]
+Speculators are near a 3-year short extreme. This historically marks capitulation — the point where fear has peaked and smart institutional money begins quietly buying. This does not mean buy immediately, but it does mean stop adding shorts and start watching for a reversal catalyst such as a failed breakdown, a bullish price pattern, or a positive macro surprise.
+
+[[BOLD]]COT Index 15 to 35 — Accumulation zone[[/]]
+Speculators are heavily short but not at an extreme. The direct signal is bearish, but the contrarian reading is that accumulation is likely underway. Risk is asymmetric — the downside from adding new shorts here is limited because the crowd is already positioned for it.
+
+[[BOLD]]COT Index 65 to 85 — Distribution zone[[/]]
+Speculators are heavily long but not yet at an extreme. The direct signal is bullish, but the contrarian reading flags that the easy money may have already been made. New long entries here carry elevated risk of being caught in a distribution phase.
+
+[[BOLD]]COT Index 85 to 100 — Euphoria / Top zone[[/]]
+Speculators are near a 3-year long extreme. This historically marks euphoria — the point where optimism has peaked and institutional money begins quietly selling. Do not chase new longs. Watch for a reversal catalyst such as a failed breakout, bearish price pattern, or negative macro surprise.
+
+[[BOLD_UPPER]]How to use both readings together[[/]]
+
+The platform shows both the direct COT signal and the contrarian read side by side in the Asset Explorer when you are viewing an equity index. The correct approach is:
+
+When direct and contrarian agree — for example, COT Index at 70 (direct: bullish, contrarian: distribution watch) — the direct signal is valid but carry elevated risk awareness. When they strongly disagree — COT Index at 10 (direct: active short signal, contrarian: capitulation bullish) — this is a high-alert contrarian setup. Do not blindly follow the direct signal. Wait for price confirmation before acting in either direction.
+
+[[BOLD_UPPER]]Practical example — S&P 500 at COT Index 30[[/]]
+
+Direct reading: funds are short, COT below 35, bearish signal active. Trend-following traders might short rallies.
+
+Contrarian reading: speculators are in the accumulation zone. If you are already short from higher prices, consider tightening your stop. If you are looking for a new entry, the risk-reward of a fresh short is poor — too many people are already short. Instead, watch for a catalyst that triggers covering and a sharp bounce, and position for that potential squeeze.
+
+[[BOLD_UPPER]]Important limitation[[/]]
+
+The contrarian approach is not a reversal signal by itself. COT at an extreme can stay extreme for several more weeks before reversing. Always combine with price action confirmation, macro context, and seasonal data. A COT extreme is a warning, not a trigger.`,
+
+    uk: `[[BOLD_UPPER]]Чому фондові індекси потребують іншої інтерпретації[[/]]
+
+Для сировини та валют великі спекулянти (хедж-фонди та CTA) вважаються так званими «розумними грошима» — вони, як правило, правильно визначають напрям тренду. Пряме слідування їхньому позиціонуванню має сенс: якщо фонди в лонгу, тренд зростаючий.
+
+Для фондових індексів (S&P 500, Nasdaq, Dow Jones, Russell 2000) логіка інша. Спекулянти на ф'ючерсах на індекси, як правило, орієнтовані на моментум і часто потрапляють у пастку на екстремумах. Коли всі вже зайшли в шорт, хто залишився продавати? Це і є основа контраріанського підходу.
+
+[[BOLD_UPPER]]Прямий підхід проти контраріанського[[/]]
+
+[[BOLD]]Прямий COT підхід[[/]] запитує: що роблять фонди прямо зараз? Якщо вони в шорті (COT Index нижче 35), сигнал ведмежий. Це добре працює для трендових ринків і для сировини.
+
+[[BOLD]]Контраріанський COT підхід[[/]] запитує: що цей екстремум позиціонування говорить нам про майбутнє? Якщо спекулянти на 3-річному шортовому екстремумі на акціях, вони вже позиціонувалися на падіння. Більша частина ведмежого руху може вже бути в ціні. Будь-який позитивний каталізатор може спровокувати різкий шорт-сквіз.
+
+[[BOLD_UPPER]]Чотири контраріанські зони для фондових індексів[[/]]
+
+[[BOLD]]COT Index 0–15 — Капітуляція / Дно[[/]]
+Спекулянти біля 3-річного шортового екстремуму. Це historically відмічає капітуляцію — момент коли страх досяг піку і інституційні гроші починають тихо купувати. Це не означає купувати негайно, але означає — припинити нарощувати шорти і спостерігати за каталізатором розвороту.
+
+[[BOLD]]COT Index 15–35 — Зона накопичення[[/]]
+Спекулянти сильно в шорті, але не на екстремумі. Прямий сигнал ведмежий, але контраріанське читання вказує на те, що накопичення вже йде. Асиметрія ризику — потенціал зниження від нових шортів тут обмежений, бо натовп вже позиціонований на це.
+
+[[BOLD]]COT Index 65–85 — Зона розподілу[[/]]
+Спекулянти сильно в лонгу, але не на екстремумі. Прямий сигнал бичачий, але контраріанське читання попереджає, що легкі гроші вже зроблені. Нові лонги тут несуть підвищений ризик.
+
+[[BOLD]]COT Index 85–100 — Ейфорія / Вершина[[/]]
+Спекулянти біля 3-річного лонгового екстремуму. Не женіться за новими лонгами. Спостерігайте за каталізатором розвороту.
+
+[[BOLD_UPPER]]Як використовувати обидва читання разом[[/]]
+
+Платформа показує і прямий COT сигнал, і контраріанське читання поруч у Asset Explorer для фондових індексів.
+
+Коли прямий і контраріанський сигнали збігаються — прямий сигнал дійсний але з підвищеною обережністю. Коли вони сильно розходяться — COT Index 10 (прямий: активний шорт, контраріанський: капітуляція/бичачий) — це сигнал високої уваги. Не слідуйте сліпо прямому сигналу. Чекайте цінового підтвердження.
+
+[[BOLD_UPPER]]Практичний приклад — S&P 500 при COT Index 30[[/]]
+
+Пряме читання: фонди в шорті, COT нижче 35, активний ведмежий сигнал.
+
+Контраріанське читання: спекулянти в зоні накопичення. Якщо ви вже в шорті з вищих цін — підтягніть стоп. Якщо шукаєте нову точку входу — ризик-прибуток нового шорту поганий, занадто багато людей вже в шорті. Натомість спостерігайте за каталізатором, який викличе покриття і різкий відскок.
+
+[[BOLD_UPPER]]Важливе обмеження[[/]]
+
+Контраріанський підхід — це не сигнал розвороту сам по собі. COT на екстремумі може залишатися там ще кілька тижнів. Завжди комбінуйте з підтвердженням цінової дії, макро контекстом і сезонними даними. Екстремум COT — це попередження, а не тригер.`
+  }
+}
     ]
   },
 
