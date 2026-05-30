@@ -96,7 +96,7 @@ Open Interest: {fmt_num(oi)}
 Структуруй відповідь:
 **Поточний стан:** що говорять цифри про інституційне позиціонування
 **Контекст:** 2-3 речення — що це означає для цього активу прямо зараз, включаючи поточний ринковий контекст
-**На що дивитись:** одна конкретна річ для моніторингу наступного тижня — наприклад конкретний поріг COT (наприклад "якщо WoW зміна стане від'ємною") або ціновий рівень, а не загальне твердження
+**На що дивитись:** одна конкретна річ — фокусуйся на WoW зміні (funds_index_wow_change) наступного тижня як ключовому індикаторі, не на Open Interest. Назви конкретне порогове значення.
 **Bias:** Bullish / Bearish / Neutral з коротким обгрунтуванням
 Максимум 300 слів."""
     return f"""Analyze current COT positioning:
@@ -109,7 +109,7 @@ Dealer Net: {fmt_num(dealer_net)}
 Structure your response:
 **Current State:** what the numbers say about institutional positioning
 **Context:** what this means for this asset right now
-**What to Watch:** one specific, concrete thing to monitor next week — ideally a COT threshold (e.g. "if WoW change turns negative") or a price level, not a general statement
+**What to Watch:** one specific, concrete thing — focus on the WoW change (funds_index_wow_change) next week as the key indicator, not Open Interest. Give a specific threshold number.
 **Bias:** Bullish / Bearish / Neutral with brief reasoning
 Max 300 words."""
 
