@@ -69,6 +69,13 @@ def asset_prompt(data: dict, language: str) -> str:
     extra = ""
     if am_net is not None: extra += f"Asset Manager Net: {fmt_num(am_net)}\n"
     if producer_net is not None: extra += f"Producer/Merchant Net: {fmt_num(producer_net)}\n"
+    contrarian_signal = data.get("contrarian_signal")
+    contrarian_label  = data.get("contrarian_label")
+    contrarian_note   = ""
+    if contrarian_signal:
+      contrarian_note = f"\nContrarian COT Read: {contrarian_signal} — {contrarian_label}"
+      contrarian_note += f"\n(This means the crowd is crowded on one side — factor this into your risk assessment)"
+
     if language == "uk":
         return f"""Проаналізуй поточне COT позиціонування:
 Актив: {name} ({symbol}) | Сектор: {sector}
@@ -76,7 +83,8 @@ COT Index (0=3-річний мінімум, 100=3-річний максимум)
 Flow State: {flow_state}
 Funds/Leveraged Net: {fmt_num(funds_net)}
 Dealer Net: {fmt_num(dealer_net)}
-{extra}Open Interest: {fmt_num(oi)}
+{extra}{contrarian_note}
+Open Interest: {fmt_num(oi)}
 Структуруй відповідь:
 **Поточний стан:** що говорять цифри про інституційне позиціонування
 **Контекст:** що це означає для цього активу прямо зараз
