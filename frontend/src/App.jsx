@@ -4486,46 +4486,131 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
     const avg8w = asset.funds_index_8w_avg;
     const flow  = asset.flow_state || "Neutral";
     const name  = asset.name;
-    const sym   = asset.symbol;
+    const sym = asset.symbol;
+    const sector = asset?.sector || '';
 
     const conviction = Math.abs(safe - 50) * 2;
-
-    // Equity indices use contrarian interpretation
-const isEquity = ['SPX', 'NDX', 'DJIA', 'RTY', 'VIX'].includes(sym)
-
-const contrarianRead = (() => {
-  if (!isEquity) return null
-  if (safe <= 15) return {
-    signal: 'CONTRARIAN BULLISH',
-    color: '#4ade80',
-    label: 'Capitulation / Bottom',
-    text: 'Speculators are at a 3-year short extreme. Historically this marks capitulation — not a time to follow the crowd short, but to watch for a squeeze setup. Smart money often fades this extreme.',
-  }
-  if (safe <= 35) return {
-    signal: 'CONTRARIAN WATCH',
-    color: '#fbbf24',
-    label: 'Accumulation Zone',
-    text: 'Speculators are heavily short on equities. This is the zone where institutional accumulation often begins quietly. Direct COT says bearish — but contrarian logic says watch for a reversal catalyst.',
-  }
-  if (safe >= 85) return {
-    signal: 'CONTRARIAN BEARISH',
-    color: '#f87171',
-    label: 'Euphoria / Distribution',
-    text: 'Speculators are at a 3-year long extreme on equities. This marks potential euphoria — not a time to chase longs, but to watch for distribution. Mean-reversion risk is elevated.',
-  }
-  if (safe >= 65) return {
-    signal: 'CONTRARIAN WATCH',
-    color: '#fbbf24',
-    label: 'Distribution Zone',
-    text: 'Speculators are heavily long on equities. Direct COT confirms the trend — but contrarian logic flags elevated risk of a top forming. Tighten stops on new longs.',
-  }
-  return null
-})()
 
     const crowding =
       safe >= 90 || safe <= 10 ? "Extreme" :
       safe >= 75 || safe <= 25 ? "Elevated" : "Moderate";
 
+
+// How confident is the contrarian signal for each sector (high / medium / low)
+// High = speculators tend to be WRONG at extremes here → fade them
+// Low  = speculators tend to be RIGHT → follow them
+const contrarianConfidence = (() => {
+  if (['IDX'].includes(sector))                          return 'high'
+  if (['FX'].includes(sector))                           return 'high'
+  if (['METALS'].includes(sector) && ['XAU','XAG'].includes(sym)) return 'medium'
+  if (['METALS'].includes(sector))                       return 'low'
+  if (['COMMODITIES','GRAINS','SFT','SOFTS'].includes(sector))    return 'low'
+  if (['CRYPTO'].includes(sector))                       return 'low'
+  return 'low'
+})()
+ 
+const contrarianRead = (() => {
+  // Only show contrarian block if confidence is high or medium
+  if (contrarianConfidence === 'low') return null
+ 
+  // ── EQUITY INDICES ─────────────────────────────────────────────────────────
+  if (sector === 'IDX') {
+    if (safe <= 15) return {
+      signal: 'CONTRARIAN BULLISH',
+      color: '#4ade80',
+      confidence: 'High Confidence',
+      label: 'Capitulation — possible bottom',
+      simple: `Almost everyone is already short. When a market is this crowded on the short side, there is almost nobody left to sell. One piece of good news — a positive earnings report, a Fed comment, anything — and all those shorts need to cover at once, pushing prices up sharply. This is not a buy signal, but it IS a "stop adding shorts" signal.`,
+      action: `What to do: If you are short, consider taking some profit and tightening your stop. If you were thinking of going short — wait. The risk of being caught in a squeeze is high here.`,
+    }
+    if (safe <= 35) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Accumulation zone',
+      simple: `Funds are heavily short on this index. They have already positioned for a decline. This means the "easy short" trade is crowded — a lot of people already have it on. The contrarian logic says: be careful adding more shorts here, because many people will need to exit at the same time if anything goes wrong for the bears.`,
+      action: `What to do: Existing shorts are fine but tighten stops. New short entries here have poor risk-reward — too many people are already there ahead of you.`,
+    }
+    if (safe >= 85) return {
+      signal: 'CONTRARIAN BEARISH',
+      color: '#f87171',
+      confidence: 'High Confidence',
+      label: 'Euphoria — possible top',
+      simple: `Almost everyone is already long. When a market is this crowded on the long side, it takes less and less good news to keep it going — and any disappointment causes a sharp drop as everyone tries to exit at once. This is not a sell signal, but it IS a "stop adding longs" signal.`,
+      action: `What to do: If you are long, take some profit and tighten your stop. If you were thinking of going long — wait. The risk of buying into a crowded trade is high here.`,
+    }
+    if (safe >= 65) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Distribution zone',
+      simple: `Funds are heavily long. The trend is up and the direct COT signal confirms it. But the contrarian lens says the easy money has been made — the trade is getting crowded. New longs from here carry more risk than they did when the position was fresh.`,
+      action: `What to do: The direct signal is still bullish — but if you are already long, this is not the time to add aggressively. Protect profits.`,
+    }
+    return null
+  }
+ 
+  // ── FX CURRENCIES ──────────────────────────────────────────────────────────
+  if (sector === 'FX') {
+    if (safe <= 15) return {
+      signal: 'CONTRARIAN BULLISH',
+      color: '#4ade80',
+      confidence: 'High Confidence',
+      label: 'Extreme short — squeeze risk',
+      simple: `Currency speculators are famous for getting it wrong at extremes. Right now they are extremely short this currency — meaning the bearish trade is at maximum capacity. In FX, this level of one-sided positioning is one of the most reliable reversal signals in COT analysis. The currency does not need great news to bounce — it just needs the shorts to start covering.`,
+      action: `What to do: Do not add new short positions. Watch for any catalyst — a surprise data release, central bank comment, or just a technical bounce — that could trigger a short squeeze.`,
+    }
+    if (safe <= 35) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Bearish but getting crowded',
+      simple: `Speculators are short this currency. In FX markets, when the short side gets crowded, reversals can be fast and sharp. You are not at an extreme yet, but you are moving in that direction. The direct signal says sell — the contrarian lens says be alert for signs that the move is running out of steam.`,
+      action: `What to do: Short positions are valid but manage them actively. Be ready to exit quickly if the price starts to recover.`,
+    }
+    if (safe >= 85) return {
+      signal: 'CONTRARIAN BEARISH',
+      color: '#f87171',
+      confidence: 'High Confidence',
+      label: 'Extreme long — reversal risk',
+      simple: `Currency speculators are extremely long. In FX history, this level of one-sided bullish positioning marks some of the best reversal opportunities. Everyone who wants to be long is already long. The currency needs increasingly strong news just to keep moving up — and the slightest disappointment can trigger a sharp sell-off as longs exit.`,
+      action: `What to do: Do not chase new long positions. Watch for a catalyst that triggers profit-taking. This is a high-risk zone for new longs.`,
+    }
+    if (safe >= 65) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Bullish but getting crowded',
+      simple: `Speculators are long this currency. The trend is with you — but FX crowds tend to overstay their welcome. You are not at a dangerous extreme yet, but momentum longs are starting to pile in. Keep an eye on whether the move is still being driven by fundamentals or just by crowding.`,
+      action: `What to do: Long positions are valid. Watch for signs of exhaustion — if the price stops responding to good news, that is a warning.`,
+    }
+    return null
+  }
+ 
+  // ── PRECIOUS METALS (Gold, Silver) ─────────────────────────────────────────
+  if (sector === 'METALS' && ['XAU', 'XAG'].includes(sym)) {
+    if (safe <= 15) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Funds unusually short on Gold/Silver',
+      simple: `Gold and Silver funds are rarely this short. When they are, it usually means the market has been beaten up and fear is high. Historically, extreme fund short positions in precious metals have preceded significant recoveries. This is not a guaranteed buy signal, but it suggests the downside may be limited from here.`,
+      action: `What to do: Evaluate the macro picture — if there is any reason for safe-haven demand, this could be a good entry zone. Avoid adding new shorts.`,
+    }
+    if (safe >= 85) return {
+      signal: 'CONTRARIAN WATCH',
+      color: '#fbbf24',
+      confidence: 'Medium Confidence',
+      label: 'Funds very long — crowded trade',
+      simple: `Gold and Silver are heavily owned by funds right now. The trend has been strong, but when precious metals are this crowded on the long side, corrections tend to be sharp — because everyone exits at the same time when sentiment shifts. This does not mean sell, but it does mean the trade is mature.`,
+      action: `What to do: If you are long, this is a good time to take partial profit and tighten stops. New long entries here carry higher risk of buying near a short-term top.`,
+    }
+    return null
+  }
+ 
+  return null
+})()
+    
     const setupBias =
       safe >= 90 ? "Long Extreme" :
       safe >= 65 ? "Bullish Context" :
@@ -4898,39 +4983,52 @@ const contrarianRead = (() => {
                     {/* Contrarian Read — тільки для equity indices */}
 {profile.contrarianRead && (
   <div className="default-bg">
-    <div className="flex items-center gap-2 border-b px-4 py-3" style={{ borderColor: 'var(--panels-border)'}}>
-      <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
-      <div className="text-[11px] uppercase tracking-[0.22em]">
-      Contrarian COT Read
+    <div className="flex items-center border-b px-4 py-3 justify-between" style={{ borderColor: 'var(--panels-border)'}}>
+      <div className="flex items-center gap-2">
+        <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+        <div className="text-[11px] uppercase tracking-[0.22em]">
+        Contrarian COT Read
+        </div>
       </div>
+      <span style={{
+        fontSize: '10px', padding: '1px 6px', borderRadius: '3px',
+        textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: '#94a3b8', background: 'rgba(148,163,184,0.08)',
+        border: '1px solid rgba(148,163,184,0.15)',
+      }}>
+        {profile.contrarianRead.confidence}
+      </span>
     </div>         
     <div className="p-4">
-      <div className="flex items-start gap-3 mb-3">
-        <div style={{
-          padding: '2px 10px', borderRadius: '3px', flexShrink: 0,
-          fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: profile.contrarianRead.color,
-          background: `${profile.contrarianRead.color}12`,
-          border: `1px solid ${profile.contrarianRead.color}30`,
-        }}>
+      <div className="flex items-center gap-2 mb-3">
+      <span style={{
+        padding: '2px 10px', borderRadius: '3px', flexShrink: 0,
+        fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: profile.contrarianRead.color,
+        background: `${profile.contrarianRead.color}12`,
+        border: `1px solid ${profile.contrarianRead.color}30`,
+      }}>
         {profile.contrarianRead.signal}
-      </div>
-      <div style={{ fontSize: '11px', color: profile.contrarianRead.color, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      </span>
+      <span style={{ fontSize: '12px', color: profile.contrarianRead.color, fontWeight: 600 }}>
         {profile.contrarianRead.label}
-      </div>
+      </span>
     </div>
-    <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.65' }}>
-      {profile.contrarianRead.text}
+    <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7', marginBottom: '10px' }}>
+      {profile.contrarianRead.simple}
     </div>
-    <div className="mt-3 pt-3flex items-center gap-2">
-      <div style={{ fontSize: '10px', color: '#cfe2fd', letterSpacing: '0.08em' }}>
-        COT Direct: <span style={{ color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>
+    <div style={{
+      fontSize: '12px', color: '#60a5fa', lineHeight: '1.65',
+      padding: '8px 12px', background: 'var(--small-panel-color)',
+      border: '1px solid var(--accent-color)', borderRadius: '6px',
+    }}>
+      {profile.contrarianRead.action}
+    </div>
+    <div className="mt-2 pt-3 flex items-center gap-2">
+      <div style={{ fontSize: '11px', color: '#b7d5ff' }}>
+        Direct COT: <span style={{ color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>
           {profile.setupBias} ({profile.pct.toFixed(0)})
-        </span>
-        {' · '}
-        Contrarian: <span style={{ color: profile.contrarianRead.color, fontWeight: 600 }}>
-          {profile.contrarianRead.signal.replace('CONTRARIAN ', '')}
         </span>
       </div>
     </div>
