@@ -73,8 +73,8 @@ def asset_prompt(data: dict, language: str) -> str:
     contrarian_label  = data.get("contrarian_label")
     contrarian_note   = ""
     if contrarian_signal:
-      contrarian_note = f"\nContrarian COT Read: {contrarian_signal} — {contrarian_label}"
-      contrarian_note += f"\n(This means the crowd is crowded on one side — factor this into your risk assessment)"
+      contrarian_note = f"\nIMPORTANT - Contrarian COT Read: {contrarian_signal} — {contrarian_label} ({contrarian_confidence})"
+      contrarian_note += f"\nThis asset has a contrarian warning. The direct COT positioning is one thing, but the contrarian read suggests the opposite price direction is likely. Please explicitly mention both the direct positioning AND the contrarian implication in your analysis. Explain WHY the contrarian signal applies here."
 
     if language == "uk":
         return f"""Проаналізуй поточне COT позиціонування:
