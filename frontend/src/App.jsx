@@ -3031,11 +3031,14 @@ function HistoricalDataView({ assets }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MacroContextPanel — вставити в App.jsx перед function MacroView
+// ДВОМОВНИЙ MacroContextPanel
 // Показує VIX, Yield Curve, DXY як macro backdrop для COT аналізу
-// ─────────────────────────────────────────────────────────────────────────────
+// Будує interpretation/regime з ключів через t(), ігноруючи backend-текст.
+// ════════════════════════════════════════════════════════════════════════════
 
 function MacroContextPanel({ aiLanguage = "en" }) {
+  const { t } = useTranslation()
+  const uk = t('__lang__') === 'uk'
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState("")
@@ -3046,44 +3049,32 @@ function MacroContextPanel({ aiLanguage = "en" }) {
     setError("")
     fetch("/api/macro-context")
       .then((r) => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
-      .then((json) => {
-        setData(json)
-        setLastFetch(new Date())
-      })
+      .then((json) => { setData(json); setLastFetch(new Date()) })
       .catch((e) => setError(String(e)))
       .finally(() => setLoading(false))
   }, [])
 
-  // Auto-load on mount
   React.useEffect(() => { load() }, [load])
 
-  // ── Regime color ────────────────────────────────────────────────────────
   const regimeTone = (regime) => {
     if (!regime) return "text-slate-200"
     const r = regime.toLowerCase()
-    if (r.includes("risk-off") || r.includes("stress") || r.includes("contraction"))
-      return "text-rose-400"
-    if (r.includes("risk-on") || r.includes("expansion") || r.includes("benign"))
-      return "text-emerald-400"
-    if (r.includes("warning") || r.includes("inversion") || r.includes("pressure"))
-      return "text-blue-400"
+    if (r.includes("risk-off") || r.includes("stress") || r.includes("contraction")) return "text-rose-400"
+    if (r.includes("risk-on") || r.includes("expansion") || r.includes("benign")) return "text-emerald-400"
+    if (r.includes("warning") || r.includes("inversion") || r.includes("pressure")) return "text-blue-400"
     return "text-sky-400"
   }
 
-  // ── Item card color ─────────────────────────────────────────────────────
   const itemTone = (item) => {
     if (!item?.regime) return "text-zinc-300"
     const r = item.regime
-    // VIX
     if (r === "extreme_fear" || r === "fear") return "text-rose-300"
     if (r === "complacent")                   return "text-blue-300"
     if (r === "calm")                         return "text-emerald-400"
     if (r === "elevated")                     return "text-blue-400"
-    // Yield curve
     if (r === "inverted") return "text-rose-400"
     if (r === "flat")     return "text-blue-400"
     if (r === "steep")    return "text-emerald-400"
-    // DXY
     if (r === "strengthening") return "text-blue-400"
     if (r === "weakening")     return "text-emerald-400"
     return "text-zinc-300"
@@ -3092,19 +3083,92 @@ function MacroContextPanel({ aiLanguage = "en" }) {
   const itemBg = (item) => {
     if (!item?.alert) return "small-panel-color "
     const r = item?.regime
-    if (r === "inverted" || r === "fear" || r === "extreme_fear")
-      return "border-rose-900/40 bg-rose-950/15"
-    if (r === "flat" || r === "complacent" || r === "strengthening")
-      return "border-amber-900/40 bg-rose-500/10"
+    if (r === "inverted" || r === "fear" || r === "extreme_fear") return "border-rose-900/40 bg-rose-950/15"
+    if (r === "flat" || r === "complacent" || r === "strengthening") return "border-amber-900/40 bg-rose-500/10"
     return "border-emerald-900/40 bg-emerald-950/15"
   }
 
-  const fmtValue = (item) => {
-    if (item.value == null) return "n/a"
-    if (item.key === "yield_curve") {
-      const sign = item.value >= 0 ? "+" : ""
-      return `${sign}${item.value.toFixed(2)}%`
+  // ── Переклад macro regime label ──
+  const translateRegime = (regime) => {
+    if (!regime) return ""
+    const map = {
+      "Risk-Off / Stress":          uk ? "Risk-Off / Стрес" : "Risk-Off / Stress",
+      "Risk-On Expansion":          uk ? "Risk-On Експансія" : "Risk-On Expansion",
+      "Late Cycle / Contraction":   uk ? "Пізній цикл / Стиснення" : "Late Cycle / Contraction",
+      "Inversion Warning":          uk ? "Попередження про інверсію" : "Inversion Warning",
+      "Dollar Stress / EM Pressure": uk ? "Стрес долара / Тиск на EM" : "Dollar Stress / EM Pressure",
+      "Benign / Constructive":      uk ? "Сприятливий / Конструктивний" : "Benign / Constructive",
+      "Mixed / Transition":         uk ? "Змішаний / Перехідний" : "Mixed / Transition",
     }
+    return map[regime] || regime
+  }
+
+  // ── Переклад regime badge (всередині картки) ──
+  const translateItemRegime = (regime) => {
+    if (!regime) return ""
+    const map = {
+      complacent: uk ? "самозаспокоєння" : "complacent",
+      calm: uk ? "спокій" : "calm",
+      elevated: uk ? "підвищений" : "elevated",
+      fear: uk ? "страх" : "fear",
+      extreme_fear: uk ? "екстремальний страх" : "extreme fear",
+      steep: uk ? "крута" : "steep",
+      normal: uk ? "нормальна" : "normal",
+      flat: uk ? "плоска" : "flat",
+      inverted: uk ? "інвертована" : "inverted",
+      strengthening: uk ? "зміцнюється" : "strengthening",
+      weakening: uk ? "слабшає" : "weakening",
+      neutral: uk ? "нейтральний" : "neutral",
+    }
+    return map[regime] || regime.replace(/_/g, " ")
+  }
+
+  // ── Будуємо interpretation з ключів (двомовно) ──
+  const buildInterpretation = (item) => {
+    const v = item.value
+    if (item.key === "vix") {
+      const m = {
+        complacent: uk ? `VIX ${v?.toFixed(1)} — ринок самозаспокоєний. Низький страх часто передує різким розворотам.` : `VIX at ${v?.toFixed(1)} — markets are complacent. Low fear often precedes sharp reversals.`,
+        calm: uk ? `VIX ${v?.toFixed(1)} — спокійне середовище ризику. Нормальні умови для трендової торгівлі.` : `VIX at ${v?.toFixed(1)} — calm risk environment. Normal conditions for trend-following.`,
+        elevated: uk ? `VIX ${v?.toFixed(1)} — підвищена невизначеність. Зменшіть розмір, стежте за стрибками волатильності.` : `VIX at ${v?.toFixed(1)} — elevated uncertainty. Reduce size, watch for volatility spikes.`,
+        fear: uk ? `VIX ${v?.toFixed(1)} — режим страху. Перевага risk-off позиціонуванню.` : `VIX at ${v?.toFixed(1)} — fear mode. Risk-off positioning favoured.`,
+        extreme_fear: uk ? `VIX ${v?.toFixed(1)} — екстремальний страх / криза. Можуть з'явитися контраріанські лонг-можливості.` : `VIX at ${v?.toFixed(1)} — extreme fear / crisis. Contrarian long opportunities may emerge.`,
+      }
+      return m[item.regime] || ""
+    }
+    if (item.key === "yield_curve") {
+      const s = v != null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : ""
+      const m = {
+        steep: uk ? `Крива дохідності крута (${s}). Оптимізм зростання, рання фаза експансії.` : `Yield curve steep (${s}). Growth optimism, early expansion cycle.`,
+        normal: uk ? `Крива дохідності нормальна (${s}). Здоровий макро-фон.` : `Yield curve normal (${s}). Healthy macro backdrop.`,
+        flat: uk ? `Крива дохідності плоска (${s}). Сигнал пізнього циклу — стежте за інверсією.` : `Yield curve flat (${s}). Late cycle signal — watch for inversion.`,
+        inverted: uk ? `Крива дохідності інвертована (${s}). Попередження про рецесію — історично надійний сигнал.` : `Yield curve inverted (${s}). Recession warning — historically reliable signal.`,
+      }
+      return m[item.regime] || ""
+    }
+    if (item.key === "dxy") {
+      const chg = item.change_pct != null ? `${item.change_pct >= 0 ? "+" : ""}${item.change_pct.toFixed(2)}%` : ""
+      const m = {
+        strengthening: uk ? `DXY ${v?.toFixed(1)} (${chg}) — долар зміцнюється. Ведмеже для сировини та EM-активів.` : `DXY ${v?.toFixed(1)} (${chg}) — Dollar strengthening. Bearish for commodities and EM assets.`,
+        weakening: uk ? `DXY ${v?.toFixed(1)} (${chg}) — долар слабшає. Підтримує золото, сировину, EM.` : `DXY ${v?.toFixed(1)} (${chg}) — Dollar weakening. Supportive for gold, commodities, EM.`,
+        neutral: uk ? `DXY ${v?.toFixed(1)} (${chg}) — долар нейтральний. Немає сильного напрямкового сигналу.` : `DXY ${v?.toFixed(1)} (${chg}) — Dollar neutral. No strong directional signal.`,
+      }
+      return m[item.regime] || ""
+    }
+    if (item.key === "spx") {
+      return uk ? `S&P 500 на рівні ${v?.toLocaleString()}.` : `S&P 500 at ${v?.toLocaleString()}.`
+    }
+    return item.interpretation || ""
+  }
+
+  const translateLabel = (item) => {
+    if (item.key === "yield_curve") return uk ? "Крива дохідності (10Y−2Y)" : "Yield Curve (10Y−2Y)"
+    return item.label
+  }
+
+  const fmtValue = (item) => {
+    if (item.value == null) return uk ? "н/д" : "n/a"
+    if (item.key === "yield_curve") { const sign = item.value >= 0 ? "+" : ""; return `${sign}${item.value.toFixed(2)}%` }
     if (item.key === "vix") return item.value.toFixed(2)
     if (item.key === "spx") return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(item.value)
     return item.value.toFixed(2)
@@ -3118,36 +3182,28 @@ function MacroContextPanel({ aiLanguage = "en" }) {
 
   return (
     <section className="default-bg title-border">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-sky-400" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-            {aiLanguage === "uk" ? "Макро контекст" : "Macro Context"}
+            {uk ? "Макро контекст" : "Macro Context"}
           </span>
         </div>
         <div className="flex items-center gap-3">
           {data?.macro_regime && (
             <span className={cls("text-[11px] uppercase tracking-[0.22em]", regimeTone(data.macro_regime))}>
-              {data.macro_regime}
-            </span> 
+              {translateRegime(data.macro_regime)}
+            </span>
           )}
-          <button
-            onClick={load}
-            disabled={loading}
-            className={cls(
-              "border px-2 py-1 text-[10px] uppercase tracking-[0.2em] transition",
-              loading
-                ? "cursor-not-allowed border-zinc-800 text-zinc-600"
-                : "border-zinc-800 text-slate-200 hover:border-zinc-700 hover:text-zinc-300"
-            )}
-          >
-            {loading ? "..." : aiLanguage === "uk" ? "Оновити" : "Refresh"}
+          <button onClick={load} disabled={loading}
+            className={cls("border px-2 py-1 text-[10px] uppercase tracking-[0.2em] transition",
+              loading ? "cursor-not-allowed border-zinc-800 text-zinc-600"
+                      : "border-zinc-800 text-slate-200 hover:border-zinc-700 hover:text-zinc-300")}>
+            {loading ? "..." : uk ? "Оновити" : "Refresh"}
           </button>
         </div>
       </div>
 
-      {/* Loading */}
       {loading && !data && (
         <div className="p-4 space-y-2">
           {[100, 80, 60].map((w, i) => (
@@ -3156,85 +3212,67 @@ function MacroContextPanel({ aiLanguage = "en" }) {
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="px-4 py-3 text-xs text-rose-400">
-          {aiLanguage === "uk" ? "Помилка: " : "Error: "}{error}
+          {uk ? "Помилка: " : "Error: "}{error}
         </div>
       )}
 
-      {/* Items */}
       {data?.items?.length > 0 && (
         <div className="p-4 space-y-3">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
             {data.items.map((item) => (
               <div key={item.key} className={cls("border p-3 space-y-2", itemBg(item))}>
-                {/* Label + regime badge */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-slate-200">
-                    {item.label}
+                    {translateLabel(item)}
                   </span>
                   {item.regime && (
                     <span className={cls("text-[9px] uppercase tracking-[0.16em]", itemTone(item))}>
-                      {item.regime.replace(/_/g, " ")}
+                      {translateItemRegime(item.regime)}
                     </span>
                   )}
                 </div>
-
-                {/* Value + change */}
                 <div className="flex items-end justify-between gap-2">
                   <span className={cls("text-xl font-semibold tabular-nums", itemTone(item))}>
                     {fmtValue(item)}
                   </span>
                   {fmtChange(item) && (
-                    <span className={cls(
-                      "text-xs tabular-nums mb-0.5",
-                      item.change_pct >= 0 ? "text-emerald-400" : "text-rose-400"
-                    )}>
+                    <span className={cls("text-xs tabular-nums mb-0.5",
+                      item.change_pct >= 0 ? "text-emerald-400" : "text-rose-400")}>
                       {fmtChange(item)}
                     </span>
                   )}
                 </div>
-
-                {/* Yield curve detail */}
                 {item.key === "yield_curve" && item.t10y && item.t2y && (
                   <div className="text-[10px] text-zinc-600">
                     10Y: {item.t10y.toFixed(2)}% · 2Y: {item.t2y.toFixed(2)}%
                   </div>
                 )}
-
-                {/* Interpretation */}
                 <div className="text-[11px] leading-5 text-slate-200">
-                  {item.interpretation}
+                  {buildInterpretation(item)}
                 </div>
-
-                {/* Alert dot */}
                 {item.alert && (
                   <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-amber-400">
                     <div className="h-1.5 w-1.5 rounded-full rounded-full-dotbg-amber-400 animate-pulse" />
-                    {aiLanguage === "uk" ? "Увага" : "Watch"}
+                    {uk ? "Увага" : "Watch"}
                   </div>
                 )}
               </div>
             ))}
           </div>
-
-          {/* Last fetch time */}
           {lastFetch && (
             <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-400">
-              {aiLanguage === "uk" ? "Оновлено: " : "Updated: "}
-              {lastFetch.toLocaleTimeString()}
+              {uk ? "Оновлено: " : "Updated: "}{lastFetch.toLocaleTimeString()}
             </div>
           )}
         </div>
       )}
 
-      {/* No data */}
       {!loading && !error && (!data?.items || data.items.length === 0) && (
         <div className="px-4 py-4 text-sm text-zinc-600">
-          {aiLanguage === "uk"
-            ? "Дані недоступні. Встанови yfinance: pip install yfinance"
-            : "No data available. Install yfinance: pip install yfinance"}
+          {uk ? "Дані недоступні. Встанови yfinance: pip install yfinance"
+              : "No data available. Install yfinance: pip install yfinance"}
         </div>
       )}
     </section>
@@ -8645,9 +8683,9 @@ useEffect(() => {
 
   const handleUiLanguageChange = async (code) => {
     await i18n.changeLanguage(code);
-
     setAppSettings((prev) => ({
       ...prev,
+      uiLanguage: code,
       aiLanguage: prev.syncAiWithUi ? code : prev.aiLanguage,
     }));
   };
