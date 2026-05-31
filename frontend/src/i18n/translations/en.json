@@ -1,4 +1,5 @@
 {
+  "__lang__": "en",
   "nav": {
     "workspace": "Live Workspace",
     "macro": "Macro",
@@ -14,11 +15,7 @@
     "update": "Update Data",
     "settings": "Settings"
   },
-  "topbar": {
-    "assets": "Assets",
-    "rows": "Rows",
-    "noData": "No Data"
-  },
+  "topbar": { "assets": "Assets", "rows": "Rows", "noData": "No Data" },
   "settings": {
     "title": "Settings",
     "language": {
@@ -34,10 +31,7 @@
       "next": "Next step: backend GPT route for macro and asset commentary."
     }
   },
-  "common": {
-    "loading": "Loading",
-    "error": "Error"
-  },
+  "common": { "loading": "Loading", "error": "Error" },
   "labels": {
     "na": "n/a",
     "unavailable": "Unavailable",
@@ -53,6 +47,35 @@
     "visualExplanation": "visual explanation",
     "rankedIdeas": "ranked ideas",
     "cotLiveComposite": "COT live composite"
+  },
+  "stateLabels": {
+    "active": "Active",
+    "aging": "Aging",
+    "stale": "Stale",
+    "invalidated": "Invalidated",
+    "candidate": "Candidate"
+  },
+  "directionLabels": { "long": "Long", "short": "Short", "neutral": "Neutral" },
+  "flowStates": {
+    "longExtreme": "Long Extreme",
+    "shortExtreme": "Short Extreme",
+    "accumulation": "Accumulation",
+    "distribution": "Distribution",
+    "neutral": "Neutral"
+  },
+  "alerts": {
+    "readyForAction": "ready for action",
+    "setupActive": "setup is active with high conviction.",
+    "signalAging": "signal is aging",
+    "agingText": "The setup is still valid, but freshness is fading.",
+    "signalLostQuality": "signal lost quality",
+    "invalidatedText": "The signal no longer meets minimum quality conditions.",
+    "signalStale": "signal is stale",
+    "staleText": "The directional idea is too old or too weak to rank as an actionable setup.",
+    "bullishActivation": "entered bullish activation",
+    "bullishActivationText": "Positioning moved into a stronger long-biased regime with improving entry conditions.",
+    "bearishActivation": "entered bearish activation",
+    "bearishActivationText": "Positioning moved into a stronger short-biased regime with improving entry conditions."
   },
   "signalsText": {
     "noSignal": "No Signal",
@@ -139,6 +162,7 @@
   },
   "panels": {
     "macroRegime": "Macro Regime",
+    "macroPhase": "Macro Phase",
     "cotFlowHeatmap": "COT Flow Heatmap",
     "macroComposite": "Macro Composite",
     "sleeveDetail": "Sleeve Detail",
@@ -186,4 +210,3 @@
     "whatTheseChartsMean": "What These Charts Mean"
   }
 }
-

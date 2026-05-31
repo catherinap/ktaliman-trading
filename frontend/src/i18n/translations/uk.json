@@ -1,4 +1,5 @@
 {
+  "__lang__": "uk",
   "nav": {
     "workspace": "Робочий простір",
     "macro": "Макро",
@@ -123,6 +124,7 @@
     "economicCalendar": "Економічний календар",
     "marketNews": "Ринкові новини",
     "macroComposite": "Макрокомпозит",
+    "macroPhase": "Фаза макро",
     "sleeveDetail": "Деталі блоків",
     "macroNotes": "Макропримітки",
     "compositeScores": "Композитні оцінки",

@@ -858,67 +858,51 @@ function buildCorrelationNarrative(
   { avgDistance, avgAlignment, alignedPairs, opposedPairs, sameSectorPairs, crossSectorPairs },
   t
 ) {
-  const topAligned = alignedPairs?.[0];
-  const topOpposed = opposedPairs?.[0];
-
-  const crossBias =
-    crossSectorPairs > sameSectorPairs
-      ? "Cross-sector relationships dominate the current map."
-      : "Same-sector relationships dominate the current map.";
-
-  const summary =
-    avgDistance == null
-      ? "No live positioning narrative is available yet."
-      : `The cross-asset positioning map is currently ${dispersionLabel(
-          avgDistance,
-          t
-        ).toLowerCase()}, with average alignment at ${formatPercentile(
-          avgAlignment
-        )} and an average percentile gap of ${formatPercentile(
-          avgDistance
-        )} across the tracked universe.`;
-
-  const interpretation =
-    !topAligned && !topOpposed
-      ? "There is not enough data to interpret live pair structure."
-      : `The closest live positioning match is ${safeName(
-          topAligned,
-          "left"
-        )} ↔ ${safeName(
-          topAligned,
-          "right"
-        )}, while the widest current positioning gap is ${safeName(
-          topOpposed,
-          "left"
-        )} ↔ ${safeName(topOpposed, "right")}. ${crossBias}`;
-
-  const tradingRelevance =
-    avgDistance == null
-      ? "Trading relevance is unavailable without pair data."
-      : avgDistance >= 60
-        ? "The market is highly fragmented. This favors selective relative-value thinking over broad one-direction macro conviction."
-        : avgDistance >= 40
-          ? "The market is moderately dispersed. Some sleeves are aligned, but cross-asset signals should still be confirmed before trade execution."
-          : "The market is relatively clustered. Cross-asset confirmation is stronger, and macro themes are traveling more consistently together.";
-
-  const whatToWatch =
-    !topAligned && !topOpposed
-      ? "Wait for more live data."
-      : `Watch whether the current positioning gap between ${safeName(
-          topOpposed,
-          "left"
-        )} and ${safeName(
-          topOpposed,
-          "right"
-        )} begins to narrow, and whether the positioning match between ${safeName(
-          topAligned,
-          "left"
-        )} ↔ ${safeName(
-          topAligned,
-          "right"
-        )} remains stable. A break in these live relationships can signal regime transition.`;
-
-  return { summary, interpretation, tradingRelevance, whatToWatch };
+  const uk = t && t('__lang__') === 'uk'
+  const topAligned = alignedPairs?.[0]
+  const topOpposed = opposedPairs?.[0]
+ 
+  const crossBias = crossSectorPairs > sameSectorPairs
+    ? (uk ? 'Крос-секторні зв’язки домінують на поточній карті.' : 'Cross-sector relationships dominate the current map.')
+    : (uk ? 'Зв’язки в межах сектору домінують на поточній карті.' : 'Same-sector relationships dominate the current map.')
+ 
+  let summary, interpretation, tradingRelevance, whatToWatch
+ 
+  if (avgDistance == null) {
+    summary = uk ? 'Наратив live-позиціонування поки недоступний.' : 'No live positioning narrative is available yet.'
+  } else if (uk) {
+    summary = `Карта крос-активного позиціонування наразі ${dispersionLabel(avgDistance, t).toLowerCase()}, із середньою узгодженістю ${formatPercentile(avgAlignment)} та середнім розривом перцентилів ${formatPercentile(avgDistance)} по відстежуваному універсуму.`
+  } else {
+    summary = `The cross-asset positioning map is currently ${dispersionLabel(avgDistance, t).toLowerCase()}, with average alignment at ${formatPercentile(avgAlignment)} and an average percentile gap of ${formatPercentile(avgDistance)} across the tracked universe.`
+  }
+ 
+  if (!topAligned && !topOpposed) {
+    interpretation = uk ? 'Недостатньо даних для інтерпретації структури live-пар.' : 'There is not enough data to interpret live pair structure.'
+  } else if (uk) {
+    interpretation = `Найближчий live-збіг позиціонування — ${safeName(topAligned, 'left')} ↔ ${safeName(topAligned, 'right')}, тоді як найширший поточний розрив — ${safeName(topOpposed, 'left')} ↔ ${safeName(topOpposed, 'right')}. ${crossBias}`
+  } else {
+    interpretation = `The closest live positioning match is ${safeName(topAligned, 'left')} ↔ ${safeName(topAligned, 'right')}, while the widest current positioning gap is ${safeName(topOpposed, 'left')} ↔ ${safeName(topOpposed, 'right')}. ${crossBias}`
+  }
+ 
+  if (avgDistance == null) {
+    tradingRelevance = uk ? 'Торгова значущість недоступна без даних по парах.' : 'Trading relevance is unavailable without pair data.'
+  } else if (avgDistance >= 60) {
+    tradingRelevance = uk ? 'Ринок сильно фрагментований. Це на користь вибіркового relative-value мислення, а не широкої однонапрямної макро-впевненості.' : 'The market is highly fragmented. This favors selective relative-value thinking over broad one-direction macro conviction.'
+  } else if (avgDistance >= 40) {
+    tradingRelevance = uk ? 'Ринок помірно розсіяний. Деякі блоки узгоджені, але крос-активні сигнали все ще варто підтверджувати перед входом.' : 'The market is moderately dispersed. Some sleeves are aligned, but cross-asset signals should still be confirmed before trade execution.'
+  } else {
+    tradingRelevance = uk ? 'Ринок відносно згрупований. Крос-активне підтвердження сильніше, і макро-теми рухаються більш послідовно разом.' : 'The market is relatively clustered. Cross-asset confirmation is stronger, and macro themes are traveling more consistently together.'
+  }
+ 
+  if (!topAligned && !topOpposed) {
+    whatToWatch = uk ? 'Очікуйте більше live-даних.' : 'Wait for more live data.'
+  } else if (uk) {
+    whatToWatch = `Спостерігайте, чи почне звужуватися розрив позиціонування між ${safeName(topOpposed, 'left')} та ${safeName(topOpposed, 'right')}, і чи залишиться стабільним збіг між ${safeName(topAligned, 'left')} ↔ ${safeName(topAligned, 'right')}. Розрив цих live-зв’язків може сигналізувати про зміну режиму.`
+  } else {
+    whatToWatch = `Watch whether the current positioning gap between ${safeName(topOpposed, 'left')} and ${safeName(topOpposed, 'right')} begins to narrow, and whether the positioning match between ${safeName(topAligned, 'left')} ↔ ${safeName(topAligned, 'right')} remains stable. A break in these live relationships can signal regime transition.`
+  }
+ 
+  return { summary, interpretation, tradingRelevance, whatToWatch }
 }
 
 function averagePercentile(items) {
@@ -970,83 +954,61 @@ function macroDispersionLabel(value, t) {
 }
 
 function buildMacroNarrative({ growth, inflation, policy }, t) {
-	const values = [growth, inflation, policy].filter(
-		(x) => x != null && !Number.isNaN(x)
-	  );
-
-	const composite = values.length
-		? values.reduce((sum, x) => sum + x, 0) / values.length
-		: null;
-
-	const strongestSleeve = [
-		{ key: "Growth", value: growth },
-		{ key: "Inflation", value: inflation },
-		{ key: "Policy", value: policy },
-	  ]
-		.filter((x) => x.value != null && !Number.isNaN(x.value))
-		.sort((a, b) => b.value - a.value)[0];
-
-	const weakestSleeve = [
-		{ key: "Growth", value: growth },
-		{ key: "Inflation", value: inflation },
-		{ key: "Policy", value: policy },
-	  ]
-		.filter((x) => x.value != null && !Number.isNaN(x.value))
-		.sort((a, b) => a.value - b.value)[0];
-
-	const dispersion =
-		strongestSleeve && weakestSleeve
-		  ? strongestSleeve.value - weakestSleeve.value
-		  : null;
-
-	const summary =
-		composite == null
-		  ? "No macro narrative is available yet."
-		  : `The macro positioning backdrop is currently ${macroLabel(
-			  composite,
-			  t
-			).toLowerCase()}, with a composite score of ${formatPercentile(
-			  composite
-			)} and sleeve dispersion at ${formatPercentile(
-			  dispersion
-			)} across growth, inflation, and policy.`;
-
-	const interpretation =
-		!strongestSleeve || !weakestSleeve
-		  ? "There is not enough sleeve data to interpret the macro structure."
-		  : `${strongestSleeve.key} is currently the strongest sleeve at ${formatPercentile(
-			  strongestSleeve.value
-			)}, while ${weakestSleeve.key} is the weakest at ${formatPercentile(
-			  weakestSleeve.value
-			)}. Internal sleeve dispersion is ${macroDispersionLabel(
-			  dispersion,
-			  t
-			).toLowerCase()}, which suggests the macro composite is being driven more by ${strongestSleeve.key.toLowerCase()} than by a uniformly aligned market.`;
-
-	const tradingRelevance =
-		composite == null
-		  ? "Trading relevance is unavailable without macro sleeve data."
-		  : dispersion != null && dispersion >= 35
-			? "Macro positioning has high internal divergence. Be careful with broad risk-on or risk-off assumptions, because the composite is not being confirmed evenly across sleeves."
-			: composite >= 70
-			  ? "Macro positioning is supportive of pro-risk and cyclical expressions, with reasonably coherent sleeve support."
-			  : composite <= 30
-				? "Macro positioning is defensive. This favors caution on aggressive risk-taking and raises the importance of capital preservation and selective exposure."
-				: "Macro positioning is balanced. This is not a high-conviction broad macro environment, so confirmation from structure, price action, or cross-asset context matters more.";
-
-	const whatToWatch =
-		!strongestSleeve || !weakestSleeve
-		  ? "Wait for more sleeve data."
-		  : `Watch whether ${weakestSleeve.key} begins to improve and whether ${strongestSleeve.key} remains stable. The macro regime becomes more credible when sleeve dispersion narrows and all three sleeves move into better alignment rather than relying on one dominant sleeve.`;
-
-	return {
-		composite,
-		dispersion,
-		summary,
-		interpretation,
-		tradingRelevance,
-		whatToWatch,
-	};
+  const uk = t && t('__lang__') === 'uk'
+  const values = [growth, inflation, policy].filter((x) => x != null && !Number.isNaN(x))
+  const composite = values.length ? values.reduce((s, x) => s + x, 0) / values.length : null
+ 
+  const sleeves = [
+    { key: 'Growth', keyUk: 'Зростання', value: growth },
+    { key: 'Inflation', keyUk: 'Інфляція', value: inflation },
+    { key: 'Policy', keyUk: 'Політика', value: policy },
+  ].filter((x) => x.value != null && !Number.isNaN(x.value))
+ 
+  const strongestSleeve = [...sleeves].sort((a, b) => b.value - a.value)[0]
+  const weakestSleeve   = [...sleeves].sort((a, b) => a.value - b.value)[0]
+  const dispersion = strongestSleeve && weakestSleeve ? strongestSleeve.value - weakestSleeve.value : null
+  const sName = (s) => s ? (uk ? s.keyUk : s.key) : ''
+  const sLow  = (s) => s ? (uk ? s.keyUk.toLowerCase() : s.key.toLowerCase()) : ''
+ 
+  let summary, interpretation, tradingRelevance, whatToWatch
+ 
+  if (composite == null) {
+    summary = uk ? 'Макро-наратив поки недоступний.' : 'No macro narrative is available yet.'
+  } else if (uk) {
+    summary = `Поточний фон макро-позиціонування ${macroLabel(composite, t).toLowerCase()}, з композитним показником ${formatPercentile(composite)} та дисперсією блоків ${formatPercentile(dispersion)} між зростанням, інфляцією та політикою.`
+  } else {
+    summary = `The macro positioning backdrop is currently ${macroLabel(composite, t).toLowerCase()}, with a composite score of ${formatPercentile(composite)} and sleeve dispersion at ${formatPercentile(dispersion)} across growth, inflation, and policy.`
+  }
+ 
+  if (!strongestSleeve || !weakestSleeve) {
+    interpretation = uk ? 'Недостатньо даних по блоках для інтерпретації макро-структури.' : 'There is not enough sleeve data to interpret the macro structure.'
+  } else if (uk) {
+    interpretation = `${sName(strongestSleeve)} наразі найсильніший блок на рівні ${formatPercentile(strongestSleeve.value)}, тоді як ${sName(weakestSleeve)} найслабший на рівні ${formatPercentile(weakestSleeve.value)}. Внутрішня дисперсія блоків ${macroDispersionLabel(dispersion, t).toLowerCase()}, що вказує: композит керується більше блоком «${sLow(strongestSleeve)}», ніж рівномірно узгодженим ринком.`
+  } else {
+    interpretation = `${strongestSleeve.key} is currently the strongest sleeve at ${formatPercentile(strongestSleeve.value)}, while ${weakestSleeve.key} is the weakest at ${formatPercentile(weakestSleeve.value)}. Internal sleeve dispersion is ${macroDispersionLabel(dispersion, t).toLowerCase()}, which suggests the macro composite is being driven more by ${strongestSleeve.key.toLowerCase()} than by a uniformly aligned market.`
+  }
+ 
+  if (composite == null) {
+    tradingRelevance = uk ? 'Торгова значущість недоступна без даних по блоках.' : 'Trading relevance is unavailable without macro sleeve data.'
+  } else if (dispersion != null && dispersion >= 35) {
+    tradingRelevance = uk ? 'Макро-позиціонування має високу внутрішню розбіжність. Будьте обережні з широкими припущеннями risk-on чи risk-off, бо композит не підтверджується рівномірно по блоках.' : 'Macro positioning has high internal divergence. Be careful with broad risk-on or risk-off assumptions, because the composite is not being confirmed evenly across sleeves.'
+  } else if (composite >= 70) {
+    tradingRelevance = uk ? 'Макро-позиціонування підтримує pro-risk та циклічні ідеї, з досить узгодженою підтримкою блоків.' : 'Macro positioning is supportive of pro-risk and cyclical expressions, with reasonably coherent sleeve support.'
+  } else if (composite <= 30) {
+    tradingRelevance = uk ? 'Макро-позиціонування захисне. Це на користь обережності з агресивним ризиком і підвищує важливість збереження капіталу та вибіркової експозиції.' : 'Macro positioning is defensive. This favors caution on aggressive risk-taking and raises the importance of capital preservation and selective exposure.'
+  } else {
+    tradingRelevance = uk ? 'Макро-позиціонування збалансоване. Це не середовище високої впевненості, тому підтвердження від структури, цінової дії чи крос-активного контексту має більше значення.' : 'Macro positioning is balanced. This is not a high-conviction broad macro environment, so confirmation from structure, price action, or cross-asset context matters more.'
+  }
+ 
+  if (!strongestSleeve || !weakestSleeve) {
+    whatToWatch = uk ? 'Очікуйте більше даних по блоках.' : 'Wait for more sleeve data.'
+  } else if (uk) {
+    whatToWatch = `Спостерігайте, чи почне ${sName(weakestSleeve)} покращуватися і чи залишиться ${sName(strongestSleeve)} стабільним. Макро-режим стає надійнішим, коли дисперсія блоків звужується і всі три блоки переходять у кращу узгодженість, а не покладаються на один домінантний блок.`
+  } else {
+    whatToWatch = `Watch whether ${weakestSleeve.key} begins to improve and whether ${strongestSleeve.key} remains stable. The macro regime becomes more credible when sleeve dispersion narrows and all three sleeves move into better alignment rather than relying on one dominant sleeve.`
+  }
+ 
+  return { composite, dispersion, summary, interpretation, tradingRelevance, whatToWatch }
 }
 
 function seasonalCellTone(value) {
@@ -1075,17 +1037,40 @@ function seasonalBiasTone(value) {
 }
 
 function buildSeasonalityNarrative(rows, t) {
+  const uk = t && t('__lang__') === 'uk'
   const valid = rows.filter((x) => x.current != null && !Number.isNaN(x.current))
-  if (!valid.length) return { breadth: null, strongest: null, weakest: null, summary: 'No seasonality narrative is available yet.', interpretation: 'There is not enough seasonal data to interpret the current calendar window.', tradingRelevance: 'Trading relevance is unavailable without seasonality data.', whatToWatch: 'Wait for more seasonal inputs.' }
+  if (!valid.length) return {
+    breadth: null, strongest: null, weakest: null,
+    summary: uk ? 'Наратив сезонності поки недоступний.' : 'No seasonality narrative is available yet.',
+    interpretation: uk ? 'Недостатньо сезонних даних для інтерпретації поточного календарного вікна.' : 'There is not enough seasonal data to interpret the current calendar window.',
+    tradingRelevance: uk ? 'Торгова значущість недоступна без даних сезонності.' : 'Trading relevance is unavailable without seasonality data.',
+    whatToWatch: uk ? 'Очікуйте більше сезонних даних.' : 'Wait for more seasonal inputs.',
+  }
   const bullishCount = valid.filter((x) => x.current >= 55).length
   const bearishCount = valid.filter((x) => x.current <= 45).length
   const breadth = ((bullishCount - bearishCount) / valid.length) * 100
   const strongest = [...valid].sort((a, b) => b.current - a.current)[0]
-  const weakest = [...valid].sort((a, b) => a.current - b.current)[0]
-  const summary = `The current seasonal map shows ${bullishCount} supportive windows and ${bearishCount} weak windows across the tracked universe, with breadth at ${formatPercentile(breadth)}.`
-  const interpretation = `${strongest.name || strongest.asset} currently has the strongest seasonal tailwind at ${formatPercentile(strongest.current)}, while ${weakest.name || weakest.asset} shows the weakest seasonal window at ${formatPercentile(weakest.current)}.`
-  const tradingRelevance = breadth >= 20 ? 'Seasonal breadth is supportive. Calendar tendencies can act as a useful confirmation layer for long-biased trade selection.' : breadth <= -20 ? 'Seasonal breadth is weak. This argues for more caution and selective exposure rather than broad participation.' : 'Seasonal breadth is mixed. Seasonality should be treated as a secondary filter rather than a primary trade driver.'
-  const whatToWatch = 'Watch whether the strongest seasonal windows remain aligned with live positioning and price structure, and whether currently weak seasonal assets begin to improve into the next calendar turn.'
+  const weakest   = [...valid].sort((a, b) => a.current - b.current)[0]
+  const sName = (s) => s.name || s.asset
+ 
+  const summary = uk
+    ? `Поточна карта сезонності показує ${bullishCount} сприятливих вікон і ${bearishCount} слабких вікон по відстежуваному універсуму, із шириною ${formatPercentile(breadth)}.`
+    : `The current seasonal map shows ${bullishCount} supportive windows and ${bearishCount} weak windows across the tracked universe, with breadth at ${formatPercentile(breadth)}.`
+ 
+  const interpretation = uk
+    ? `${sName(strongest)} наразі має найсильніший сезонний попутний фон на рівні ${formatPercentile(strongest.current)}, тоді як ${sName(weakest)} показує найслабше сезонне вікно на рівні ${formatPercentile(weakest.current)}.`
+    : `${sName(strongest)} currently has the strongest seasonal tailwind at ${formatPercentile(strongest.current)}, while ${sName(weakest)} shows the weakest seasonal window at ${formatPercentile(weakest.current)}.`
+ 
+  const tradingRelevance = breadth >= 20
+    ? (uk ? 'Сезонна ширина сприятлива. Календарні тенденції можуть бути корисним шаром підтвердження для long-орієнтованого вибору угод.' : 'Seasonal breadth is supportive. Calendar tendencies can act as a useful confirmation layer for long-biased trade selection.')
+    : breadth <= -20
+    ? (uk ? 'Сезонна ширина слабка. Це аргумент на користь більшої обережності та вибіркової експозиції, а не широкої участі.' : 'Seasonal breadth is weak. This argues for more caution and selective exposure rather than broad participation.')
+    : (uk ? 'Сезонна ширина змішана. Сезонність варто розглядати як вторинний фільтр, а не як основний драйвер угод.' : 'Seasonal breadth is mixed. Seasonality should be treated as a secondary filter rather than a primary trade driver.')
+ 
+  const whatToWatch = uk
+    ? 'Спостерігайте, чи залишаються найсильніші сезонні вікна узгодженими з live-позиціонуванням і ціновою структурою, і чи почнуть покращуватися наразі слабкі сезонні активи на наступному календарному повороті.'
+    : 'Watch whether the strongest seasonal windows remain aligned with live positioning and price structure, and whether currently weak seasonal assets begin to improve into the next calendar turn.'
+ 
   return { breadth: Number(breadth.toFixed(1)), strongest, weakest, summary, interpretation, tradingRelevance, whatToWatch }
 }
 
@@ -1148,6 +1133,7 @@ function PairAlignmentSpark({ left = 0, right = 0 }) {
 }
 
 function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
+  const { t } = useTranslation()
   if (!asset || !profile) return null
  
   const idx = asset.funds_percentile_3y
@@ -1260,7 +1246,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
           <div className="pdf-metric">
             <div className="pdf-metric-label">Flow State</div>
             <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`} style={{ fontSize: "13px" }}>
-              {translateFlowState(asset.flow_state, t) || t('flowStates.neutral')}
+              {translateFlowState(asset.flow_state || 'Neutral', t)}
             </div>
             <div className="pdf-metric-sub">{profile.setupBias}</div>
           </div>
@@ -3403,29 +3389,29 @@ const macroComposite = averagePercentile([
               <div className="text-[10px] text-zinc-500 mt-1">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
             </div>
             <div className="small-panel-color p-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Macro Phase</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">{t('panels.macroPhase')}</div>
               <div className="text-xl font-semibold text-zinc-100">{macroPhase(macroComposite, t)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
             </div>
           </div>
           {/* 3. NARRATIVE SUMMARY */}
         <div className="default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Narrative Summary</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">{t('panels.narrativeSummary')}</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.summary}</div>
         </div>
 
         {/* 4. WHAT TO WATCH */}
         <div className="default-bg p-4">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">What To Watch</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">{t('panels.whatToWatch')}</div>
           <div className="text-sm leading-7 text-zinc-200">{macroNarrative.whatToWatch}</div>
         </div>
         {/* 4. INTERPRETATION + TRADING RELEVANCE */}
         <div className="p-4 default-bg">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Interpretation</div>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">{t('panels.interpretation')}</div>
             <div className="text-sm leading-7 text-zinc-200">{macroNarrative.interpretation}</div>
           </div>
         <div className="p-4 default-bg">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">Trading Relevance</div>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">{t('panels.tradingRelevance')}</div>
             <div className="text-sm leading-7 text-zinc-200">{macroNarrative.tradingRelevance}</div>
           </div>
       </div>
@@ -3742,17 +3728,17 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
           </div>
 
         <div className="default-bg p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Narrative</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">{t('panels.narrativeSummary')}</div>
           <div className="text-sm leading-7 text-zinc-200">{narrative.summary}</div>
         </div>
 
         <div className="default-bg p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">Trading Relevance</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">{t('panels.tradingRelevance')}</div>
           <div className="text-sm leading-7 text-zinc-200">{narrative.tradingRelevance}</div>
         </div>
 
         <div className="default-bg p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">What To Watch</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-slate-200 mb-2">{t('panels.whatToWatch')}</div>
           <div className="text-sm leading-7 text-zinc-200">{narrative.whatToWatch}</div>
         </div>
 
@@ -4825,7 +4811,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
             <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
-            <Metric label="Flow State" value={translateFlowState(asset.flow_state, t) || t('flowStates.neutral')} />
+            <Metric label="Flow State" value={translateFlowState(asset.flow_state || 'Neutral', t)} />
           </div>
 
           {/* Momentum bar */}
@@ -6258,6 +6244,7 @@ function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
  
 // ── Single watchlist card ─────────────────────────────────────────────────────
 function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
+  const { t } = useTranslation()
   const idx    = asset.funds_percentile_3y
   const dirMap = { rising: "↑", falling: "↓", flat: "→" }
   const arrow  = dirMap[asset.funds_index_direction] || ""
@@ -6313,7 +6300,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
         <div className="small-panel-color p-2 text-center">
           <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Flow</div>
           <div className={cls("mt-1 text-[10px] uppercase tracking-[0.14em]", flowColor(idx))}>
-            {translateFlowState(asset.flow_state, t) || t('flowStates.neutral')}
+            {translateFlowState(asset.flow_state || 'Neutral', t)}
           </div>
         </div>
       </div>
