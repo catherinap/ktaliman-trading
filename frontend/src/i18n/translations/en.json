@@ -375,6 +375,7 @@
     "crowdedLong": "Crowded Long",
     "crowdedShort": "Crowded Short",
     "meanReversionRisk": "Mean-reversion risk elevated",
-    "squeezeRisk": "Short squeeze risk elevated"
+    "squeezeRisk": "Short squeeze risk elevated",
+    "stateCol": "State"
   }
 }

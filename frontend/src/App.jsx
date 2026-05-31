@@ -5279,13 +5279,13 @@ function SignalHistoryTable({ items, loading }) {
               <tr className="border-b border-zinc-800 text-[10px] uppercase tracking-[0.2em] text-zinc-600">
                 <th className="px-3 py-2 text-left">{t('ui.asset')}</th>
                 <th className="px-3 py-2 text-left">{t('ui.direction')}</th>
-                <th className="px-3 py-2 text-left">{t('ui.state')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.stateCol')}</th>
                 <th className="px-3 py-2 text-right">{t('ui.weeks')}</th>
                 <th className="px-3 py-2 text-right">{t('ui.cotIndex')}</th>
                 <th className="px-3 py-2 text-right">{t('ui.peak')}</th>
                 <th className="px-3 py-2 text-left">{t('ui.flow')}</th>
                 <th className="px-3 py-2 text-left">{t('ui.firstSeen')}</th>
-                <th className="px-3 py-2 text-left">{t('ui.trend')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.trend8wNow')}</th>
               </tr>
             </thead>
             <tbody>
