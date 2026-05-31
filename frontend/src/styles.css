@@ -388,12 +388,12 @@ th.sticky .left-0 {
 
 .short-dir {
   color: var(--news-high-border);
-  text-shadow: rgba(248, 113, 113, 0.9) 0px 0px 7px;
+  text-shadow: rgba(248, 113, 113, 0.6) 0px 0px 7px;
 }
 
 .long-dir {
   color: var(--green-color);
-    text-shadow: rgba(74, 222, 128, 0.9) 0px 0px 7px;
+    text-shadow: rgba(74, 222, 128, 0.6) 0px 0px 7px;
 }
 
 /* ── Focus ──────────────────────────────────────────────────────────────── */

@@ -1229,10 +1229,10 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
  
       {/* Key Metrics */}
       <div className="pdf-section">
-        <div className="pdf-section-title">Key Metrics</div>
+        <div className="pdf-section-title">{t('ui.keyMetrics')}</div>
         <div className="pdf-grid">
           <div className="pdf-metric">
-            <div className="pdf-metric-label">COT Index</div>
+            <div className="pdf-metric-label">{t('ui.cotIndex')}</div>
             <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`}>
               {fmtIdx(idx)}
             </div>
@@ -1244,14 +1244,14 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
             </div>
           </div>
           <div className="pdf-metric">
-            <div className="pdf-metric-label">Flow State</div>
+            <div className="pdf-metric-label">{t('ui.flowState')}</div>
             <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`} style={{ fontSize: "13px" }}>
               {translateFlowState(asset.flow_state || 'Neutral', t)}
             </div>
             <div className="pdf-metric-sub">{profile.setupBias}</div>
           </div>
           <div className="pdf-metric">
-            <div className="pdf-metric-label">Momentum</div>
+            <div className="pdf-metric-label">{t('ui.momentum')}</div>
             <div className={`pdf-metric-value ${direction === "rising" ? "c-green" : direction === "falling" ? "c-red" : "c-neutral"}`}>
               {dirArrow} {asset.funds_index_wow_change != null ? `${asset.funds_index_wow_change > 0 ? "+" : ""}${asset.funds_index_wow_change.toFixed(1)}` : "—"}
             </div>
@@ -1260,7 +1260,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
             </div>
           </div>
           <div className="pdf-metric">
-            <div className="pdf-metric-label">Open Interest</div>
+            <div className="pdf-metric-label">{t('ui.openInterest')}</div>
             <div className="pdf-metric-value" style={{ fontSize: "13px", color: "#f4f4f5" }}>
               {fmtN(asset.open_interest)}
             </div>
@@ -1270,7 +1270,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
  
       {/* Rolling Averages */}
       <div className="pdf-section">
-        <div className="pdf-section-title">Rolling Averages & Trend</div>
+        <div className="pdf-section-title">{t('ui.rollingAverages')}</div>
         <div className="pdf-grid-3">
           <div className="pdf-metric">
             <div className="pdf-metric-label">3-Week Avg Index</div>
@@ -1295,24 +1295,24 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
  
       {/* Positioning Detail */}
       <div className="pdf-section">
-        <div className="pdf-section-title">Positioning Detail</div>
+        <div className="pdf-section-title">{t('ui.positioningDetail')}</div>
         <table className="pdf-table">
           <thead>
             <tr>
-              <th>Group</th>
-              <th style={{ textAlign: "right" }}>Long</th>
-              <th style={{ textAlign: "right" }}>Short</th>
-              <th style={{ textAlign: "right" }}>Net</th>
-              <th style={{ textAlign: "right" }}>% Long</th>
-              <th style={{ textAlign: "right" }}>% Short</th>
-              <th style={{ textAlign: "right" }}>Index</th>
+              <th>{t('ui.group')}</th>
+              <th style={{ textAlign: "right" }}>{t('ui.long')}</th>
+              <th style={{ textAlign: "right" }}>{t('ui.short')}</th>
+              <th style={{ textAlign: "right" }}>{t('ui.net')}</th>
+              <th style={{ textAlign: "right" }}>% {t('ui.long')}</th>
+              <th style={{ textAlign: "right" }}>% {t('ui.short')}</th>
+              <th style={{ textAlign: "right" }}>{t('ui.index')}</th>
             </tr>
           </thead>
           <tbody>
             {asset.source_type === "TFF" ? (
               <>
                 <tr>
-                  <td className="highlight">Leveraged Funds</td>
+                  <td className="highlight">{t('ui.leveragedFunds')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.funds_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.funds_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.funds_net) > 0 ? "c-green" : "c-red"}>
@@ -1325,7 +1325,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
                   </td>
                 </tr>
                 <tr>
-                  <td className="highlight">Dealer / Banks</td>
+                  <td className="highlight">{t('ui.dealerBanks')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.dealer_net) > 0 ? "c-green" : "c-red"}>
@@ -1338,7 +1338,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
                   </td>
                 </tr>
                 <tr>
-                  <td className="highlight">Asset Manager</td>
+                  <td className="highlight">{t('ui.assetManager')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.asset_manager_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.asset_manager_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.asset_manager_net) > 0 ? "c-green" : "c-red"}>
@@ -1354,7 +1354,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
             ) : (
               <>
                 <tr>
-                  <td className="highlight">Managed Money</td>
+                  <td className="highlight">{t('ui.managedMoney')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.funds_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.funds_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.funds_net) > 0 ? "c-green" : "c-red"}>
@@ -1367,7 +1367,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
                   </td>
                 </tr>
                 <tr>
-                  <td className="highlight">Producer / Merchant</td>
+                  <td className="highlight">{t('ui.producerMerchant')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.producer_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.producer_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.producer_net) > 0 ? "c-green" : "c-red"}>
@@ -1378,7 +1378,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
                   <td style={{ textAlign: "right" }}>—</td>
                 </tr>
                 <tr>
-                  <td className="highlight">Swap Dealers</td>
+                  <td className="highlight">{t('ui.swapDealers')}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_long)}</td>
                   <td style={{ textAlign: "right" }}>{fmtN(asset.dealer_short)}</td>
                   <td style={{ textAlign: "right" }} className={Number(asset.dealer_net) > 0 ? "c-green" : "c-red"}>
@@ -1396,7 +1396,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
  
       {/* Setup Analysis */}
       <div className="pdf-section">
-        <div className="pdf-section-title">Setup Analysis</div>
+        <div className="pdf-section-title">{t('ui.setupAnalysis')}</div>
         <div style={{ border: "1px solid #27272a", padding: "12px", background: "#0a0a0a", fontSize: "11px", color: "#a1a1aa", lineHeight: "1.7" }}>
           <div style={{ color: "#f4f4f5", fontWeight: "600", marginBottom: "6px" }}>{profile.setupBias}</div>
           <div className="text-sm leading-6 text-zinc-300">{profile.setupSummary}</div>
@@ -1407,7 +1407,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
       {/* Seasonality */}
       {sparkProfile.length === 12 && (
         <div className="pdf-section">
-          <div className="pdf-section-title">Seasonal Pattern (5-Year Average)</div>
+          <div className="pdf-section-title">{t('ui.seasonalPattern')}</div>
           <div className="pdf-season">
             {MONTHS.map((m, i) => {
               const v = sparkProfile[i]
@@ -1622,6 +1622,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
 }
 
 function AlertBell({ onOpen }) {
+  const { t } = useTranslation()
   const [unreadCount, setUnreadCount] = useState(0)
  
   React.useEffect(() => {
@@ -1640,7 +1641,7 @@ function AlertBell({ onOpen }) {
     <button
       onClick={onOpen}
       className="relative grid h-8 w-8 place-items-center default-bg text-slate-200 transition hover:text-zinc-300"
-      title="Alerts"
+      title={t('ui.alerts')}
     >
       <Bell size={15} />
       {unreadCount > 0 && (
@@ -1670,6 +1671,7 @@ function AlertBell({ onOpen }) {
 }
 
 function AlertDrawer({ open, onClose }) {
+  const { t } = useTranslation()
   const [alerts, setAlerts]   = useState([])
   const [loading, setLoading] = useState(false)
  
@@ -1745,7 +1747,7 @@ function AlertDrawer({ open, onClose }) {
           {!loading && alerts.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
               <Bell size={28} className="text-zinc-700" />
-              <div className="text-sm text-zinc-600">No alerts yet.</div>
+              <div className="text-sm text-zinc-600">{t('ui.noAlertsYet')}</div>
               <div className="text-xs text-zinc-700">
                 Alerts fire automatically after each weekly COT update.
               </div>
@@ -1816,7 +1818,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
         <button
           onClick={() => setSidebarCollapsed((v) => !v)}
           className="grid h-8 w-8 shrink-0 place-items-center default-bg text-slate-200 transition hover:text-zinc-300"
-          aria-label="Toggle sidebar"
+          aria-label={t('ui.toggleSidebar')}
         >
           {/* Animated burger → X lines */}
           <div className="flex flex-col items-center justify-center gap-[4px]">
@@ -2116,7 +2118,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               </div>
               <div className="mt-3 small-panel-color p-3" style={{ borderRadius: "10px" }}>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="uppercase tracking-[0.2em]">Composite</span>
+                  <span className="uppercase tracking-[0.2em]">{t('ui.composite')}</span>
                   <span className={cls("font-semibold tabular-nums", macroTone(macroComposite))}>
                     {macroComposite != null ? macroComposite.toFixed(1) : "n/a"}
                   </span>
@@ -2145,19 +2147,19 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
             }}
             aiLanguage={aiLanguage}
-            title="AI — Weekly Briefing"
+            title={t('ui.weekly_briefing')}
               fillHeight={true} />  
             
            <section className="title-border" style={{ flexShrink: 0 }}>
             <div className="px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
-                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Alert Feed</span>
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t('ui.alertFeed')}</span>
               </div>
             </div>
             <div className="divide-y divide-zinc-900">
               {alertFeed.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-zinc-600">No alerts right now.</div>
+                <div className="px-4 py-4 text-sm text-zinc-600">{t('ui.noAlertsRight')}</div>
               ) : alertFeed.map((alert) => (
                 <div key={alert.id} className="px-4 py-2.5">
                   <div className="flex items-start justify-between gap-2">
@@ -2193,7 +2195,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             </div>
             <div className="p-4">
               {topSignals.length === 0 ? (
-                <div className="py-8 text-center text-sm text-zinc-600">No active signals right now.</div>
+                <div className="py-8 text-center text-sm text-zinc-600">{t('ui.noActiveSignals')}</div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", maxHeight: "100%" }}>
                   {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
@@ -2392,7 +2394,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   value={newsCategory}
                   onChange={setNewsCategory}
                   minWidth="0"
-                  placeholder="All Categories"
+                  placeholder={t('ui.allCategories')}
                   options={[
                     {value:"all",          label:"All Categories"},
                     {value:"POLICY",       label:"Policy"},
@@ -2408,7 +2410,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   value={newsSource}
                   onChange={setNewsSource}
                   minWidth="0"
-                  placeholder="All Sources"
+                  placeholder={t('ui.allSources')}
                   options={[
                     {value:"all",              label:"All Sources"},
                     {value:"Federal Reserve",  label:"Federal Reserve"},
@@ -2425,7 +2427,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   value={newsImportance}
                   onChange={setNewsImportance}
                   minWidth="0"
-                  placeholder="All Priority"
+                  placeholder={t('ui.allPriority')}
                   options={[
                     {value:"all",    label:"All Priority"},
                     {value:"high",   label:"High"},
@@ -2437,7 +2439,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             </div>
             <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
               {news.length === 0 ? (
-                <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>No market news.</div>
+                <div className="px-4 py-4 text-sm" style={{ color: '#60a5fa' }}>{t('ui.noMarketNews')}</div>
               ) : [...news]
                   .filter(item => newsCategory === "all" || item.category === newsCategory)
                   .filter(item => newsSource === "all" || item.source === newsSource)
@@ -2688,7 +2690,7 @@ function HistoricalDataView({ assets }) {
 
         {/* Range selector */}
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">Chart Range</span>
+          <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t('ui.chartRange')}</span>
         </div>
 
         {/* ── Chart 1: Net Position ────────────────────────────────────── */}
@@ -2818,7 +2820,7 @@ function HistoricalDataView({ assets }) {
 
         <div className="flex flex-wrap items-end gap-4 p-4">
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Asset</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">{t('ui.asset')}</div>
             <CustomSelect
                 value={selectedSymbol}
                 onChange={(v) => { setSelectedSymbol(v); setYearFilter("all") }}
@@ -2828,16 +2830,16 @@ function HistoricalDataView({ assets }) {
           </div>
 
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">Year (Table)</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">{t('ui.yearTable')}</div>
             <CustomSelect
               value={yearFilter}
               onChange={setYearFilter}
-              options={[{ value: "all", label: "All years" }, ...availableYears.map((y) => ({ value: String(y), label: String(y) }))]}
+              options={[{ value: "all", label: t('ui.allYears') }, ...availableYears.map((y) => ({ value: String(y), label: String(y) }))]}
               minWidth="120px"
             />
           </div>
           <div>
-      <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">COT Index Window</div>
+      <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-600">{t('ui.cotIndexWindow')}</div>
       <div className="flex gap-1">
         {[
           { value: "3y",  label: "3Y"  },
@@ -2876,12 +2878,12 @@ function HistoricalDataView({ assets }) {
 
         {/* Legend */}
         <div className="flex flex-wrap gap-4 border-t border-zinc-900 px-4 py-2.5 text-[10px] uppercase tracking-[0.16em] text-zinc-600">
-          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-rose-900/60" />Index ≥90 extreme long</span>
-          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-emerald-900/60" />Index ≤10 extreme short</span>
-          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-amber-900/40" />Sharp net change</span>
-          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-violet-900/50" />Net flip</span>
-          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-sky-900/40" />OI spike</span>
-          <span className="text-sky-800">Row tint = divergence</span>
+          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-rose-900/60" />{t('ui.indexExtremeLong')}</span>
+          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-emerald-900/60" />{t('ui.indexExtremeShort')}</span>
+          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-amber-900/40" />{t('ui.sharpNetChange')}</span>
+          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-violet-900/50" />{t('ui.netFlip')}</span>
+          <span><span className="inline-block w-2.5 h-2.5 mr-1 bg-sky-900/40" />{t('ui.oiSpike')}</span>
+          <span className="text-sky-800">{t('ui.rowTintDivergence')}</span>
         </div>
       </section>
 
@@ -2935,16 +2937,16 @@ function HistoricalDataView({ assets }) {
                   <th rowSpan={2} className="sticky left-0 z-20  px-3 py-3 text-left font-medium text-slate-200 min-w-[105px]">
                     Date
                   </th>
-                  <th colSpan={2} className="px-3 py-2 text-center font-medium text-slate-200 border-l border-zinc-800">Open Interest</th>
-                  <th colSpan={1} className="px-3 py-2 text-center font-medium text-violet-700 border-l border-zinc-800">Momentum</th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">Funds / Non-Commercials</th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">{amLabel}</th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">Dealer / Banks</th>
+                  <th colSpan={2} className="px-3 py-2 text-center font-medium text-slate-200 border-l border-zinc-800">{t('ui.openInterest')}</th>
+                  <th colSpan={1} className="px-3 py-2 text-center font-medium text-violet-700 border-l border-zinc-800">{t('ui.momentum')}</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">{t('ui.fundsNonCommercials')}</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">{t('ui.assetManager')}</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">{t('ui.dealerBanks')}</th>
                 </tr>
                 <tr className="border-b border-zinc-900 text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-                  <th className="px-3 py-2 text-right border-l border-zinc-800">OI</th>
-                  <th className="px-3 py-2 text-right">Chg</th>
-                  <th className="px-3 py-2 text-left border-l border-zinc-800 text-violet-900">Direction</th>
+                  <th className="px-3 py-2 text-right border-l border-zinc-800">{t('ui.oi')}</th>
+                  <th className="px-3 py-2 text-right">{t('ui.chg')}</th>
+                  <th className="px-3 py-2 text-left border-l border-zinc-800 text-violet-900">{t('ui.direction')}</th>
                   {["Long","Short","% L","% S","Net","Net Chg","Index"].map((h) => (
                     <th key={`f-${h}`} className={cls("px-3 py-2 text-right font-medium text-emerald-900", h==="Long" && "border-l border-zinc-800")}>{h}</th>
                   ))}
@@ -3313,7 +3315,7 @@ const macroComposite = averagePercentile([
             ))}
           </div>
           <div className="text-sm leading-7 text-blue-300 pt-3">
-            <span className="text-rose-400 tracking-[0.18em] text-[14px] mr-2">Verdict:</span>
+            <span className="text-rose-400 tracking-[0.18em] text-[14px] mr-2">{t('ui.verdict')}</span>
             {macroVerdict(growthScore, inflationScore, policyScore, t)}
           </div>
         </Panel>
@@ -3347,7 +3349,7 @@ const macroComposite = averagePercentile([
                         {formatPercentile(a.funds_percentile_3y)}
                       </div>
                     </div>
-                  )) : <div className="text-xs text-slate-400">No data available.</div>}
+                  )) : <div className="text-xs text-slate-400">{t('ui.noDataAvailable')}</div>}
                 </div>
               </div>
             ))}
@@ -3384,14 +3386,14 @@ const macroComposite = averagePercentile([
         {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
         <div className="grid grid-cols-2 gap-3">
             <div className="small-panel-color p-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">Sleeve Dispersion</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">{t('ui.sleeveDispersion')}</div>
               <div className="text-xl font-semibold text-zinc-100">{formatPercentile(macroNarrative.dispersion)}</div>
               <div className="text-[10px] text-zinc-500 mt-1">{macroDispersionLabel(macroNarrative.dispersion, t)}</div>
             </div>
             <div className="small-panel-color p-3">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300 mb-1">{t('panels.macroPhase')}</div>
               <div className="text-xl font-semibold text-zinc-100">{macroPhase(macroComposite, t)}</div>
-              <div className="text-[10px] text-zinc-500 mt-1">Composite regime state</div>
+              <div className="text-[10px] text-zinc-500 mt-1">{t('ui.compositeRegimeState')}</div>
             </div>
           </div>
           {/* 3. NARRATIVE SUMMARY */}
@@ -3491,14 +3493,14 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
         <Panel title={t("panels.correlation")} right={<GuideButton sectionKey="correlation" openGuide={openGuide} />}>
         <div className="grid gap-3 md:grid-cols-[0.9fr_1.1fr]">
           <div className="grid gap-3 md:grid-cols-2">
-            <Metric label="Universe"      value={universeAssets.length} />
-            <Metric label="Pairs"         value={pairs.length} />
-            <Metric label="Avg Alignment" value={formatPercentile(avgAlignment)} />
-            <Metric label="Avg Distance"  value={formatPercentile(avgDistance)} />
+            <Metric label={t('ui.universe')}      value={universeAssets.length} />
+            <Metric label={t('ui.pairs')}         value={pairs.length} />
+            <Metric label={t('ui.avgAlignment')} value={formatPercentile(avgAlignment)} />
+            <Metric label={t('ui.avgDistance')}  value={formatPercentile(avgDistance)} />
           </div>
           <div className="flex flex-col gap-7 small-panel-color py-4 px-3">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] mb-1">Market Alignment</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] mb-1">{t('ui.marketAlignment')}</div>
               <div className="text-[20px] font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
               <div className="text-[10px] text-zinc-400 mt-0.5">{sameSectorPairs} same · {crossSectorPairs} cross-sector</div>
             </div>
@@ -3512,7 +3514,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
                 }} />
               </div>
               <div className="flex justify-between text-[9px] uppercase tracking-[0.12em] text-zinc-200 mt-1.5">
-                <span>Fragmented</span><span>Synchronized</span>
+                <span>{t('ui.fragmented')}</span><span>{t('ui.synchronized')}</span>
               </div>
             </div>
           </div>
@@ -3550,7 +3552,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
         <div className="space-y-4">
 
           {/* CORRELATION HEATMAP */}
-          <Panel title="Correlation Matrix">
+          <Panel title={t('ui.correlationMatrix')}>
             <div className="overflow-x-auto">
               <table style={{ borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed', width: '100%' }}>
                 <thead>
@@ -3635,7 +3637,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             </div>
             {/* Legend */}
             <div className="flex items-center gap-3 mt-3 pt-3 flex-wrap justify-center">
-              <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-600">Gap:</span>
+              <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-600">{t('ui.gap')}</span>
               {[
                 { label: '0–12 Aligned',   bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' },
                 { label: '13–25',          bg: 'rgba(74,222,128,0.10)',  text: '#86efac' },
@@ -3902,9 +3904,9 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           {/* Breadth bar */}
           <div className="mb-2 px-5">
             <div className="flex justify-between text-[11px] uppercase tracking-[0.15em] mb-1.5">
-              <span className="text-rose-400">◄ Headwinds</span>
-              <span className="text-slate-200">Seasonal Breadth</span>
-              <span className="text-emerald-400">Tailwinds ►</span>
+              <span className="text-rose-400">◄ {t('ui.headwinds')}</span>
+              <span className="text-slate-200">{t('ui.seasonalBreadth')}</span>
+              <span className="text-emerald-400">{t('ui.tailwinds')}</span>
             </div>
             <div style={{ position: 'relative', height: '14px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)' }}>
               <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'rgba(255,255,255,0.12)' }} />
@@ -4101,15 +4103,15 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
         <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
             <div className="small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to read green</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.howToReadGreen')}</div>
               <div className="mt-2">Green means the calendar month has been more supportive for that asset.</div>
             </div>
             <div className="small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">How to read red</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.howToReadRed')}</div>
               <div className="mt-2">Red means that month has historically been less supportive or weaker.</div>
             </div>
             <div className="small-panel-color p-3 text-sm text-zinc-300">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Amber outline</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.amberOutline')}</div>
               <div className="mt-2">The outlined column marks the current month, so you know where to focus first.</div>
             </div>
           </div>
@@ -4150,7 +4152,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           </div>
            {/* Legend */}
           <div className="flex items-center gap-3 mt-3 pt-3 flex-wrap">
-            <span style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Score:</span>
+            <span style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em' }}>{t('ui.score')}</span>
             {[
               { label: '≥70 Strong',   bg: 'rgba(74,222,128,0.3)',   text: '#4ade80' },
               { label: '55–69 Mild',   bg: 'rgba(74,222,128,0.12)',  text: '#86efac' },
@@ -4493,7 +4495,6 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
     const name  = asset.name;
     const sym = asset.symbol;
     const sector = asset?.sector || '';
-    console.log('CONTRARIAN DEBUG:', sym, sector, safe)
 
     const conviction = Math.abs(safe - 50) * 2;
 
@@ -4505,7 +4506,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
     // How confident is the contrarian signal for each sector (high / medium / low)
     // High = speculators tend to be WRONG at extremes here → fade them
     // Low  = speculators tend to be RIGHT → follow them
-      const contrarianConfidence = (() => {
+    const contrarianConfidence = (() => {
         if (['IDX'].includes(sector))                          return 'high'
         if (['FX'].includes(sector))                           return 'high'
         if (['METALS'].includes(sector) && ['XAU','XAG'].includes(sym)) return 'medium'
@@ -4513,109 +4514,136 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
         if (['COMMODITIES','GRAINS','SFT','SOFTS'].includes(sector))    return 'low'
         if (['CRYPTO'].includes(sector))                       return 'low'
         return 'low'
-      })()
+    })()
  
-      const contrarianRead = (() => {
-        // Only show contrarian block if confidence is high or medium
-        if (contrarianConfidence === 'low') return null
-      
-        // ── EQUITY INDICES ─────────────────────────────────────────────────────────
-        if (sector === 'IDX') {
-          if (safe <= 15) return {
-            signal: 'CONTRARIAN BULLISH',
-            color: '#4ade80',
-            confidence: 'High Confidence',
-            label: 'Capitulation — possible bottom',
-            simple: `Almost everyone is already short. When a market is this crowded on the short side, there is almost nobody left to sell. One piece of good news — a positive earnings report, a Fed comment, anything — and all those shorts need to cover at once, pushing prices up sharply. This is not a buy signal, but it IS a "stop adding shorts" signal.`,
-            action: `What to do: If you are short, consider taking some profit and tightening your stop. If you were thinking of going short — wait. The risk of being caught in a squeeze is high here.`,
-          }
-          if (safe <= 35) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Accumulation zone',
-            simple: `Funds are heavily short on this index. They have already positioned for a decline. This means the "easy short" trade is crowded — a lot of people already have it on. The contrarian logic says: be careful adding more shorts here, because many people will need to exit at the same time if anything goes wrong for the bears.`,
-            action: `What to do: Existing shorts are fine but tighten stops. New short entries here have poor risk-reward — too many people are already there ahead of you.`,
-          }
-          if (safe >= 85) return {
-            signal: 'CONTRARIAN BEARISH',
-            color: '#f87171',
-            confidence: 'High Confidence',
-            label: 'Euphoria — possible top',
-            simple: `Almost everyone is already long. When a market is this crowded on the long side, it takes less and less good news to keep it going — and any disappointment causes a sharp drop as everyone tries to exit at once. This is not a sell signal, but it IS a "stop adding longs" signal.`,
-            action: `What to do: If you are long, take some profit and tighten your stop. If you were thinking of going long — wait. The risk of buying into a crowded trade is high here.`,
-          }
-          if (safe >= 65) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Distribution zone',
-            simple: `Funds are heavily long. The trend is up and the direct COT signal confirms it. But the contrarian lens says the easy money has been made — the trade is getting crowded. New longs from here carry more risk than they did when the position was fresh.`,
-            action: `What to do: The direct signal is still bullish — but if you are already long, this is not the time to add aggressively. Protect profits.`,
-          }
-          return null
+    const contrarianRead = (() => {
+      if (contrarianConfidence === 'low') return null
+      const C = {
+        bull: '#4ade80', bear: '#f87171', watch: '#fbbf24',
+        highConf:   uk ? 'Висока впевненість'  : 'High Confidence',
+        medConf:    uk ? 'Середня впевненість' : 'Medium Confidence',
+        sigBull:    uk ? 'КОНТРАРІАНСЬКИЙ БИЧАЧИЙ'  : 'CONTRARIAN BULLISH',
+        sigBear:    uk ? 'КОНТРАРІАНСЬКИЙ ВЕДМЕЖИЙ' : 'CONTRARIAN BEARISH',
+        sigWatch:   uk ? 'КОНТРАРІАНСЬКА УВАГА'      : 'CONTRARIAN WATCH',
+      }
+ 
+      // ── EQUITY INDICES ──
+      if (sector === 'IDX') {
+        if (safe <= 15) return {
+          signal: C.sigBull, color: C.bull, confidence: C.highConf,
+          label: uk ? 'Капітуляція — можливе дно' : 'Capitulation — possible bottom',
+          simple: uk
+            ? `Майже всі вже в шорті. Коли ринок настільки переповнений шортами, продавати майже нікому. Одна хороша новина — і всі ці шорти кинуться покривати одночасно, різко штовхаючи ціну вгору. Це не сигнал на купівлю, але це сигнал "припинити додавати шорти".`
+            : `Almost everyone is already short. When a market is this crowded on the short side, there is almost nobody left to sell. One piece of good news and all those shorts need to cover at once, pushing prices up sharply. This is not a buy signal, but it IS a "stop adding shorts" signal.`,
+          action: uk
+            ? `Що робити: Якщо ви в шорті — зафіксуйте частину прибутку і підтягніть стоп. Якщо думали шортити — зачекайте. Ризик потрапити в сквіз високий.`
+            : `What to do: If you are short, consider taking some profit and tightening your stop. If you were thinking of going short, wait. The risk of being caught in a squeeze is high here.`,
         }
-      
-        // ── FX CURRENCIES ──────────────────────────────────────────────────────────
-        if (sector === 'FX') {
-          if (safe <= 15) return {
-            signal: 'CONTRARIAN BULLISH',
-            color: '#4ade80',
-            confidence: 'High Confidence',
-            label: 'Extreme short — squeeze risk',
-            simple: `Currency speculators are famous for getting it wrong at extremes. Right now they are extremely short this currency — meaning the bearish trade is at maximum capacity. In FX, this level of one-sided positioning is one of the most reliable reversal signals in COT analysis. The currency does not need great news to bounce — it just needs the shorts to start covering.`,
-            action: `What to do: Do not add new short positions. Watch for any catalyst — a surprise data release, central bank comment, or just a technical bounce — that could trigger a short squeeze.`,
-          }
-          if (safe <= 35) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Bearish but getting crowded',
-            simple: `Speculators are short this currency. In FX markets, when the short side gets crowded, reversals can be fast and sharp. You are not at an extreme yet, but you are moving in that direction. The direct signal says sell — the contrarian lens says be alert for signs that the move is running out of steam.`,
-            action: `What to do: Short positions are valid but manage them actively. Be ready to exit quickly if the price starts to recover.`,
-          }
-          if (safe >= 85) return {
-            signal: 'CONTRARIAN BEARISH',
-            color: '#f87171',
-            confidence: 'High Confidence',
-            label: 'Extreme long — reversal risk',
-            simple: `Currency speculators are extremely long. In FX history, this level of one-sided bullish positioning marks some of the best reversal opportunities. Everyone who wants to be long is already long. The currency needs increasingly strong news just to keep moving up — and the slightest disappointment can trigger a sharp sell-off as longs exit.`,
-            action: `What to do: Do not chase new long positions. Watch for a catalyst that triggers profit-taking. This is a high-risk zone for new longs.`,
-          }
-          if (safe >= 65) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Bullish but getting crowded',
-            simple: `Speculators are long this currency. The trend is with you — but FX crowds tend to overstay their welcome. You are not at a dangerous extreme yet, but momentum longs are starting to pile in. Keep an eye on whether the move is still being driven by fundamentals or just by crowding.`,
-            action: `What to do: Long positions are valid. Watch for signs of exhaustion — if the price stops responding to good news, that is a warning.`,
-          }
-          return null
+        if (safe <= 35) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Зона накопичення' : 'Accumulation zone',
+          simple: uk
+            ? `Фонди сильно в шорті по цьому індексу. "Легкий шорт" вже переповнений — багато хто його тримає. Контраріанська логіка каже: обережно з додаванням шортів, бо багато хто вийде одночасно, якщо щось піде не так для ведмедів.`
+            : `Funds are heavily short on this index. The "easy short" trade is crowded. The contrarian logic says be careful adding more shorts here, because many people will need to exit at the same time if anything goes wrong for the bears.`,
+          action: uk
+            ? `Що робити: Наявні шорти прийнятні, але підтягніть стопи. Нові шорти тут мають погане співвідношення ризик/прибуток.`
+            : `What to do: Existing shorts are fine but tighten stops. New short entries here have poor risk-reward.`,
         }
-      
-        // ── PRECIOUS METALS (Gold, Silver) ─────────────────────────────────────────
-        if (sector === 'METALS' && ['XAU', 'XAG'].includes(sym)) {
-          if (safe <= 15) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Funds unusually short on Gold/Silver',
-            simple: `Gold and Silver funds are rarely this short. When they are, it usually means the market has been beaten up and fear is high. Historically, extreme fund short positions in precious metals have preceded significant recoveries. This is not a guaranteed buy signal, but it suggests the downside may be limited from here.`,
-            action: `What to do: Evaluate the macro picture — if there is any reason for safe-haven demand, this could be a good entry zone. Avoid adding new shorts.`,
-          }
-          if (safe >= 85) return {
-            signal: 'CONTRARIAN WATCH',
-            color: '#fbbf24',
-            confidence: 'Medium Confidence',
-            label: 'Funds very long — crowded trade',
-            simple: `Gold and Silver are heavily owned by funds right now. The trend has been strong, but when precious metals are this crowded on the long side, corrections tend to be sharp — because everyone exits at the same time when sentiment shifts. This does not mean sell, but it does mean the trade is mature.`,
-            action: `What to do: If you are long, this is a good time to take partial profit and tighten stops. New long entries here carry higher risk of buying near a short-term top.`,
-          }
-          return null
+        if (safe >= 85) return {
+          signal: C.sigBear, color: C.bear, confidence: C.highConf,
+          label: uk ? 'Ейфорія — можлива вершина' : 'Euphoria — possible top',
+          simple: uk
+            ? `Майже всі вже в лонгу. Коли ринок настільки переповнений лонгами, потрібно все менше хороших новин щоб триматися — і будь-яке розчарування викликає різке падіння, коли всі намагаються вийти одночасно. Це не сигнал на продаж, але сигнал "припинити додавати лонги".`
+            : `Almost everyone is already long. When a market is this crowded on the long side, it takes less good news to keep it going, and any disappointment causes a sharp drop as everyone tries to exit at once. This is not a sell signal, but it IS a "stop adding longs" signal.`,
+          action: uk
+            ? `Що робити: Якщо ви в лонгу — зафіксуйте частину прибутку і підтягніть стоп. Якщо думали купувати — зачекайте.`
+            : `What to do: If you are long, take some profit and tighten your stop. If you were thinking of going long, wait.`,
         }
-      
+        if (safe >= 65) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Зона розподілу' : 'Distribution zone',
+          simple: uk
+            ? `Фонди сильно в лонгу. Тренд вгору і прямий COT це підтверджує. Але контраріанська лінза каже: легкі гроші вже зроблено — угода стає переповненою. Нові лонги звідси несуть більше ризику.`
+            : `Funds are heavily long. The trend is up and direct COT confirms it. But the contrarian lens says the easy money has been made — the trade is getting crowded.`,
+          action: uk
+            ? `Що робити: Прямий сигнал ще бичачий — але якщо ви вже в лонгу, не час агресивно додавати. Захищайте прибуток.`
+            : `What to do: The direct signal is still bullish, but if you are already long, this is not the time to add aggressively. Protect profits.`,
+        }
         return null
-      })()
+      }
+ 
+      // ── FX ──
+      if (sector === 'FX') {
+        if (safe <= 15) return {
+          signal: C.sigBull, color: C.bull, confidence: C.highConf,
+          label: uk ? 'Екстремальний шорт — ризик сквізу' : 'Extreme short — squeeze risk',
+          simple: uk
+            ? `Валютні спекулянти відомі тим, що помиляються на екстремумах. Зараз вони екстремально в шорті по цій валюті — ведмежа угода на максимальній потужності. У FX такий рівень односторонності — один з найнадійніших сигналів розвороту в COT-аналізі.`
+            : `Currency speculators are famous for getting it wrong at extremes. Right now they are extremely short this currency. In FX, this level of one-sided positioning is one of the most reliable reversal signals in COT analysis.`,
+          action: uk
+            ? `Що робити: Не додавайте нові шорти. Стежте за будь-яким каталізатором, що може спровокувати шорт-сквіз.`
+            : `What to do: Do not add new short positions. Watch for any catalyst that could trigger a short squeeze.`,
+        }
+        if (safe <= 35) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Ведмеже, але переповнюється' : 'Bearish but getting crowded',
+          simple: uk
+            ? `Спекулянти в шорті по цій валюті. У FX, коли шорт-сторона переповнюється, розвороти бувають швидкі й різкі. Ви ще не на екстремумі, але рухаєтесь туди.`
+            : `Speculators are short this currency. In FX markets, when the short side gets crowded, reversals can be fast and sharp. You are not at an extreme yet but moving there.`,
+          action: uk
+            ? `Що робити: Шорти прийнятні, але керуйте ними активно. Будьте готові швидко вийти, якщо ціна почне відновлюватися.`
+            : `What to do: Short positions are valid but manage them actively. Be ready to exit quickly if the price starts to recover.`,
+        }
+        if (safe >= 85) return {
+          signal: C.sigBear, color: C.bear, confidence: C.highConf,
+          label: uk ? 'Екстремальний лонг — ризик розвороту' : 'Extreme long — reversal risk',
+          simple: uk
+            ? `Валютні спекулянти екстремально в лонгу. В історії FX такий рівень односторонньої бичачості позначає одні з найкращих можливостей для розвороту. Усі, хто хотів бути в лонгу, вже там.`
+            : `Currency speculators are extremely long. In FX history, this level of one-sided bullish positioning marks some of the best reversal opportunities. Everyone who wants to be long is already long.`,
+          action: uk
+            ? `Що робити: Не женіться за новими лонгами. Стежте за каталізатором фіксації прибутку. Це зона високого ризику для нових лонгів.`
+            : `What to do: Do not chase new long positions. Watch for a catalyst that triggers profit-taking. This is a high-risk zone for new longs.`,
+        }
+        if (safe >= 65) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Бичаче, але переповнюється' : 'Bullish but getting crowded',
+          simple: uk
+            ? `Спекулянти в лонгу по цій валюті. Тренд з вами — але FX-натовп схильний засиджуватися. Ви ще не на небезпечному екстремумі, але моментум-лонги починають накопичуватися.`
+            : `Speculators are long this currency. The trend is with you, but FX crowds tend to overstay their welcome. You are not at a dangerous extreme yet.`,
+          action: uk
+            ? `Що робити: Лонги прийнятні. Стежте за ознаками виснаження — якщо ціна перестає реагувати на хороші новини, це попередження.`
+            : `What to do: Long positions are valid. Watch for signs of exhaustion — if the price stops responding to good news, that is a warning.`,
+        }
+        return null
+      }
+ 
+      // ── PRECIOUS METALS ──
+      if (sector === 'METALS' && ['XAU', 'XAG'].includes(sym)) {
+        if (safe <= 15) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Фонди незвично в шорті по золоту/сріблу' : 'Funds unusually short on Gold/Silver',
+          simple: uk
+            ? `Фонди рідко бувають настільки в шорті по золоту і сріблу. Коли так стається, зазвичай це означає, що ринок побитий і страх високий. Історично екстремальні шорт-позиції фондів у дорогоцінних металах передували значним відновленням.`
+            : `Gold and Silver funds are rarely this short. When they are, it usually means the market has been beaten up and fear is high. Historically, extreme fund short positions in precious metals have preceded significant recoveries.`,
+          action: uk
+            ? `Що робити: Оцініть макро-картину — якщо є причина для попиту на захисні активи, це може бути хороша зона входу. Уникайте нових шортів.`
+            : `What to do: Evaluate the macro picture. If there is any reason for safe-haven demand, this could be a good entry zone. Avoid adding new shorts.`,
+        }
+        if (safe >= 85) return {
+          signal: C.sigWatch, color: C.watch, confidence: C.medConf,
+          label: uk ? 'Фонди дуже в лонгу — переповнена угода' : 'Funds very long — crowded trade',
+          simple: uk
+            ? `Золото і срібло зараз сильно в руках фондів. Тренд був сильним, але коли дорогоцінні метали настільки переповнені лонгами, корекції бувають різкими — бо всі виходять одночасно при зміні настрою.`
+            : `Gold and Silver are heavily owned by funds right now. The trend has been strong, but when precious metals are this crowded on the long side, corrections tend to be sharp.`,
+          action: uk
+            ? `Що робити: Якщо ви в лонгу — час зафіксувати частину прибутку і підтягнути стопи. Нові лонги несуть вищий ризик купівлі біля короткострокової вершини.`
+            : `What to do: If you are long, this is a good time to take partial profit and tighten stops. New long entries here carry higher risk.`,
+        }
+        return null
+      }
+ 
+      return null
+    })()
       
     const setupBias =
       safe >= 90 ? "Long Extreme" :
@@ -4623,74 +4651,113 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       safe <= 10 ? "Short Extreme" :
       safe <= 35 ? "Bearish Context" : "Balanced";
 
+    const uk = t && t('__lang__') === 'uk'
     const wowAbs = wow != null ? Math.abs(wow).toFixed(1) : null;
+ 
     let momentumLine = "";
     if (wow != null && wowAbs !== null) {
-      const wowDir = wow > 0 ? "added" : "reduced";
-      const wowSize = Math.abs(wow) >= 10 ? "sharply" : Math.abs(wow) >= 5 ? "meaningfully" : "modestly";
-      momentumLine = `This week funds ${wowDir} exposure ${wowSize} (${wow > 0 ? "+" : ""}${wow.toFixed(1)} index points).`;
+      if (uk) {
+        const wowDir = wow > 0 ? "наростили" : "скоротили";
+        const wowSize = Math.abs(wow) >= 10 ? "різко" : Math.abs(wow) >= 5 ? "помітно" : "помірно";
+        momentumLine = `Цього тижня фонди ${wowDir} експозицію ${wowSize} (${wow > 0 ? "+" : ""}${wow.toFixed(1)} пунктів індексу).`;
+      } else {
+        const wowDir = wow > 0 ? "added" : "reduced";
+        const wowSize = Math.abs(wow) >= 10 ? "sharply" : Math.abs(wow) >= 5 ? "meaningfully" : "modestly";
+        momentumLine = `This week funds ${wowDir} exposure ${wowSize} (${wow > 0 ? "+" : ""}${wow.toFixed(1)} index points).`;
+      }
     }
-
+ 
     const trendLine = accel === "accelerating"
-      ? "The move is accelerating — institutional conviction is growing."
+      ? (uk ? "Рух прискорюється — інституційна впевненість зростає." : "The move is accelerating — institutional conviction is growing.")
       : accel === "decelerating"
-      ? "The move is decelerating — watch for a potential stall or reversal."
+      ? (uk ? "Рух уповільнюється — стежте за можливим застоєм або розворотом." : "The move is decelerating — watch for a potential stall or reversal.")
       : accel === "stable"
-      ? "The pace of positioning change is stable."
+      ? (uk ? "Темп зміни позиціонування стабільний." : "The pace of positioning change is stable.")
       : "";
-
+ 
     const avgLine = avg3w != null && avg8w != null
-      ? `Short-term average (3w: ${avg3w.toFixed(1)}) is ${avg3w > avg8w ? "above" : "below"} the medium-term average (8w: ${avg8w.toFixed(1)}) — ${avg3w > avg8w ? "strengthening trend" : "weakening momentum"}.`
+      ? (uk
+          ? `Короткострокове середнє (3т: ${avg3w.toFixed(1)}) ${avg3w > avg8w ? "вище" : "нижче"} середньострокового (8т: ${avg8w.toFixed(1)}) — ${avg3w > avg8w ? "тренд посилюється" : "моментум слабшає"}.`
+          : `Short-term average (3w: ${avg3w.toFixed(1)}) is ${avg3w > avg8w ? "above" : "below"} the medium-term average (8w: ${avg8w.toFixed(1)}) — ${avg3w > avg8w ? "strengthening trend" : "weakening momentum"}.`)
       : "";
-
+ 
     let setupSummary = "";
     if (safe >= 90) {
-      setupSummary = `${name} is at a 3-year positioning extreme — funds hold their largest long position of the cycle at ${safe.toFixed(0)}.`;
+      setupSummary = uk
+        ? `${name} на 3-річному екстремумі позиціонування — фонди тримають найбільшу лонг-позицію циклу на рівні ${safe.toFixed(0)}.`
+        : `${name} is at a 3-year positioning extreme — funds hold their largest long position of the cycle at ${safe.toFixed(0)}.`;
     } else if (safe >= 65) {
-      setupSummary = `${name} sits firmly in the bullish positioning zone at ${safe.toFixed(0)} on the 3-year scale.`;
+      setupSummary = uk
+        ? `${name} впевнено в бичачій зоні позиціонування на рівні ${safe.toFixed(0)} за 3-річною шкалою.`
+        : `${name} sits firmly in the bullish positioning zone at ${safe.toFixed(0)} on the 3-year scale.`;
     } else if (safe <= 10) {
-      setupSummary = `${name} is at a 3-year short extreme (${safe.toFixed(0)}). Funds are as bearish as they have been in years.`;
+      setupSummary = uk
+        ? `${name} на 3-річному шорт-екстремумі (${safe.toFixed(0)}). Фонди настільки ведмежі, як не були роками.`
+        : `${name} is at a 3-year short extreme (${safe.toFixed(0)}). Funds are as bearish as they have been in years.`;
     } else if (safe <= 35) {
-      setupSummary = `${name} is in a bearish positioning zone at ${safe.toFixed(0)}. Funds hold a net short bias.`;
+      setupSummary = uk
+        ? `${name} у ведмежій зоні позиціонування на рівні ${safe.toFixed(0)}. Фонди тримають чистий шорт-нахил.`
+        : `${name} is in a bearish positioning zone at ${safe.toFixed(0)}. Funds hold a net short bias.`;
     } else {
-      setupSummary = `${name} sits in a neutral zone at ${safe.toFixed(0)} — neither convincingly long nor short.`;
+      setupSummary = uk
+        ? `${name} у нейтральній зоні на рівні ${safe.toFixed(0)} — ні переконливо лонг, ні шорт.`
+        : `${name} sits in a neutral zone at ${safe.toFixed(0)} — neither convincingly long nor short.`;
     }
-
+ 
     let contextualInterpretation = "";
     if (safe >= 90) {
-      contextualInterpretation += `**Crowded long.** Funds are at cycle highs. The risk here is asymmetric — upside is limited while downside from forced liquidation is real. `;
+      contextualInterpretation += uk
+        ? `**Переповнений лонг.** Фонди на максимумах циклу. Ризик асиметричний — потенціал зростання обмежений, тоді як ризик зниження від примусової ліквідації реальний. `
+        : `**Crowded long.** Funds are at cycle highs. The risk here is asymmetric — upside is limited while downside from forced liquidation is real. `;
     } else if (safe >= 65) {
-      contextualInterpretation += `**Constructive positioning.** This is the sweet spot for trend trades. Funds are clearly positioned long but haven't reached the crowded extreme. `;
+      contextualInterpretation += uk
+        ? `**Конструктивне позиціонування.** Це оптимальна зона для трендових угод. Фонди явно в лонгу, але ще не досягли переповненого екстремуму. `
+        : `**Constructive positioning.** This is the sweet spot for trend trades. Funds are clearly positioned long but haven't reached the crowded extreme. `;
     } else if (safe <= 10) {
-      contextualInterpretation += `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive catalyst could spark a sharp squeeze. `;
-    } else if (safe <= 15) {
-      contextualInterpretation += `**Extreme short — capitulation zone.** Funds are near a 3-year short extreme. Contrarian risk is high — any positive catalyst could trigger a sharp squeeze.`
+      contextualInterpretation += uk
+        ? `**Переповнений шорт.** Ринок сильно позиціонований на зниження. Ризик повернення до середнього підвищений — будь-який позитивний каталізатор може спричинити різкий сквіз. `
+        : `**Crowded short.** The market is heavily positioned for downside. Mean-reversion risk is elevated — any positive catalyst could spark a sharp squeeze. `;
     } else if (safe <= 35) {
-      contextualInterpretation += `**Bearish positioning.** Funds are positioned short below the 35 threshold.`    } else {
-      contextualInterpretation += `**Neutral zone.** Positioning alone provides no directional edge. Conviction from other sources is needed before acting. `;
+      contextualInterpretation += uk
+        ? `**Ведмеже позиціонування.** Фонди в шорті нижче порогу 35.`
+        : `**Bearish positioning.** Funds are positioned short below the 35 threshold.`;
+    } else {
+      contextualInterpretation += uk
+        ? `**Нейтральна зона.** Саме лише позиціонування не дає напрямкової переваги. Перед дією потрібна впевненість з інших джерел. `
+        : `**Neutral zone.** Positioning alone provides no directional edge. Conviction from other sources is needed before acting. `;
     }
     if (trendLine) contextualInterpretation += `${trendLine} `;
     if (momentumLine) contextualInterpretation += `${momentumLine} `;
     if (avgLine) contextualInterpretation += `\n\n${avgLine}`;
-
+ 
     let gptCommentary = "";
     if (safe >= 90) {
-      gptCommentary = `**Positioning edge:** None from a fresh long entry — risk is skewed to the downside from here.\n\n**Trade approach:** Avoid new longs. Consider lightening existing positions or using tight stops.\n\n**Key level to watch:** A COT Index drop below 75 would signal the crowd is starting to exit.`;
+      gptCommentary = uk
+        ? `**Перевага позиціонування:** Немає для нового лонгу — ризик зміщений вниз звідси.\n\n**Підхід до угоди:** Уникайте нових лонгів. Розгляньте скорочення наявних позицій або тісні стопи.\n\n**Ключовий рівень:** Падіння COT Index нижче 75 сигналізуватиме, що натовп починає виходити.`
+        : `**Positioning edge:** None from a fresh long entry — risk is skewed to the downside from here.\n\n**Trade approach:** Avoid new longs. Consider lightening existing positions or using tight stops.\n\n**Key level to watch:** A COT Index drop below 75 would signal the crowd is starting to exit.`;
     } else if (safe >= 65) {
-      gptCommentary = `**Positioning edge:** Long bias is confirmed — use weakness as an opportunity.\n\n**Trade approach:** Buy dips within the trend. Keep stops below recent swing lows.\n\n**Key level to watch:** Watch for COT Index to sustain above 65 — a drop below would shift the bias.`;
+      gptCommentary = uk
+        ? `**Перевага позиціонування:** Лонг-нахил підтверджено — використовуйте слабкість як можливість.\n\n**Підхід до угоди:** Купуйте просідання в межах тренду. Тримайте стопи нижче недавніх мінімумів.\n\n**Ключовий рівень:** Стежте, щоб COT Index тримався вище 65 — падіння нижче змінить нахил.`
+        : `**Positioning edge:** Long bias is confirmed — use weakness as an opportunity.\n\n**Trade approach:** Buy dips within the trend. Keep stops below recent swing lows.\n\n**Key level to watch:** Watch for COT Index to sustain above 65 — a drop below would shift the bias.`;
     } else if (safe <= 10) {
-      gptCommentary = `**Positioning edge:** Squeeze potential is high — be cautious on fresh shorts.\n\n**Trade approach:** Avoid adding shorts. Watch for any catalyst that could force covering.\n\n**Key level to watch:** A COT Index cross above 15 would be early confirmation of a squeeze forming.`;
+      gptCommentary = uk
+        ? `**Перевага позиціонування:** Потенціал сквізу високий — обережно з новими шортами.\n\n**Підхід до угоди:** Уникайте додавання шортів. Стежте за каталізатором, що може змусити покривати.\n\n**Ключовий рівень:** Перетин COT Index вище 15 буде раннім підтвердженням формування сквізу.`
+        : `**Positioning edge:** Squeeze potential is high — be cautious on fresh shorts.\n\n**Trade approach:** Avoid adding shorts. Watch for any catalyst that could force covering.\n\n**Key level to watch:** A COT Index cross above 15 would be early confirmation of a squeeze forming.`;
     } else if (safe <= 35) {
-      gptCommentary = `**Positioning edge:** Bearish bias is supported — rallies are selling opportunities.\n\n**Trade approach:** Fade strength rather than chasing breakdown. Short into bounces.\n\n**Key level to watch:** If COT rises back above 45, the bearish thesis weakens considerably.`;
+      gptCommentary = uk
+        ? `**Перевага позиціонування:** Ведмежий нахил підтримується — ралі є можливостями для продажу.\n\n**Підхід до угоди:** Фейдьте силу, а не женіться за пробоєм. Шортіть у відскоки.\n\n**Ключовий рівень:** Якщо COT повернеться вище 45, ведмежа теза суттєво слабшає.`
+        : `**Positioning edge:** Bearish bias is supported — rallies are selling opportunities.\n\n**Trade approach:** Fade strength rather than chasing breakdown. Short into bounces.\n\n**Key level to watch:** If COT rises back above 45, the bearish thesis weakens considerably.`;
     } else {
-      gptCommentary = `**Positioning edge:** None — neutral positioning means neither bulls nor bears have institutional backing.\n\n**Trade approach:** Wait for a directional break above 65 or below 35 before committing.\n\n**Key level to watch:** A sustained move to either extreme zone would establish a new setup.`;
+      gptCommentary = uk
+        ? `**Перевага позиціонування:** Немає — нейтральне позиціонування означає, що ні бики, ні ведмеді не мають інституційної підтримки.\n\n**Підхід до угоди:** Чекайте напрямкового пробою вище 65 або нижче 35 перед входом.\n\n**Ключовий рівень:** Стійкий рух до будь-якої екстремальної зони сформує новий сетап.`
+        : `**Positioning edge:** None — neutral positioning means neither bulls nor bears have institutional backing.\n\n**Trade approach:** Wait for a directional break above 65 or below 35 before committing.\n\n**Key level to watch:** A sustained move to either extreme zone would establish a new setup.`;
     }
-
+ 
     const checklist = [
-      { label: "COT regime agrees with bias",     pass: safe >= 65 || safe <= 35 },
-      { label: "Flow state is directional",        pass: flow !== "Neutral" },
-      { label: "Not in the most crowded zone",     pass: safe < 90 && safe > 10 },
-      { label: "Momentum confirms direction",      pass: accel === "accelerating" },
+      { label: uk ? "COT режим узгоджений з нахилом" : "COT regime agrees with bias",  pass: safe >= 65 || safe <= 35 },
+      { label: uk ? "Flow state напрямковий"         : "Flow state is directional",     pass: flow !== "Neutral" },
+      { label: uk ? "Не в найпереповненішій зоні"    : "Not in the most crowded zone",  pass: safe < 90 && safe > 10 },
+      { label: uk ? "Моментум підтверджує напрям"    : "Momentum confirms direction",   pass: accel === "accelerating" },
     ];
 
     return {
@@ -4711,7 +4778,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
   if (!asset || !profile) {
     return (
       <Panel title={t("panels.assetExplorer")}>
-        <div className="text-sm text-zinc-400">No asset data loaded.</div>
+        <div className="text-sm text-zinc-400">{t('ui.noAssetData')}</div>
       </Panel>
     );
   }
@@ -4808,16 +4875,16 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 
           {/* Metrics row */}
           <div className="grid gap-3 md:grid-cols-4 metric-card">
-            <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
-            <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
-            <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
-            <Metric label="Flow State" value={translateFlowState(asset.flow_state || 'Neutral', t)} />
+            <Metric label={t('ui.fundsNet')}     value={formatNumber(asset.funds_net)} />
+            <Metric label={t('ui.dealerNet')}    value={formatNumber(asset.dealer_net)} />
+            <Metric label={t('ui.openInterest')} value={formatNumber(asset.open_interest)} />
+            <Metric label={t('ui.flowState')} value={translateFlowState(asset.flow_state || 'Neutral', t)} />
           </div>
 
           {/* Momentum bar */}
           <div className="small-panel-color px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">Momentum</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.momentum')}</span>
               <MomentumBadge asset={asset} size="md" />
               <div className="flex items-center gap-6 text-[12px] text-slate-200">
                 {asset.funds_index_3w_avg != null && (
@@ -5068,7 +5135,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   </button>
                 ))
               ) : (
-                <div className="text-sm text-slate-300">No peer assets available.</div>
+                <div className="text-sm text-slate-300">{t('ui.noPeerAssets')}</div>
               )}
             </div>
           </Panel>
@@ -5079,6 +5146,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
 }
 
 function SignalHistoryTable({ items, loading }) {
+  const { t } = useTranslation()
   const [filter, setFilter] = useState('all') // all | active | aging | invalidated
  
   const filtered = useMemo(() => {
@@ -5171,15 +5239,15 @@ function SignalHistoryTable({ items, loading }) {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                <th className="px-3 py-2 text-left">Asset</th>
-                <th className="px-3 py-2 text-left">Dir</th>
-                <th className="px-3 py-2 text-left">State</th>
-                <th className="px-3 py-2 text-right">Weeks</th>
-                <th className="px-3 py-2 text-right">COT Index</th>
-                <th className="px-3 py-2 text-right">Peak</th>
-                <th className="px-3 py-2 text-left">Flow</th>
-                <th className="px-3 py-2 text-left">First seen</th>
-                <th className="px-3 py-2 text-left">Trend (8w→now)</th>
+                <th className="px-3 py-2 text-left">{t('ui.asset')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.direction')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.state')}</th>
+                <th className="px-3 py-2 text-right">{t('ui.weeks')}</th>
+                <th className="px-3 py-2 text-right">{t('ui.cotIndex')}</th>
+                <th className="px-3 py-2 text-right">{t('ui.peak')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.flow')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.firstSeen')}</th>
+                <th className="px-3 py-2 text-left">{t('ui.trend')}</th>
               </tr>
             </thead>
             <tbody>
@@ -5352,8 +5420,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       <div className="flex justify-between">
         <div className="flex flex-wrap gap-3">
   {[
-    { key: 'live',    label: 'Live Signals'},
-    { key: 'history', label: 'Signal History'},
+    { key: 'live',    label: t('ui.liveSignals')},
+    { key: 'history', label: t('ui.signalHistory')},
   ].map((tab) => (
     <button key={tab.key} onClick={() => setHistoryTab(tab.key)}
       className={`min-w-[72px] border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
@@ -5382,19 +5450,19 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       </div>
 
       {historyTab === 'history' ? (
-        <Panel title="Signal Lifecycle History">
+        <Panel title={t('ui.signalLifecycleHistory')}>
           <SignalHistoryTable items={signalHistory} loading={false} />
         </Panel>
       ) : (<>
 
 <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
-  <Panel title="Ranked Live Signal" right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
+  <Panel title={t('ui.rankedLiveSignal')} right={<GuideButton sectionKey="signals" openGuide={openGuide} />}>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 metric-card">
-      <Metric label="Signals" value={engine.counts.total} />
-      <Metric label="Active"          value={engine.counts.active} />
-      <Metric label="Aging"           value={engine.counts.aging} />
-      <Metric label="Invalidated"     value={engine.counts.invalidated} />
-      <Metric label="Alert Feed"      value={engine.counts.alerts} />
+      <Metric label={t('ui.signals')} value={engine.counts.total} />
+      <Metric label={t('ui.active')}          value={engine.counts.active} />
+      <Metric label={t('ui.aging')}           value={engine.counts.aging} />
+      <Metric label={t('ui.invalidated')}     value={engine.counts.invalidated} />
+      <Metric label={t('ui.alertFeed')}      value={engine.counts.alerts} />
     </div>
   </Panel>
   <AIAnalysisPanel
@@ -5418,7 +5486,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       .slice(0, 8)
     if (!sharpMoves.length) return null
     return (
-    <Panel title="Sharp Position Changes" right={
+    <Panel title={t('ui.sharpPositionChanges')} right={
       <div className="flex items-center gap-2">
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 7px rgba(251,191,36,0.9)' }} />
         <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">WoW ≥ 6pts</span>
@@ -5470,7 +5538,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
     })
     if (!crowded.length) return null
     return (
-      <Panel title="Crowded Positioning Warnings" right={
+      <Panel title={t('ui.crowdedWarnings')} right={
         <div className="flex items-center gap-2">
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 7px rgba(248,113,113,0.9)' }} />
           <span className="text-[10px] uppercase tracking-[0.2em] text-rose-400">
@@ -5523,23 +5591,23 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           
 <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
   <Panel
-  title="Ranked Signals"
+  title={t('ui.rankedSignals')}
   right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
 >
   {/* Filters inline */}
   <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 pb-4">
     <CustomSelect value={stateFilter} onChange={setStateFilter} minWidth="100%"
-      options={[{value:"all",label:"All States"},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
-        {value:"candidate",label:"Candidate"},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
+      options={[{value:"all",label: t('ui.allStates')},{value:"active",label:"Active"},{value:"aging",label:"Aging"},
+        {value:"candidate",label:t('ui.candidate')},{value:"stale",label:"Stale"},{value:"invalidated",label:"Invalidated"}]} />
     <CustomSelect value={directionFilter} onChange={setDirectionFilter} minWidth="100%"
-      options={[{value:"all",label:"All Bias"},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
+      options={[{value:"all",label:t('ui.allBias')},{value:"long",label:"Long"},{value:"short",label:"Short"},{value:"neutral",label:"Neutral"}]} />
     <CustomSelect value={sectorFilter} onChange={setSectorFilter} minWidth="100%"
       options={sectors.map((s) => ({ value: s, label: s === "all" ? "All Sectors" : s }))} />
     <CustomSelect value={String(minScore)} onChange={(v) => setMinScore(Number(v))} minWidth="100%"
       options={[{value:"0",label:"Score 0+"},{value:"40",label:"Score 40+"},{value:"55",label:"Score 55+"},{value:"70",label:"Score 70+"}]} />
     <CustomSelect value={sortBy} onChange={setSortBy} minWidth="100%"
-      options={[{value:"priority",label:"Priority"},{value:"quality",label:"Quality"},
-        {value:"freshness",label:"Freshness"},{value:"age",label:"Age"}]} />
+      options={[{ value: "priority", label: t('ui.priority') }, { value: "quality", label: t('ui.quality') },
+        {value:"freshness",label:t('ui.freshness')},{value:"age",label:t('ui.age')}]}/>
     <button
       onClick={() => setAlertsOnly((v) => !v)}
       className={cls(
@@ -5753,7 +5821,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 </Panel>
 
           <Panel
-            title="State Guide"
+            title={t('ui.stateGuide')}
             right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">reading signals</span>}
           >
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
@@ -5889,7 +5957,7 @@ const fmtUtc = (iso) => {
           </div>
         </Panel>
         {/* History Bootstrap */}
-        <Panel title="History Bootstrap">
+        <Panel title={t('ui.historyBootstrap')}>
           <div className="space-y-4">
             <div className="text-sm leading-7 text-zinc-300">
               Downloads full COT history <span className="text-zinc-100">2016 → present</span> for all assets.
@@ -5900,7 +5968,7 @@ const fmtUtc = (iso) => {
           </div>
         </Panel>
         {/* Worker Log */}
-        <Panel title="Worker Log">
+        <Panel title={t('ui.workerLog')}>
           <pre className="max-h-[420px] min-h-[78px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
             {updateState?.log || 'No log output yet.'}
           </pre>
@@ -5910,7 +5978,7 @@ const fmtUtc = (iso) => {
       <div className="space-y-4">
  
         {/* Auto-Schedule status */}
-        <Panel title="Auto-Schedule">
+        <Panel title={t('ui.autoSchedule')}>
           <div className="space-y-3 text-sm text-zinc-300">
             {schedulerState ? (
               <>
@@ -5945,7 +6013,7 @@ const fmtUtc = (iso) => {
         </Panel>
  
         {/* Run Status */}
-        <Panel title="Run Status">
+        <Panel title={t('ui.runStatus')}>
           <div className="space-y-3 text-sm text-zinc-300">
             <div className="flex justify-between gap-4">
               <span className="text-slate-200">Status</span>
@@ -5967,7 +6035,7 @@ const fmtUtc = (iso) => {
         </Panel>
  
         {/* Errors */}
-        <Panel title="Errors">
+        <Panel title={t('ui.errors')}>
           <div className="text-sm leading-7 text-zinc-300">
             {updateState?.error || 'No errors reported.'}
           </div>
@@ -8783,7 +8851,7 @@ setWorkspaceData({
         />
         <div className="flex-1 p-4 md:p-5">
           {loading
-            ? <Panel title="Loading"><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
+            ? <Panel title={t('common.loading')}><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
             : error
             ? <Panel title={t("panels.errors")}><div className="text-sm text-rose-400">{error}</div></Panel>
             : view}
