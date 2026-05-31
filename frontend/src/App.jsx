@@ -2939,7 +2939,7 @@ function HistoricalDataView({ assets }) {
                   </th>
                   <th colSpan={2} className="px-3 py-2 text-center font-medium text-slate-200 border-l border-zinc-800">{t('ui.openInterest')}</th>
                   <th colSpan={1} className="px-3 py-2 text-center font-medium text-violet-700 border-l border-zinc-800">{t('ui.momentum')}</th>
-                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">{t('ui.fundsNonCommercials')}</th>
+                  <th colSpan={7} className="px-3 py-2 text-center font-medium text-emerald-700 border-l border-zinc-800">{t('ui.fundsNonComm')}</th>
                   <th colSpan={7} className="px-3 py-2 text-center font-medium text-amber-700 border-l border-zinc-800">{t('ui.assetManager')}</th>
                   <th colSpan={7} className="px-3 py-2 text-center font-medium text-sky-700 border-l border-zinc-800">{t('ui.dealerBanks')}</th>
                 </tr>
