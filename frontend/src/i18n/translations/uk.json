@@ -184,6 +184,39 @@
     "signal": "Сигнал",
     "crowding": "Скупченість",
     "conviction": "Впевненість"
+  },
+  "stateLabels": {
+  "active": "Активний",
+  "aging": "Згасаючий",
+  "stale": "Застарілий",
+  "invalidated": "Недійсний",
+  "candidate": "Кандидат"
+  },
+  "directionLabels": {
+    "long": "Лонг",
+    "short": "Шорт",
+    "neutral": "Нейтрально"
+  },
+  "flowStates": {
+    "longExtreme": "Лонг екстремум",
+    "shortExtreme": "Шорт екстремум",
+    "accumulation": "Накопичення",
+    "distribution": "Розподіл",
+    "neutral": "Нейтрально"
+  },
+  "alerts": {
+    "readyForAction": "готовий до дії",
+    "setupActive": "сетап активний з високою впевненістю.",
+    "signalAging": "сигнал згасає",
+    "agingText": "Сетап ще дійсний, але свіжість зменшується.",
+    "signalLostQuality": "сигнал втратив якість",
+    "invalidatedText": "Сигнал більше не відповідає мінімальним умовам якості.",
+    "signalStale": "сигнал застарів",
+    "staleText": "Напрямкова ідея занадто стара або слабка для дієвого сетапу.",
+    "bullishActivation": "бичача активація",
+    "bullishActivationText": "Позиціонування перейшло в сильніший лонг-режим з покращенням умов входу.",
+    "bearishActivation": "ведмежа активація",
+    "bearishActivationText": "Позиціонування перейшло в сильніший шорт-режим з покращенням умов входу."
   }
 }
 

@@ -80,13 +80,26 @@ function groupShort(asset, group) {
   return hit ? asset[hit] : null
 }
 
-function signalStrengthLabel(score) {
-  if (score == null || Number.isNaN(score)) return 'Unrated'
-  if (score >= 85) return 'High Conviction'
-  if (score >= 70) return 'Strong'
-  if (score >= 55) return 'Moderate'
-  if (score >= 40) return 'Developing'
-  return 'Weak'
+function translateFlowState(flowState, t) {
+  if (!flowState) return ''
+  if (!t) return flowState
+  const map = {
+    'Long Extreme':  'flowStates.longExtreme',
+    'Short Extreme': 'flowStates.shortExtreme',
+    'Accumulation':  'flowStates.accumulation',
+    'Distribution':  'flowStates.distribution',
+    'Neutral':       'flowStates.neutral',
+  }
+  return map[flowState] ? t(map[flowState]) : flowState
+}
+
+function signalStrengthLabel(score, t) {
+  if (score == null || Number.isNaN(score)) return t ? t('signalsText.unrated') : 'Unrated'
+  if (score >= 85) return t ? t('signalsText.highConviction') : 'High Conviction'
+  if (score >= 70) return t ? t('signalsText.strong') : 'Strong'
+  if (score >= 55) return t ? t('signalsText.moderate') : 'Moderate'
+  if (score >= 40) return t ? t('signalsText.developing') : 'Developing'
+  return t ? t('signalsText.weak') : 'Weak'
 }
 
 function flowColor(percentile) {
@@ -230,22 +243,22 @@ function categoryTone(category) {
   return "text-blue-200";
 }
 
-function signalLabel(percentile) {
-  if (percentile == null) return 'No Signal'
-  if (percentile >= 90) return 'Strong Long Bias'
-  if (percentile >= 65) return 'Long Bias'
-  if (percentile <= 10) return 'Strong Short Bias'
-  if (percentile <= 35) return 'Short Bias'
-  return 'Neutral'
+function signalLabel(percentile, t) {
+  if (percentile == null) return t ? t('signalsText.noSignal') : 'No Signal'
+  if (percentile >= 90) return t ? t('signalsText.strongLongBias') : 'Strong Long Bias'
+  if (percentile >= 65) return t ? t('signalsText.longBias') : 'Long Bias'
+  if (percentile <= 10) return t ? t('signalsText.strongShortBias') : 'Strong Short Bias'
+  if (percentile <= 35) return t ? t('signalsText.shortBias') : 'Short Bias'
+  return t ? t('signalsText.neutral') : 'Neutral'
 }
 
-function regimeLabel(percentile) {
-  if (percentile == null) return 'Insufficient History'
-  if (percentile >= 90) return 'Crowded Long'
-  if (percentile >= 65) return 'Trend Build'
-  if (percentile <= 10) return 'Crowded Short'
-  if (percentile <= 35) return 'Short Build'
-  return 'Range'
+function regimeLabel(percentile, t) {
+  if (percentile == null) return t ? t('regimes.insufficientHistory') : 'Insufficient History'
+  if (percentile >= 90) return t ? t('regimes.crowdedLong') : 'Crowded Long'
+  if (percentile >= 65) return t ? t('regimes.trendBuild') : 'Trend Build'
+  if (percentile <= 10) return t ? t('regimes.crowdedShort') : 'Crowded Short'
+  if (percentile <= 35) return t ? t('regimes.shortBuild') : 'Short Build'
+  return t ? t('regimes.range') : 'Range'
 }
 
 function normalizeSector(sector) {
@@ -522,12 +535,12 @@ function stateTone(state) {
   return 'text-sky-300 border-sky-700/40 bg-sky-500/5'
 }
 
-function stateLabel(state) {
-  if (state === 'active') return 'Active'
-  if (state === 'aging') return 'Aging'
-  if (state === 'stale') return 'Stale'
-  if (state === 'invalidated') return 'Invalidated'
-  return 'Candidate'
+function stateLabel(state, t) {
+  if (state === 'active') return t ? t('stateLabels.active') : 'Active'
+  if (state === 'aging') return t ? t('stateLabels.aging') : 'Aging'
+  if (state === 'stale') return t ? t('stateLabels.stale') : 'Stale'
+  if (state === 'invalidated') return t ? t('stateLabels.invalidated') : 'Invalidated'
+  return t ? t('stateLabels.candidate') : 'Candidate'
 }
 
 function directionTone(direction) {
@@ -536,18 +549,18 @@ function directionTone(direction) {
   return 'text-zinc-400'
 }
 
-function directionLabel(direction) {
-  if (direction === 'long') return 'Long'
-  if (direction === 'short') return 'Short'
-  return 'Neutral'
+function directionLabel(direction, t) {
+  if (direction === 'long') return t ? t('directionLabels.long') : 'Long'
+  if (direction === 'short') return t ? t('directionLabels.short') : 'Short'
+  return t ? t('directionLabels.neutral') : 'Neutral'
 }
 
-function entryQualityBucket(score) {
-  if (score >= 85) return 'High Conviction'
-  if (score >= 70) return 'Strong'
-  if (score >= 55) return 'Moderate'
-  if (score >= 40) return 'Developing'
-  return 'Weak'
+function entryQualityBucket(score, t) {
+  if (score >= 85) return t ? t('signalsText.highConviction') : 'High Conviction'
+  if (score >= 70) return t ? t('signalsText.strong') : 'Strong'
+  if (score >= 55) return t ? t('signalsText.moderate') : 'Moderate'
+  if (score >= 40) return t ? t('signalsText.developing') : 'Developing'
+  return t ? t('signalsText.weak') : 'Weak'
 }
 
 function alertImpactTone(impact) {
@@ -556,63 +569,69 @@ function alertImpactTone(impact) {
   return 'text-sky-300 border-sky-700/40 bg-sky-500/5'
 }
 
-function buildSignalAlerts(signal) {
+function buildSignalAlerts(signal, t) {
   const alerts = []
-
+  const tr = (key, en) => (t ? t(key) : en)
+  const asset = signal.asset
+ 
   if (signal.state === 'active' && signal.entryQualityScore >= 70) {
     alerts.push({
       type: 'new-signal',
       impact: signal.entryQualityScore >= 85 ? 'high' : 'medium',
-      title: `${signal.asset} ready for action`,
-      text: `${directionLabel(signal.direction)} setup is active with ${entryQualityBucket(signal.entryQualityScore).toLowerCase()} entry quality.`,
+      title: t
+        ? `${asset}: ${t('alerts.readyForAction')}`
+        : `${asset} ready for action`,
+      text: t
+        ? `${directionLabel(signal.direction, t)} ${t('alerts.setupActive')}`
+        : `${directionLabel(signal.direction, t)} setup is active with ${entryQualityBucket(signal.entryQualityScore)} conviction.`,
     })
   }
-
+ 
   if (signal.state === 'aging') {
     alerts.push({
       type: 'aging',
       impact: 'medium',
-      title: `${signal.asset} signal is aging`,
-      text: `The setup is still valid, but freshness is fading after ${signal.ageWeeks} inferred weeks in market.`,
+      title: t ? `${asset}: ${t('alerts.signalAging')}` : `${asset} signal is aging`,
+      text: t ? t('alerts.agingText') : `The setup is still valid, but freshness is fading.`,
     })
   }
-
+ 
   if (signal.state === 'invalidated') {
     alerts.push({
       type: 'invalidated',
       impact: 'high',
-      title: `${signal.asset} signal lost quality`,
-      text: `The signal no longer meets minimum quality conditions and should be treated as invalidated.`,
+      title: t ? `${asset}: ${t('alerts.signalLostQuality')}` : `${asset} signal lost quality`,
+      text: t ? t('alerts.invalidatedText') : `The signal no longer meets minimum quality conditions.`,
     })
   }
-
+ 
   if (signal.state === 'stale') {
     alerts.push({
       type: 'stale',
       impact: 'low',
-      title: `${signal.asset} signal is stale`,
-      text: `The directional idea is too old or too weak to rank as an actionable setup.`,
+      title: t ? `${asset}: ${t('alerts.signalStale')}` : `${asset} signal is stale`,
+      text: t ? t('alerts.staleText') : `The directional idea is too old or too weak to rank as an actionable setup.`,
     })
   }
-
+ 
   if (signal.regimeShift === 'bullish-activation') {
     alerts.push({
       type: 'regime-shift',
       impact: 'high',
-      title: `${signal.asset} entered bullish activation`,
-      text: `Positioning moved into a stronger long-biased regime with improving entry conditions.`,
+      title: t ? `${asset}: ${t('alerts.bullishActivation')}` : `${asset} entered bullish activation`,
+      text: t ? t('alerts.bullishActivationText') : `Positioning moved into a stronger long-biased regime with improving entry conditions.`,
     })
   }
-
+ 
   if (signal.regimeShift === 'bearish-activation') {
     alerts.push({
       type: 'regime-shift',
       impact: 'high',
-      title: `${signal.asset} entered bearish activation`,
-      text: `Positioning moved into a stronger short-biased regime with improving entry conditions.`,
+      title: t ? `${asset}: ${t('alerts.bearishActivation')}` : `${asset} entered bearish activation`,
+      text: t ? t('alerts.bearishActivationText') : `Positioning moved into a stronger short-biased regime with improving entry conditions.`,
     })
   }
-
+ 
   return alerts
 }
 
@@ -625,7 +644,7 @@ function rankSignals(signals) {
   })
 }
 
-function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null) {
+function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null, t = null) {
   const seasonalityMap = new Map(seasonalityRows.map((row) => [row.name || row.asset, row]))
 
   const enriched = assets
@@ -678,8 +697,8 @@ function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null) 
         direction,
         state,
         ageWeeks,
-        regime: regimeLabel(percentile),
-        signalLabel: signalLabel(percentile),
+        regime: regimeLabel(percentile, t),
+        signalLabel: signalLabel(percentile, t),
         entryQualityScore: Number(entryQualityScore.toFixed(1)),
         freshnessScore: Number(freshnessScore.toFixed(1)),
         regimeAlignmentScore: Number(regimeAlignmentScore.toFixed(1)),
@@ -687,13 +706,13 @@ function buildSignalEngine(assets, seasonalityRows = [], macroComposite = null) 
         macroScore: Number(macroScore.toFixed(1)),
         directionalStrength: Number(directionalStrength.toFixed(1)),
         priorityScore: Number(priorityScore.toFixed(1)),
-        conviction: entryQualityBucket(entryQualityScore),
+        conviction: entryQualityBucket(entryQualityScore, t),
         regimeShift,
       }
 
       return {
         ...signal,
-        alerts: buildSignalAlerts(signal),
+        alerts: buildSignalAlerts(signal, t),
       }
     })
 
@@ -822,12 +841,12 @@ function sectorBadgeTone(isSameSector) {
   return isSameSector ? 'text-amber-300 border-amber-700/40 bg-amber-500/5' : 'text-cyan-300 border-cyan-700/40 bg-cyan-500/5'
 }
 
-function dispersionLabel(value) {
-  if (value == null) return 'Unavailable'
-  if (value >= 60) return 'Highly Dispersed'
-  if (value >= 40) return 'Dispersed'
-  if (value >= 25) return 'Moderately Clustered'
-  return 'Tightly Clustered'
+function dispersionLabel(value, t) {
+  if (value == null) return t ? t('labels.unavailable') : 'Unavailable'
+  if (value >= 60) return t ? t('correlationText.highlyDispersed') : 'Highly Dispersed'
+  if (value >= 40) return t ? t('correlationText.dispersed') : 'Dispersed'
+  if (value >= 25) return t ? t('correlationText.moderatelyClustered') : 'Moderately Clustered'
+  return t ? t('correlationText.tightlyClustered') : 'Tightly Clustered'
 }
 
 function safeName(pair, side = 'left') {
@@ -916,38 +935,38 @@ function macroTone(score) {
 }
 
 function macroLabel(score, t) {
-  if (score == null) return 'Insufficient Data'
-  if (score >= 80) return 'Strong Risk-On'
-  if (score >= 65) return 'Risk-On Bias'
-  if (score <= 20) return 'Strong Defensive'
-  if (score <= 35) return 'Defensive Bias'
-  return 'Balanced'
+  if (score == null) return t ? t('labels.insufficientData') : 'Insufficient Data'
+  if (score >= 80) return t ? t('macroText.strongRiskOn') : 'Strong Risk-On'
+  if (score >= 65) return t ? t('macroText.riskOnBias') : 'Risk-On Bias'
+  if (score <= 20) return t ? t('macroText.strongDefensive') : 'Strong Defensive'
+  if (score <= 35) return t ? t('macroText.defensiveBias') : 'Defensive Bias'
+  return t ? t('macroText.balanced') : 'Balanced'
 }
 
 function macroVerdict(growth, inflation, policy, t) {
   const values = [growth, inflation, policy].filter((x) => x != null && !Number.isNaN(x))
-  if (!values.length) return 'Macro composite unavailable.'
+  if (!values.length) return t ? t('macroText.macroCompositeUnavailable') : 'Macro composite unavailable.'
   const avg = values.reduce((sum, x) => sum + x, 0) / values.length
-  if (avg >= 70) return 'Broad COT backdrop is supportive of cyclical and pro-risk positioning.'
-  if (avg <= 30) return 'Broad COT backdrop is defensive, with risk appetite under pressure.'
-  return 'Current COT backdrop is balanced across major sleeves.'
+  if (avg >= 70) return t ? t('macroText.broadCotSupportive') : 'Broad COT backdrop is supportive of cyclical and pro-risk positioning.'
+  if (avg <= 30) return t ? t('macroText.broadCotDefensive') : 'Broad COT backdrop is defensive, with risk appetite under pressure.'
+  return t ? t('macroText.currentCotBalanced') : 'Current COT backdrop is balanced across major sleeves.'
 }
 
 function macroPhase(score, t) {
-  if (score == null) return 'Unavailable'
-  if (score >= 80) return 'Extreme Long'
-  if (score >= 65) return 'Constructive'
-  if (score <= 20) return 'Extreme Defensive'
-  if (score <= 35) return 'Defensive'
-  return 'Balanced'
+  if (score == null) return t ? t('labels.unavailable') : 'Unavailable'
+  if (score >= 80) return t ? t('macroText.extremeLong') : 'Extreme Long'
+  if (score >= 65) return t ? t('macroText.constructive') : 'Constructive'
+  if (score <= 20) return t ? t('macroText.extremeDefensive') : 'Extreme Defensive'
+  if (score <= 35) return t ? t('macroText.defensive') : 'Defensive'
+  return t ? t('macroText.balanced') : 'Balanced'
 }
 
 function macroDispersionLabel(value, t) {
-  if (value == null) return 'Unavailable'
-  if (value >= 35) return 'High Internal Divergence'
-  if (value >= 20) return 'Moderate Internal Divergence'
-  if (value >= 10) return 'Mild Internal Divergence'
-  return 'Tightly Aligned'
+  if (value == null) return t ? t('labels.unavailable') : 'Unavailable'
+  if (value >= 35) return t ? t('macroText.highInternalDivergence') : 'High Internal Divergence'
+  if (value >= 20) return t ? t('macroText.moderateInternalDivergence') : 'Moderate Internal Divergence'
+  if (value >= 10) return t ? t('macroText.mildInternalDivergence') : 'Mild Internal Divergence'
+  return t ? t('macroText.tightlyAligned') : 'Tightly Aligned'
 }
 
 function buildMacroNarrative({ growth, inflation, policy }, t) {
@@ -1039,13 +1058,13 @@ function seasonalCellTone(value) {
   return 'bg-zinc-900 text-zinc-300'
 }
 
-function seasonalBiasLabel(value) {
-  if (value == null || Number.isNaN(value)) return 'Unavailable'
-  if (value >= 70) return 'Strong Tailwind'
-  if (value >= 55) return 'Tailwind'
-  if (value <= 30) return 'Strong Headwind'
-  if (value <= 45) return 'Headwind'
-  return 'Mixed'
+function seasonalBiasLabel(value, t) {
+  if (value == null || Number.isNaN(value)) return t ? t('labels.unavailable') : 'Unavailable'
+  if (value >= 70) return t ? t('seasonalityText.strongTailwind') : 'Strong Tailwind'
+  if (value >= 55) return t ? t('seasonalityText.tailwind') : 'Tailwind'
+  if (value <= 30) return t ? t('seasonalityText.strongHeadwind') : 'Strong Headwind'
+  if (value <= 45) return t ? t('seasonalityText.headwind') : 'Headwind'
+  return t ? t('seasonalityText.mixed') : 'Mixed'
 }
 
 function seasonalBiasTone(value) {
@@ -1241,7 +1260,7 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
           <div className="pdf-metric">
             <div className="pdf-metric-label">Flow State</div>
             <div className={`pdf-metric-value ${idx >= 65 ? "c-green" : idx <= 35 ? "c-red" : "c-neutral"}`} style={{ fontSize: "13px" }}>
-              {asset.flow_state || "Neutral"}
+              {translateFlowState(asset.flow_state, t) || t('flowStates.neutral')}
             </div>
             <div className="pdf-metric-sub">{profile.setupBias}</div>
           </div>
@@ -2040,7 +2059,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       </span>
       <span style={{ fontSize: "8px", color: "rgba(185, 206, 235, 0.8)", marginTop: "4px",
         textTransform: "uppercase", letterSpacing: "0.1em" }}>
-        {a.flow_state || "Neutral"}
+        {translateFlowState(a.flow_state, t) || t('flowStates.neutral')}
       </span>
     </button>
   )
@@ -3335,7 +3354,7 @@ const macroComposite = averagePercentile([
                       <div>
                         <div className="text-xs text-zinc-100">{a.name}</div>
                         <div className="text-[10px] uppercase tracking-[0.15em] text-slate-400 mt-0.5">
-                          {a.flow_state || 'Neutral'}
+                          {translateFlowState(a.flow_state, t) || t('flowStates.neutral')}
                         </div>
                       </div>
                       <div className={cls('text-sm font-medium', flowColor(a.funds_percentile_3y))}>
@@ -4806,7 +4825,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
             <Metric label="Funds Net"     value={formatNumber(asset.funds_net)} />
             <Metric label="Dealer Net"    value={formatNumber(asset.dealer_net)} />
             <Metric label="Open Interest" value={formatNumber(asset.open_interest)} />
-            <Metric label="Flow State" value={asset.flow_state || "Neutral"} />
+            <Metric label="Flow State" value={translateFlowState(asset.flow_state, t) || t('flowStates.neutral')} />
           </div>
 
           {/* Momentum bar */}
@@ -5207,7 +5226,7 @@ function SignalHistoryTable({ items, loading }) {
                     s.flow_state === 'Distribution'   ? 'text-rose-300' :
                     'text-zinc-500'
                   )}>
-                    {s.flow_state || '—'}
+                    {translateFlowState(s.flow_state, t) || '—'}
                   </td>
                   <td className="px-3 py-2 text-slate-200 tabular-nums text-xs">
                     {fmtDate(s.first_seen_date)}
@@ -5232,6 +5251,7 @@ function SignalHistoryTable({ items, loading }) {
 }
 
 function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,seasonalityData = [] }) {
+  const { t } = useTranslation()
 
   const macroSleeves = useMemo(() => {
     return Object.entries(MACRO_SLEEVES).map(([key, config]) => {
@@ -5255,7 +5275,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
     const engine = useMemo(
     () => buildSignalEngine(assets, seasonalityData, macroComposite),
-    [assets, seasonalityData, macroComposite]
+    [assets, seasonalityData, macroComposite, t]
   )
 
   const [stateFilter, setStateFilter] = useState('all')
@@ -5566,10 +5586,10 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
             <div className="flex flex-wrap items-center gap-2">
               <span className={cls('inline-flex items-center border rounded-[3px] px-[5px] py-[1px] text-[10px] uppercase tracking-[0.22em]', stateTone(signal.state))}>
-                {stateLabel(signal.state)}
+                {stateLabel(signal.state, t)}
               </span>
               <span className={cls('text-[11px] uppercase tracking-[0.2em]', directionTone(signal.direction))}>
-                {directionLabel(signal.direction)}
+                {directionLabel(signal.direction, t)}
               </span>
             </div>
           </div>
@@ -5696,7 +5716,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   <span style={{ fontSize:'12px', fontWeight:700, color:dc }}>{isLong ? '↑ Long' : '↓ Short'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '11px', color: '#6085ff' }}>{ast?.flow_state || ''}</span></div>
+                  <span style={{ fontSize: '11px', color: '#6085ff' }}>{translateFlowState(ast?.flow_state, t) || ''}</span></div>
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 {pct != null && <div style={{ fontSize:'22px', fontWeight:800, color:dc, lineHeight:1 }}>{pct.toFixed(0)}</div>}
@@ -6293,7 +6313,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
         <div className="small-panel-color p-2 text-center">
           <div className="text-[9px] uppercase tracking-[0.18em] text-zinc-200">Flow</div>
           <div className={cls("mt-1 text-[10px] uppercase tracking-[0.14em]", flowColor(idx))}>
-            {asset.flow_state || "Neutral"}
+            {translateFlowState(asset.flow_state, t) || t('flowStates.neutral')}
           </div>
         </div>
       </div>
