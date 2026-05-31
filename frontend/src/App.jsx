@@ -1913,7 +1913,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
           weekday: 'short', day: '2-digit', month: 'short'
         }),
   }))
-}, [calendar])
+  }, [calendar])
 
   const topSignals = useMemo(() => {
     if (!assets.length) return []
@@ -2074,7 +2074,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       <div className="space-y-4">
 
         {/* ══ ROW 1: 2 equal cols ══════════════════════════════════════════════ */}
-        <div className="grid gap-3 mt-3" style={{ gridTemplateColumns: "1fr 0.7fr 1.2fr", alignItems: "stretch "}}>
+        <div className="grid gap-3 mt-3" style={{ gridTemplateColumns: "1fr 0.8fr 1.1fr", alignItems: "stretch "}}>
 
           {/* LEFT col: Macro Context + Macro Regime stacked */}
           <MacroContextPanel aiLanguage={aiLanguage}/>
@@ -3979,11 +3979,11 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           {/* Metrics */}
           <div className="grid grid-cols-5 gap-2 px-5 pb-3 metric-card">
             {[
-              { label: 'Universe',   value: rows.length,                                   color: '#93c5fd' },
-              { label: 'Supportive', value: supportiveCount,                               color: '#4ade80' },
-              { label: 'Headwinds',  value: headwindCount,                                 color: '#f87171' },
-              { label: 'Triple ✓', value: tripleConfirm.length, color: '#a78bfa' },
-              { label: 'COT-Seas Align', value: `${cotSeasonalAlignment}%`, color: cotSeasonalAlignment >= 60 ? '#4ade80' : cotSeasonalAlignment <= 30 ? '#f87171' : '#fbbf24' },
+              { label: t('ui.universe'),   value: rows.length,                                   color: '#93c5fd' },
+              { label: t('ui.supportive'), value: supportiveCount,                               color: '#4ade80' },
+              { label: t('ui.headwinds'),  value: headwindCount,                                 color: '#f87171' },
+              { label: t('ui.tripleConfirm'), value: tripleConfirm.length, color: '#a78bfa' },
+              { label: t('ui.cotSeasAlign'), value: `${cotSeasonalAlignment}%`, color: cotSeasonalAlignment >= 60 ? '#4ade80' : cotSeasonalAlignment <= 30 ? '#f87171' : '#fbbf24' },
             ].map(({ label, value, color }) => (
               <div key={label} className="small-panel-color p-2 text-center">
                 <div style={{ fontSize: '16px', fontWeight: 700, color }}>{value}</div>
@@ -4142,22 +4142,22 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           <div className="mb-4 grid gap-3 md:grid-cols-3">
             <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.howToReadGreen')}</div>
-              <div className="mt-2">Green means the calendar month has been more supportive for that asset.</div>
+              <div className="mt-2">{t('ui.howToReadGreenText')}</div>
             </div>
             <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.howToReadRed')}</div>
-              <div className="mt-2">Red means that month has historically been less supportive or weaker.</div>
+              <div className="mt-2">{t('ui.howToReadRedText')}</div>
             </div>
             <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.amberOutline')}</div>
-              <div className="mt-2">The outlined column marks the current month, so you know where to focus first.</div>
+              <div className="mt-2">{t('ui.amberOutlineText')}</div>
             </div>
           </div>
 
           <div>
             <div className="min-w-[865px]">
               <div className="grid grid-cols-[128px_repeat(12,minmax(0,1fr))] gap-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">
-                <div>Asset</div>
+                <div>{t('ui.asset')}</div>
                 {SEASONAL_MONTHS.map((m) => (
                   <div key={m} className="text-center">{m}</div>
                 ))}
@@ -4190,17 +4190,17 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
           </div>
            {/* Legend */}
           <div className="flex items-center gap-3 mt-3 pt-3 flex-wrap">
-            <span style={{ fontSize: '9px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em' }}>{t('ui.score')}</span>
+            <span style={{ fontSize: '9px', color: '#849ec3', textTransform: 'uppercase', letterSpacing: '0.15em' }}>{t('ui.score')}</span>
             {[
-              { label: '≥70 Strong',   bg: 'rgba(74,222,128,0.3)',   text: '#4ade80' },
-              { label: '55–69 Mild',   bg: 'rgba(74,222,128,0.12)',  text: '#86efac' },
-              { label: '46–54 Neutral', bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
-              { label: '31–45 Mild',   bg: 'rgba(248,113,113,0.12)', text: '#f87171' },
-              { label: '≤30 Strong',   bg: 'rgba(248,113,113,0.3)',  text: '#ef4444' },
+              { label: t('ui.strongAbove70'),   bg: 'rgba(74,222,128,0.3)',   text: '#4ade80' },
+              { label: t('ui.mild5569'),   bg: 'rgba(74,222,128,0.12)',  text: '#86efac' },
+              { label: t('ui.neutral4654'), bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
+              { label: t('ui.mild3145'),   bg: 'rgba(248,113,113,0.12)', text: '#f87171' },
+              { label: t('ui.strongBelow30'),   bg: 'rgba(248,113,113,0.3)',  text: '#ef4444' },
             ].map(({ label, bg, text }) => (
               <div key={label} className="flex items-center gap-1">
                 <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${text}40` }} />
-                <span style={{ fontSize: '9px', color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+                <span style={{ fontSize: '9px', color: '#849ec3', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -4401,10 +4401,10 @@ function Summary({ assets, setActive, setSelected, openGuide }) {
                 <tr className="border-b border-zinc-900 text-[11px] uppercase tracking-[0.2em] text-slate-200">
                   {headerGroups.map((group) => (
                     <React.Fragment key={group.key}>
-                      <th className="px-3 py-2 text-right">Long</th>
-                      <th className="px-3 py-2 text-right">Short</th>
-                      <th className="px-3 py-2 text-right">Net</th>
-                      <th className="px-3 py-2 text-right">Index</th>
+                      <th className="px-3 py-2 text-right">{t('ui.long')}</th>
+                      <th className="px-3 py-2 text-right">{t('ui.short')}</th>
+                      <th className="px-3 py-2 text-right">{t('ui.net')}</th>
+                      <th className="px-3 py-2 text-right">{t('ui.index')}</th>
                     </React.Fragment>
                   ))}
                 </tr>
@@ -5555,7 +5555,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                     {isUp ? '+' : ''}{wow.toFixed(1)}
                   </div>
                   <div className={dc} style={{ fontSize: '12px', marginTop: '2px' }}>
-                    {isUp ? '▲ Buying' : '▼ Selling'}
+                    {isUp ? `▲ ${t('ui.buying')}` : `▼ ${t('ui.selling')}`}
                   </div>
                 </div>
               </button>
@@ -5602,8 +5602,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                   </div>
                   <div className="mt-0.5 text-[10px] leading-4">
                     {isLong
-                      ? 'Mean-reversion risk elevated'
-                      : 'Short squeeze risk elevated'}
+                      ? t('ui.meanReversionRisk')
+                      : t('ui.squeezeRisk')}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -5614,7 +5614,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
                     COT Index
                   </div>
                   <div className={dc} style={{textTransform: 'uppercase', fontSize: '10px'}}>
-                    {isLong ? 'Crowded Long' : 'Crowded Short'}
+                    {isLong ? t('ui.crowdedLong') : t('ui.crowdedShort')}
                   </div>
                 </div>
               </button>
@@ -5688,23 +5688,23 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
           <div className="mt-4 grid gap-3 md:grid-cols-5">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Priority</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.priority')}</div>
               <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.priorityScore)}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Entry</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.entry')}</div>
               <div className="mt-1 text-sm text-zinc-100">{signal.conviction}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Freshness</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.freshness')}</div>
               <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.freshnessScore)}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Age</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.age')}</div>
               <div className="mt-1 text-sm text-zinc-100">{signal.ageWeeks}w</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">Regime</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.regime')}</div>
               <div className="mt-1 text-sm text-zinc-100">{signal.regime}</div>
             </div>
           </div>
@@ -5725,7 +5725,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           </div>
         </button>
       )) : (
-        <div className="text-sm text-zinc-400">No signals match the active filters.</div>
+        <div className="text-sm text-zinc-400">{t('ui.noSignalsMatch')}</div>
       )}
     </div>
   </Panel>
@@ -5733,7 +5733,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   <div className="space-y-4">
     <Panel
       title="Assets In Play"
-      right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">this week's top setups</span>}
+      right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">{t('ui.topSetupsWeek')}</span>}
     >
     <div className="space-y-3">
     {engine.signals
@@ -5812,7 +5812,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 {pct != null && <div style={{ fontSize:'22px', fontWeight:800, color:dc, lineHeight:1 }}>{pct.toFixed(0)}</div>}
-                <div style={{ fontSize:'10px', color:'#6085ff', letterSpacing:'0.08em' }}>COT Index</div>
+                <div style={{ fontSize:'10px', color:'#6085ff', letterSpacing:'0.08em' }}>{t('ui.cotIndex')}</div>
                 {wow != null && <div style={{ fontSize:'11px', color: wow>0?'#4ade80':'#f87171'}}>{wow>0?'+':''}{wow.toFixed(1)} this week</div>}
               </div>
             </div>
@@ -5820,8 +5820,8 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             {/* 4 metrics */}
             <div className="grid grid-cols-4 gap-2 mb-3">
               {[
-                { label: 'Entry Quality', value: s.entryQualityScore?.toFixed(0) ?? '—' },
-                { label: 'Priority',      value: s.priorityScore?.toFixed(0) ?? '—' },
+                { label: t('ui.entryQuality'), value: s.entryQualityScore?.toFixed(0) ?? '—' },
+                { label: t('ui.priority'),      value: s.priorityScore?.toFixed(0) ?? '—' },
                 { label: '3w avg',        value: avg3 != null ? avg3.toFixed(1) : '—' },
                 { label: '8w avg',        value: avg8 != null ? avg8.toFixed(1) : '—' },
               ].map(({ label, value }) => (
@@ -5834,40 +5834,40 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
             {/* Why */}
             <div className="mb-2">
-              <div style={{ fontSize:'10px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Why this signal</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>{t('ui.whyThisSignal')}</div>
               <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{why}</div>
             </div>
 
             {/* What to do */}
             <div className="mb-2">
-              <div style={{ fontSize:'10px', fontWeight:700, color:'#60a5fa', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>What to do</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#60a5fa', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>{t('ui.whatToDo')}</div>
               <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{action}</div>
             </div>
 
             {/* Risk */}
             <div>
-              <div style={{ fontSize:'10px', fontWeight:700, color:'#f87171', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>Risk note</div>
+              <div style={{ fontSize:'10px', fontWeight:700, color:'#f87171', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'3px' }}>{t('ui.riskNote')}</div>
               <div style={{ fontSize:'13px', color:'#cbd5e1', lineHeight:'1.65' }}>{risk}</div>
             </div>
           </div>
         )
       })}
     {engine.signals.filter(s => s.state==='active'||s.state==='aging').length === 0 && (
-      <div className="text-sm text-zinc-500">No actionable signals this week.</div>
+      <div className="text-sm text-zinc-500">{t('ui.noActionableSignals')}</div>
     )}
   </div>
 </Panel>
 
           <Panel
             title={t('ui.stateGuide')}
-            right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">reading signals</span>}
+            right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{t('ui.readingSignals')}</span>}
           >
             <div className="space-y-3 text-sm leading-7 text-zinc-300">
-              <div><span className="text-zinc-100">Candidate:</span> a directional idea exists, but quality or confirmation is not strong enough yet.</div>
-              <div><span className="text-zinc-100">Active:</span> a live setup with adequate quality and timing.</div>
-              <div><span className="text-zinc-100">Aging:</span> the setup is still alive, but time decay is reducing its usefulness.</div>
-              <div><span className="text-zinc-100">Stale:</span> the setup has lost timing edge and should not be treated as fresh.</div>
-              <div><span className="text-zinc-100">Invalidated:</span> the signal failed minimum quality conditions or lost structural support.</div>
+              <div><span className="text-zinc-100">{t('ui.candidateColon')}</span> {t('ui.candidateDesc')}</div>
+              <div><span className="text-zinc-100">{t('ui.activeColon')}</span> {t('ui.activeDesc')}</div>
+              <div><span className="text-zinc-100">{t('ui.agingColon')}</span> {t('ui.agingDesc')}</div>
+              <div><span className="text-zinc-100">{t('ui.staleColon')}</span> {t('ui.staleDesc')}</div>
+              <div><span className="text-zinc-100">{t('ui.invalidatedColon')}</span> {t('ui.invalidatedDesc')}</div>
             </div>
           </Panel>
         </div>
