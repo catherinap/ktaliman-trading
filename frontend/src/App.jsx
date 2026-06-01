@@ -1134,6 +1134,7 @@ function PairAlignmentSpark({ left = 0, right = 0 }) {
 
 function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
   const { t } = useTranslation()
+  const tMonth = (m) => t(`months.${m}`)
   if (!asset || !profile) return null
  
   const idx = asset.funds_percentile_3y
@@ -4088,7 +4089,7 @@ const simpleGuide = useMemo(() => {
                         color: flowOk ? '#a78bfa' : '#374151',
                         border: `1px solid ${flowOk ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.06)'}`,
                       }}>
-                        {flowOk ? '✓' : '✗'} {asset?.flow_state || 'No flow'}
+                        {flowOk ? '✓' : '✗'} {asset?.flow_state ? translateFlowState(asset.flow_state, t) : t('flowStates.neutral')}
                       </span>
                     </div>
                   </div>
@@ -4117,7 +4118,7 @@ const simpleGuide = useMemo(() => {
                     </span>
                     <span style={{ fontSize: '9px', color: '#99b1ff', background: '#1638e049',
                       border: '1px solid rgba(167,139,250,0.2)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                      {asset?.flow_state?.split(' ')[0] || 'Flow'}
+                      {asset?.flow_state ? translateFlowState(asset.flow_state, t).split(' ')[0] : t('ui.flow')}
                     </span>
                   </div>
                   {values && values.length === 12 && (
@@ -4514,6 +4515,14 @@ function renderNarrative(text) {
 
 function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, seasonalityData = [] }) {
   const { t } = useTranslation();
+  const tAccel = (a) =>
+    a === 'accelerating' ? t('ui.accelerating') :
+    a === 'decelerating' ? t('ui.decelerating') :
+    a === 'stable' ? t('ui.stable') : a
+  const tCrowding = (c) =>
+    c === 'Extreme' ? t('ui.crowdingExtreme') :
+    c === 'Elevated' ? t('ui.crowdingElevated') :
+    c === 'Moderate' ? t('ui.crowdingModerate') : c
 
   const asset = assets.find((a) => a.symbol === selected) || assets[0];
 
@@ -4559,7 +4568,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       safe >= 90 || safe <= 10 ? "Extreme" :
       safe >= 75 || safe <= 25 ? "Elevated" : "Moderate";
 
-
+    const uk = t && t('__lang__') === 'uk'
     // How confident is the contrarian signal for each sector (high / medium / low)
     // High = speculators tend to be WRONG at extremes here → fade them
     // Low  = speculators tend to be RIGHT → follow them
@@ -4708,7 +4717,6 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       safe <= 10 ? "Short Extreme" :
       safe <= 35 ? "Bearish Context" : "Balanced";
 
-    const uk = t && t('__lang__') === 'uk'
     const wowAbs = wow != null ? Math.abs(wow).toFixed(1) : null;
  
     let momentumLine = "";
@@ -4871,7 +4879,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
               className="flex items-center gap-1.5 border border-zinc-800 small-panel-color px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition"
             >
               <Download size={11} />
-              Export PDF
+              {t('ui.exportPdf')}
             </button>
             <GuideButton sectionKey="explorer" openGuide={openGuide} />
           </div>
@@ -4955,7 +4963,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   </span></span>
                 )}
                 {asset.funds_index_momentum != null && (
-                  <span>vs trend: <span className={
+                  <span>{t('ui.vsTrend')} <span className={
                     asset.funds_index_momentum > 0 ? "text-emerald-400" :
                     asset.funds_index_momentum < 0 ? "text-rose-400" : "text-zinc-400"
                   }>
@@ -4969,7 +4977,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                     asset.funds_index_acceleration === "decelerating" ? "text-rose-400" :
                     "text-slate-200"
                   }>
-                    {asset.funds_index_acceleration}
+                    {tAccel(asset.funds_index_acceleration)}
                   </span>
                 )}
               </div>
@@ -4997,21 +5005,21 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   {regimeLabel(profile.pct, t)} · {signalLabel(profile.pct, t)}
                 </div>
                 <div className="flex justify-between gap-2 text-[10px] uppercase">
-                  <span className="text-zinc-500">Conviction {formatPercentile(profile.conviction)}</span>
+                  <span className="text-zinc-500">{t('ui.conviction')} {formatPercentile(profile.conviction)}</span>
                   {' · '}
-                  <span className="text-zinc-500">Crowding {profile.crowding}</span></div>
+                  <span className="text-zinc-500">{t('ui.crowding')} {tCrowding(profile.crowding)}</span></div>
               </div>
 
               {/* Bias bar + summary */}
               <div className="space-y-3">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-slate-200 mb-1">
-                  Positioning Bias
+                  {t('ui.positioningBias')}
                 </div>
                 <BiasBar value={profile.pct} />
                 <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.15em] text-zinc-500">
-                  <span>Defensive</span>
+                  <span>{t('ui.defensive')}</span>
                   <span className={flowColor(profile.pct)}>{formatPercentile(profile.pct)}</span>
-                  <span>Constructive</span>
+                  <span>{t('ui.constructive')}</span>
                 </div>
                 <div className="p-3 text-xs text-blue-400 small-panel-color mt-2">
                   {profile.setupSummary}
@@ -5037,23 +5045,22 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
           {/* Seasonal Curve */}
           <Panel
             title={t("panels.assetCharts")}
-            right={<span className="text-[10px] uppercase tracking-[0.22em] text-slate-200">seasonal context</span>}
+            right={<span className="text-[10px] uppercase tracking-[0.22em] text-slate-200">{t('ui.seasonalContext')}</span>}
           >
             <div className="p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200 mb-3">
-                Seasonal Curve
+                {t('ui.seasonalCurve')}
               </div>
               {sparkProfile.length === 12 ? (
                 <>
                   <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
                   <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-500">
                     <span>{t('months.Jan')}</span>
-                    <span className="text-blue-400">{t(`months.${t('months.' + SEASONAL_MONTHS[new Date().getMonth()])}`)}</span>
+                    <span className="text-blue-400">{t(`months.${SEASONAL_MONTHS[new Date().getMonth()]}`)}</span>
                     <span>{t('months.Dec')}</span>
                   </div>
                   <div className="mt-3 text-xs leading-5 text-zinc-400">
-                    Average monthly COT positioning over the last 5 years.
-                    Aligned seasonal + COT direction strengthens the setup.
+                    {t('ui.avgMonthlyCotDesc')}
                   </div>
                 </>
               ) : (
@@ -5106,7 +5113,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                       "mt-0.5 text-[10px] uppercase tracking-[0.18em]",
                       item.pass ? "text-emerald-400" : "text-rose-400"
                     )}>
-                      {item.pass ? "Confirmed" : "Not met"}
+                      {item.pass ? t('ui.confirmed') : t('ui.notMet')}
                     </div>
                   </div>
                 </div>
@@ -5121,7 +5128,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
       <div className="flex items-center gap-2">
         <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
         <div className="text-[11px] uppercase tracking-[0.22em]">
-        Contrarian COT Read
+        {t('ui.contrarianCotRead')}
         </div>
       </div>
       <span style={{
@@ -5161,7 +5168,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
     </div>
     <div className="mt-2 pt-3 flex items-center gap-2">
       <div style={{ fontSize: '11px', color: '#b7d5ff' }}>
-        Direct COT: <span style={{ color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>
+        {t('ui.directCot')} <span style={{ color: profile.pct >= 65 ? '#4ade80' : profile.pct <= 35 ? '#f87171' : '#94a3b8', fontWeight: 600 }}>
           {profile.setupBias} ({profile.pct.toFixed(0)})
         </span>
       </div>
@@ -5730,16 +5737,16 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
           <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs">
             <div className="small-panel-color p-2 text-zinc-400">
-              Signal: <span className="text-zinc-200">{signal.signalLabel}</span>
+              {t('ui.signalColon')} <span className="text-zinc-200">{signal.signalLabel}</span>
             </div>
             <div className="small-panel-color p-2 text-zinc-400">
-              Flow: <span className="text-zinc-200">{signal.flowState}</span>
+              {translateFlowState(signal.flowState, t)} <span className="text-zinc-200">{signal.flowState}</span>
             </div>
             <div className="small-panel-color p-2 text-zinc-400">
-              Macro: <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
+              {t('ui.macroColon')} <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
             </div>
             <div className="small-panel-color p-2 text-zinc-400">
-              Seasonality: <span className="text-zinc-200">{formatPercentile(signal.seasonalityScore)}</span>
+              {t('ui.seasonalityColon')} <span className="text-zinc-200">{formatPercentile(signal.seasonalityScore)}</span>
             </div>
           </div>
         </button>
