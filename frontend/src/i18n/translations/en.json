@@ -386,6 +386,11 @@
     "markets": "Markets",
     "forex": "Forex",
     "finance": "Finance",
-    "crypto": "Crypto"
+    "crypto": "Crypto",
+    "topActiveSignals": "Top Active Signals",
+    "howToReadThis": "How to read this →",
+    "openGuide": "Open Guide: {{section}}",
+    "plainEnglishRead": "Plain-English read",
+    "howToReadThisTitle": "How to read this"
   }
 }

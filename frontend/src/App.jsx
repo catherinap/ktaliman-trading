@@ -2165,7 +2165,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   <div className="flex items-start justify-between gap-2">
                     <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
                     <span className={cls("shrink-0 border rounded-[3px] px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
-                      alertImpactTone(alert.ccimpact))}>
+                      alertImpactTone(alert.impact))}>
                       {alert.impact}
                     </span>
                   </div>
@@ -2185,7 +2185,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div> 
                 <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-                Top Active Signals
+                {t('ui.topActiveSignals')}
                 </span>
               </div>
               <button onClick={() => setActive("signals")}
@@ -2262,21 +2262,21 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   value={calImpact}
                   onChange={setCalImpact}
                   minWidth="0"
-                  placeholder="All Impact"
+                  placeholder={t('ui.allImpact')}
                   options={[
-                    {value:"all",    label:"All Impact"},
-                    {value:"high",   label:"High"},
-                    {value:"medium", label:"Medium"},
-                    {value:"low",    label:"Low"},
+                    {value:"all",    label:t('ui.allImpact')},
+                    {value:"high",   label:t('ui.high')},
+                    {value:"medium", label:t('ui.medium')},
+                    {value:"low",    label:t('ui.low')},
                   ]}
                 />
                 <CustomSelect
                   value={calCountry}
                   onChange={setCalCountry}
                   minWidth="0"
-                  placeholder="All Countries"
+                  placeholder={t('ui.allCountries')}
                   options={[
-                    {value:"all", label:"All Countries"},
+                    {value:"all", label:t('ui.allCountries')},
                     {value:"US",  label:"US"},
                     {value:"EU",  label:"EU"},
                     {value:"GB",  label:"GB"},
@@ -2290,9 +2290,9 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   value={calDate}
                   onChange={setCalDate}
                   minWidth="0"
-                  placeholder="All Dates"
+                  placeholder={t('ui.allDates')}  
                   options={[
-                    { value: "all", label: "All Dates" },
+                    { value: "all", label: t('ui.allDates') },
                     ...availableDates.map(d => ({ value: d.value, label: d.label }))
                   ]}
                 />
@@ -2300,7 +2300,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             </div>
             <div className="divide-y divide-zinc-900 pr-2" style={{ maxHeight: '420px', overflowY: 'auto' }}>
               {calendar.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-slate-200">No calendar events.</div>
+                <div className="px-4 py-4 text-sm text-slate-200">{t('ui.noCalendarEvents')}</div>
               ) : [...calendar]
                   .sort((a, b) => (a.datetime || "").localeCompare(b.datetime || ""))
                   .reverse()
@@ -2396,14 +2396,14 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   minWidth="0"
                   placeholder={t('ui.allCategories')}
                   options={[
-                    {value:"all",          label:"All Categories"},
-                    {value:"POLICY",       label:"Policy"},
-                    {value:"MACRO",        label:"Macro"},
-                    {value:"MARKETS",      label:"Markets"},
-                    {value:"FOREX",        label:"Forex"},
-                    {value:"FINANCE",      label:"Finance"},
+                    {value:"all",          label: t('ui.allCategories')},
+                    {value:"POLICY",       label: t('ui.policy')},
+                    {value:"MACRO",        label: t('ui.macro')},
+                    {value:"MARKETS",      label: t('ui.markets')},
+                    {value:"FOREX",        label: t('ui.forex')},
+                    {value:"FINANCE",      label: t('ui.finance')},
                     {value:"COT",          label:"COT"},
-                    {value:"CRYPTO",       label:"Crypto"},
+                    {value:"CRYPTO",       label: t('ui.allCategories')},
                   ]}
                 />
                 <CustomSelect
@@ -2412,7 +2412,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   minWidth="0"
                   placeholder={t('ui.allSources')}
                   options={[
-                    {value:"all",              label:"All Sources"},
+                    {value:"all",              label: t('ui.allSources')},
                     {value:"Federal Reserve",  label:"Federal Reserve"},
                     {value:"ECB",              label:"ECB"},
                     {value:"CFTC",             label:"CFTC"},
@@ -2429,10 +2429,10 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   minWidth="0"
                   placeholder={t('ui.allPriority')}
                   options={[
-                    {value:"all",    label:"All Priority"},
-                    {value:"high",   label:"High"},
-                    {value:"medium", label:"Medium"},
-                    {value:"low",    label:"Low"},
+                    {value:"all",    label: t('ui.allPriority')},
+                    {value:"high",   label: t('ui.high')},
+                    {value:"medium", label: t('ui.medium')},
+                    {value:"low",    label: t('ui.low')},
                   ]}
                 />
               </div>
@@ -3850,7 +3850,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
   const simpleGuide = useMemo(() => {
     if (narrative.breadth == null) {
       return {
-        title: 'How to read this',
+        title: t('ui.howToReadThisTitle'),
         summary: 'Seasonality shows how friendly or unfriendly the calendar has historically been for an asset during different months.',
         takeaway: 'Green cells mean the month tends to support that asset more often. Red cells mean the month tends to be weaker or less supportive.',
       }
@@ -3858,7 +3858,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
 
     if (narrative.breadth >= 20) {
       return {
-        title: 'Plain-English read',
+        title: t('ui.plainEnglishRead'),
         summary: `The calendar is currently helping more assets than it is hurting. ${supportiveCount} assets are in supportive seasonal windows, while ${headwindCount} are in weak windows.`,
         takeaway: 'This does not mean buy everything. It means seasonality can support long ideas when COT positioning and chart structure agree.',
       }
@@ -3866,14 +3866,14 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
 
     if (narrative.breadth <= -20) {
       return {
-        title: 'Plain-English read',
+        title: t('ui.plainEnglishRead'),
         summary: `The current month is a tougher seasonal backdrop. Only a smaller part of the universe has a helpful calendar tailwind, while ${headwindCount} assets are facing seasonal pressure.`,
         takeaway: 'In this kind of backdrop, seasonality is more useful as a warning filter than as a trigger to enter trades.',
       }
     }
 
     return {
-      title: 'Plain-English read',
+      title: t('ui.plainEnglishRead'),
       summary: 'The calendar backdrop is mixed right now. Some assets have a supportive month, but the whole universe is not moving with one clear seasonal bias.',
       takeaway: 'Here seasonality should be used as a secondary layer. It helps more with ranking assets than with making broad market calls.',
     }

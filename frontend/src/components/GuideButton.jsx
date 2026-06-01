@@ -1,26 +1,18 @@
 /**
  * GuideButton — кнопка переходу в конкретну секцію гайду.
- *
- * Використання:
- *   import GuideButton from "./components/GuideButton"
- *   <GuideButton sectionKey="signals" openGuide={openGuide} />
- *
- * sectionKey — ключ секції в GuideView:
- *   "workspace" | "macro" | "cot" | "explorer" | "signals" | "seasonality" | "correlation"
- *
- * openGuide — функція з App(): (sectionKey) => void
- *   передається як prop вниз до компоненту де потрібна кнопка
  */
 
 import { BookOpen } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export default function GuideButton({ sectionKey, openGuide, label }) {
+  const { t } = useTranslation()
   if (!openGuide) return null
 
   return (
     <button
       onClick={() => openGuide(sectionKey)}
-      title={`Open Guide: ${sectionKey}`}
+      title={t("ui.openGuide", { section: sectionKey })}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -51,7 +43,7 @@ export default function GuideButton({ sectionKey, openGuide, label }) {
       }}
     >
       <BookOpen size={11} strokeWidth={1.8} />
-      {label || "How to read this →"}
+      {label || t("ui.howToReadThis")}
     </button>
   )
 }

@@ -397,7 +397,12 @@
     "markets": "Ринки",
     "forex": "Форекс",
     "finance": "Фінанси",
-    "crypto": "Крипто"
+    "crypto": "Крипто",
+    "topActiveSignals": "Топ активних сигналів",
+    "howToReadThis": "Як це читати →",
+    "openGuide": "Відкрити довідник: {{section}}",
+    "plainEnglishRead": "Простими словами",
+    "howToReadThisTitle": "Як це читати"
   }
 }
 
