@@ -1862,7 +1862,7 @@ function Panel({ title, children, right }) {
     <section className="default-bg">
       <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]" style={{ borderColor: 'var(--panels-border)' }}>
         <div className="flex items-center gap-2">
-          <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+          <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
           <span>{title}</span>
         </div>
         {right ? <div>{right}</div> : null}
@@ -2606,7 +2606,7 @@ function HistoricalDataView({ assets }) {
   const fmtDate = (iso) => {
     if (!iso) return "—"
     const [y, m, d] = iso.split("-")
-    return `${d}-${tMonth(m)}-${y}`
+    return `${d}-${m}-${y}`
   }
   const fmtN = (v) => {
     if (v == null) return <span className="text-zinc-700">—</span>
@@ -3944,7 +3944,7 @@ const simpleGuide = useMemo(() => {
           <div>
             <div className="flex items-center justify-between border-b px-4 py-3 text-[11px] uppercase tracking-[0.25em]" style={{borderColor: 'var(--panels-border)'}}>
               <div className="flex items-center gap-2">
-                <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
                 <div className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t("panels.seasonality")}</div>
               </div>
               <GuideButton sectionKey="seasonality" openGuide={openGuide} />
@@ -4029,7 +4029,7 @@ const simpleGuide = useMemo(() => {
       {/* Triple-Confirm Setups */}
       <div className="default-bg p-4">
         <div className="flex items-center gap-2 mb-4 pb-3">
-          <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+          <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
           <span style={{ fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
             Triple-Confirm Setups
           </span>
@@ -4230,7 +4230,7 @@ const simpleGuide = useMemo(() => {
           <div className="default-bg">
             <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-100 mb-3 py-3 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--panels-border)' }}>
               <div className="flex items-center gap-2">
-                <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+                <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
                 <span>{currentMonth} Ranking</span>
                 <span style={{ fontSize: '10px', color: '#7b9dcc', fontWeight: 400 }}>{rows.length} assets</span>
               </div>
@@ -5119,7 +5119,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
   <div className="default-bg">
     <div className="flex items-center border-b px-4 py-3 justify-between" style={{ borderColor: 'var(--panels-border)'}}>
       <div className="flex items-center gap-2">
-        <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+        <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
         <div className="text-[11px] uppercase tracking-[0.22em]">
         Contrarian COT Read
         </div>
@@ -6332,7 +6332,7 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
       <section className="title-border">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div class="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
+            <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
             {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
             </span>
