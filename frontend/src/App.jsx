@@ -1917,9 +1917,9 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
 
   const topSignals = useMemo(() => {
     if (!assets.length) return []
-    const engine = buildSignalEngine(assets, [], null)
+    const engine = buildSignalEngine(assets, [], null, t)
     return engine.signals.filter((s) => s.state === "active").slice(0, 6)
-  }, [assets])
+  }, [assets, t])
 
   const sleeveScores = useMemo(() => {
     const result = {}
@@ -1928,7 +1928,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
       result[key] = averagePercentile(members)
     })
     return result
-  }, [assets])
+  }, [assets, t])
 
   const macroComposite = averagePercentile([
     { funds_percentile_3y: sleeveScores.growth },
@@ -1938,7 +1938,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
 
   const alertFeed = useMemo(() => {
     if (!assets.length) return []
-    const engine = buildSignalEngine(assets, [], null)
+    const engine = buildSignalEngine(assets, [], null, t)
     return engine.alerts.slice(0, 5)
   }, [assets])
 
@@ -2095,10 +2095,10 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
             <div className="p-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { key: "growth",    label: "Growth",    color: "text-emerald-400" },
-                  { key: "inflation", label: "Inflation", color: "text-blue-400" },
-                  { key: "grains",    label: "Grains",    color: "text-lime-400" },
-                  { key: "policy",    label: "Policy",    color: "text-sky-400" },
+                 { key: "growth",    label: t('ui.sleeveGrowth'),    color: "text-emerald-400" },
+                 { key: "inflation", label: t('ui.sleeveInflation'), color: "text-blue-400" },
+                 { key: "grains",    label: t('ui.sleeveGrains'),    color: "text-lime-400" },
+                 { key: "policy",    label: t('ui.sleevePolicy'),    color: "text-sky-400" },
                 ].map(({ key, label, color }) => {
                   const score = sleeveScores[key];
                   return (
@@ -2124,7 +2124,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   </span>
                 </div>
                 <div className="mt-1.5 text-xs leading-5 text-slate-200">
-                  {macro?.verdict || macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
+                  {macroVerdict(sleeveScores.growth, sleeveScores.inflation, sleeveScores.policy, t)}
                 </div>
               </div>
             </div>
@@ -2165,11 +2165,11 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   <div className="flex items-start justify-between gap-2">
                     <div className="text-sm text-zinc-200 leading-5">{alert.title}</div>
                     <span className={cls("shrink-0 border rounded-[3px] px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em]",
-                      alertImpactTone(alert.impact))}>
+                      alertImpactTone(alert.ccimpact))}>
                       {alert.impact}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-xs leading-4 text-zinc-600">{alert.text}</div>
+                  <div className="mt-0.5 text-xs leading-4 text-zinc-400">{alert.text}</div>
                 </div>
               ))}
             </div>
@@ -5366,7 +5366,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
   ])
 
     const engine = useMemo(
-    () => buildSignalEngine(assets, seasonalityData, macroComposite),
+    () => buildSignalEngine(assets, seasonalityData, macroComposite, t),
     [assets, seasonalityData, macroComposite, t]
   )
 
@@ -5749,44 +5749,75 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         const accel = ast?.funds_index_acceleration
         const avg3 = ast?.funds_index_3w_avg
         const avg8 = ast?.funds_index_8w_avg
+        const uk = t('__lang__') === 'uk'
 
         // WHY
         let why = ''
         if (pct != null) {
           if (isLong) {
-            if (pct >= 90) why = `Hedge funds are at a 3-year long extreme (${pct.toFixed(0)}). Institutional conviction is as strong as it has been in years.`
-            else if (pct >= 75) why = `Funds hold a strong long position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bullish.`
-            else why = `Funds are positioned long at ${pct.toFixed(0)} — above the 65 threshold that defines an active signal.`
+            if (pct >= 90) why = uk
+              ? `Хедж-фонди на 3-річному лонг-екстремумі (${pct.toFixed(0)}). Інституційна впевненість найсильніша за роки.`
+              : `Hedge funds are at a 3-year long extreme (${pct.toFixed(0)}). Institutional conviction is as strong as it has been in years.`
+            else if (pct >= 75) why = uk
+              ? `Фонди тримають сильну лонг-позицію на рівні ${pct.toFixed(0)} за 3-річною шкалою. Позиціонування впевнено бичаче.`
+              : `Funds hold a strong long position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bullish.`
+            else why = uk
+              ? `Фонди в лонгу на рівні ${pct.toFixed(0)} — вище порогу 65, що визначає активний сигнал.`
+              : `Funds are positioned long at ${pct.toFixed(0)} — above the 65 threshold that defines an active signal.`
           } else {
-            if (pct <= 10) why = `Hedge funds are at a 3-year short extreme (${pct.toFixed(0)}). Institutional selling pressure is at cycle highs.`
-            else if (pct <= 25) why = `Funds hold a strong short position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bearish.`
-            else why = `Funds are positioned short at ${pct.toFixed(0)} — below the 35 threshold that defines an active signal.`
+            if (pct <= 10) why = uk
+              ? `Хедж-фонди на 3-річному шорт-екстремумі (${pct.toFixed(0)}). Інституційний тиск продажу на максимумах циклу.`
+              : `Hedge funds are at a 3-year short extreme (${pct.toFixed(0)}). Institutional selling pressure is at cycle highs.`
+            else if (pct <= 25) why = uk
+              ? `Фонди тримають сильну шорт-позицію на рівні ${pct.toFixed(0)} за 3-річною шкалою. Позиціонування впевнено ведмеже.`
+              : `Funds hold a strong short position at ${pct.toFixed(0)} on the 3-year scale. Positioning is firmly bearish.`
+            else why = uk
+              ? `Фонди в шорті на рівні ${pct.toFixed(0)} — нижче порогу 35, що визначає активний сигнал.`
+              : `Funds are positioned short at ${pct.toFixed(0)} — below the 35 threshold that defines an active signal.`
           }
           if (wow != null && Math.abs(wow) >= 4) {
-            why += ` This week funds ${wow > 0 ? 'added' : 'cut'} exposure by ${Math.abs(wow).toFixed(1)} index points${accel === 'accelerating' ? ' and the move is accelerating' : ''}.`
+            why += uk
+              ? ` Цього тижня фонди ${wow > 0 ? 'наростили' : 'скоротили'} експозицію на ${Math.abs(wow).toFixed(1)} пунктів індексу${accel === 'accelerating' ? ', і рух прискорюється' : ''}.`
+              : ` This week funds ${wow > 0 ? 'added' : 'cut'} exposure by ${Math.abs(wow).toFixed(1)} index points${accel === 'accelerating' ? ' and the move is accelerating' : ''}.`
           } else if (avg3 != null && avg8 != null && Math.abs(avg3 - avg8) >= 5) {
             const drift = avg3 - avg8
-            why += ` 3w avg (${avg3.toFixed(1)}) is ${drift > 0 ? 'above' : 'below'} 8w avg (${avg8.toFixed(1)}) — ${drift > 0 ? 'strengthening' : 'weakening'} trend.`
+            why += uk
+              ? ` 3т середнє (${avg3.toFixed(1)}) ${drift > 0 ? 'вище' : 'нижче'} 8т середнього (${avg8.toFixed(1)}) — тренд ${drift > 0 ? 'посилюється' : 'слабшає'}.`
+              : ` 3w avg (${avg3.toFixed(1)}) is ${drift > 0 ? 'above' : 'below'} 8w avg (${avg8.toFixed(1)}) — ${drift > 0 ? 'strengthening' : 'weakening'} trend.`
           }
         }
-
+ 
         // WHAT TO DO
         const action = s.state === 'active'
           ? (isLong
-            ? 'Buy dips — institutional money is positioned with you. Use weakness as opportunity, not strength to chase.'
-            : 'Sell rallies — institutional money is against this asset. Fade strength rather than chasing breakdowns.')
+            ? (uk
+              ? 'Купуй просідання — інституційні гроші позиціоновані з тобою. Використовуй слабкість як можливість, а не силу для погоні.'
+              : 'Buy dips — institutional money is positioned with you. Use weakness as opportunity, not strength to chase.')
+            : (uk
+              ? 'Продавай ралі — інституційні гроші проти цього активу. Фейдь силу, а не женися за пробоями вниз.'
+              : 'Sell rallies — institutional money is against this asset. Fade strength rather than chasing breakdowns.'))
           : (isLong
-            ? 'Signal is aging — optimal entry window may have passed. Tighten stops on existing longs, avoid new entries without strong confirmation.'
-            : 'Signal is aging — best short entry window may be behind. Manage existing shorts carefully, new entries need clear triggers.')
-
+            ? (uk
+              ? 'Сигнал згасає — оптимальне вікно входу могло минути. Підтягни стопи на наявних лонгах, уникай нових входів без сильного підтвердження.'
+              : 'Signal is aging — optimal entry window may have passed. Tighten stops on existing longs, avoid new entries without strong confirmation.')
+            : (uk
+              ? 'Сигнал згасає — найкраще вікно для шорту може бути позаду. Керуй наявними шортами обережно, нові входи потребують чітких тригерів.'
+              : 'Signal is aging — best short entry window may be behind. Manage existing shorts carefully, new entries need clear triggers.'))
+ 
         // RISK NOTE
         let risk = ''
         if (pct >= 85 || pct <= 15) {
-          risk = `Crowded positioning at extreme — any catalyst could trigger sharp mean-reversion. Use defined stops.`
+          risk = uk
+            ? 'Переповнене позиціонування на екстремумі — будь-який каталізатор може спровокувати різке повернення до середнього. Використовуй визначені стопи.'
+            : 'Crowded positioning at extreme — any catalyst could trigger sharp mean-reversion. Use defined stops.'
         } else if (s.state === 'aging') {
-          risk = `Signal has been active for several weeks — fading momentum raises reversal risk. Monitor next COT report closely.`
+          risk = uk
+            ? 'Сигнал активний кілька тижнів — згасаючий моментум підвищує ризик розвороту. Уважно стеж за наступним COT звітом.'
+            : 'Signal has been active for several weeks — fading momentum raises reversal risk. Monitor next COT report closely.'
         } else {
-          risk = `Monitor next week's COT report for any sign of positioning reversal.`
+          risk = uk
+            ? 'Стеж за наступним тижневим COT звітом на будь-яку ознаку розвороту позиціонування.'
+            : 'Monitor next week\u2019s COT report for any sign of positioning reversal.'
         }
 
         return (

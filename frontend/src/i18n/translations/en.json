@@ -376,6 +376,16 @@
     "crowdedShort": "Crowded Short",
     "meanReversionRisk": "Mean-reversion risk elevated",
     "squeezeRisk": "Short squeeze risk elevated",
-    "stateCol": "State"
+    "stateCol": "State",
+    "sleeveGrowth": "Growth",
+    "sleeveInflation": "Inflation",
+    "sleeveGrains": "Grains",
+    "sleevePolicy": "Policy",
+    "policy": "Policy",
+    "macro": "Macro",
+    "markets": "Markets",
+    "forex": "Forex",
+    "finance": "Finance",
+    "crypto": "Crypto"
   }
 }

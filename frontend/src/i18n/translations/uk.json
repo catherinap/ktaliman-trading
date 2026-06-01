@@ -387,7 +387,17 @@
     "crowdedShort": "Переповнений шорт",
     "meanReversionRisk": "Підвищений ризик повернення до середнього",
     "squeezeRisk": "Підвищений ризик шорт-сквізу",
-    "stateCol": "Стан"
+    "stateCol": "Стан",
+    "sleeveGrowth": "Зростання",
+    "sleeveInflation": "Інфляція",
+    "sleeveGrains": "Зерно",
+    "sleevePolicy": "Політика",
+    "policy": "Політика",
+    "macro": "Макро",
+    "markets": "Ринки",
+    "forex": "Форекс",
+    "finance": "Фінанси",
+    "crypto": "Крипто"
   }
 }
 
