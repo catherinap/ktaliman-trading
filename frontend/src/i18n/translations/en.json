@@ -391,6 +391,21 @@
     "howToReadThis": "How to read this →",
     "openGuide": "Open Guide: {{section}}",
     "plainEnglishRead": "Plain-English read",
-    "howToReadThisTitle": "How to read this"
+    "howToReadThisTitle": "How to read this",
+    "topAligned": "Top Aligned",
+    "topOpposed": "Top Opposed",
+    "sameCrossSector": "{{same}} same · {{cross}} cross-sector",
+    "tripleConfirmSetups": "Triple-Confirm Setups",
+    "ranking": "Ranking",
+    "assetsCount": "{{n}} assets",
+    "monthMap12": "12 month map", 
+    "narrativeSummary": "Narrative Summary",
+    "tradingRelevance": "Trading Relevance",
+    "whatToWatch": "What To Watch"
+  },
+    "months": {
+    "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",
+    "May": "May", "Jun": "Jun", "Jul": "Jul", "Aug": "Aug",
+    "Sep": "Sep", "Oct": "Oct", "Nov": "Nov", "Dec": "Dec"
   }
 }

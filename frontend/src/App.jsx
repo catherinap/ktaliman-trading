@@ -1415,14 +1415,14 @@ function AssetPDFReport({ asset, profile, sparkProfile, seasonalityData }) {
               const color = v >= 65 ? "#4ade80" : v <= 35 ? "#f87171" : "#71717a"
               const isCurrent = i === currentMonth
               return (
-                <div key={m} className="pdf-season-cell" style={{
+                <div key={tMonth(m)} className="pdf-season-cell" style={{
                   background: bg,
                   color,
                   border: isCurrent ? "1px solid #f59e0b" : "1px solid #1a1a1a",
                   fontWeight: isCurrent ? "700" : "400",
                 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "8px", color: "#52525b" }}>{m}</div>
+                    <div style={{ fontSize: "8px", color: "#52525b" }}>{tMonth(m)}</div>
                     <div>{v != null ? v.toFixed(0) : "—"}</div>
                   </div>
                 </div>
@@ -2606,7 +2606,7 @@ function HistoricalDataView({ assets }) {
   const fmtDate = (iso) => {
     if (!iso) return "—"
     const [y, m, d] = iso.split("-")
-    return `${d}-${m}-${y}`
+    return `${d}-${tMonth(m)}-${y}`
   }
   const fmtN = (v) => {
     if (v == null) return <span className="text-zinc-700">—</span>
@@ -3789,7 +3789,9 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
 }
 
 
-function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en", uiLanguage = "en" }) {  const { t } = useTranslation();
+function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage = "en", uiLanguage = "en" }) {
+  const { t } = useTranslation();
+  const tMonth = (m) => t(`months.${m}`)
   const rows = useMemo(() => {
     if (!seasonalityData || seasonalityData.length === 0) return []
     return [...seasonalityData].sort((a, b) => b.current - a.current)
@@ -3847,37 +3849,54 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
     return rows.length ? Math.round((aligned.length / rows.length) * 100) : 0
   }, [rows, assets])
 
-  const simpleGuide = useMemo(() => {
+const simpleGuide = useMemo(() => {
+    const uk = t('__lang__') === 'uk'
     if (narrative.breadth == null) {
       return {
-        title: t('ui.howToReadThisTitle'),
-        summary: 'Seasonality shows how friendly or unfriendly the calendar has historically been for an asset during different months.',
-        takeaway: 'Green cells mean the month tends to support that asset more often. Red cells mean the month tends to be weaker or less supportive.',
+        title: uk ? 'Як це читати' : 'How to read this',
+        summary: uk
+          ? 'Сезонність показує, наскільки сприятливим або несприятливим історично був календар для активу в різні місяці.'
+          : 'Seasonality shows how friendly or unfriendly the calendar has historically been for an asset during different months.',
+        takeaway: uk
+          ? 'Зелені клітинки означають, що місяць частіше підтримує цей актив. Червоні — місяць історично слабший або менш сприятливий.'
+          : 'Green cells mean the month tends to support that asset more often. Red cells mean the month tends to be weaker or less supportive.',
       }
     }
-
+ 
     if (narrative.breadth >= 20) {
       return {
-        title: t('ui.plainEnglishRead'),
-        summary: `The calendar is currently helping more assets than it is hurting. ${supportiveCount} assets are in supportive seasonal windows, while ${headwindCount} are in weak windows.`,
-        takeaway: 'This does not mean buy everything. It means seasonality can support long ideas when COT positioning and chart structure agree.',
+        title: uk ? 'Простими словами' : 'Plain-English read',
+        summary: uk
+          ? `Календар зараз допомагає більшій кількості активів, ніж шкодить. ${supportiveCount} активів у сприятливих сезонних вікнах, тоді як ${headwindCount} — у слабких.`
+          : `The calendar is currently helping more assets than it is hurting. ${supportiveCount} assets are in supportive seasonal windows, while ${headwindCount} are in weak windows.`,
+        takeaway: uk
+          ? 'Це не означає купувати все. Це означає, що сезонність може підтримати лонг-ідеї, коли COT позиціонування і структура графіка узгоджені.'
+          : 'This does not mean buy everything. It means seasonality can support long ideas when COT positioning and chart structure agree.',
       }
     }
-
+ 
     if (narrative.breadth <= -20) {
       return {
-        title: t('ui.plainEnglishRead'),
-        summary: `The current month is a tougher seasonal backdrop. Only a smaller part of the universe has a helpful calendar tailwind, while ${headwindCount} assets are facing seasonal pressure.`,
-        takeaway: 'In this kind of backdrop, seasonality is more useful as a warning filter than as a trigger to enter trades.',
+        title: uk ? 'Простими словами' : 'Plain-English read',
+        summary: uk
+          ? `Поточний місяць — складніший сезонний фон. Лише менша частина універсуму має сприятливий календарний попутний вітер, тоді як ${headwindCount} активів стикаються із сезонним тиском.`
+          : `The current month is a tougher seasonal backdrop. Only a smaller part of the universe has a helpful calendar tailwind, while ${headwindCount} assets are facing seasonal pressure.`,
+        takeaway: uk
+          ? 'У такому фоні сезонність корисніша як фільтр-попередження, ніж як тригер для входу в угоди.'
+          : 'In this kind of backdrop, seasonality is more useful as a warning filter than as a trigger to enter trades.',
       }
     }
-
+ 
     return {
-      title: t('ui.plainEnglishRead'),
-      summary: 'The calendar backdrop is mixed right now. Some assets have a supportive month, but the whole universe is not moving with one clear seasonal bias.',
-      takeaway: 'Here seasonality should be used as a secondary layer. It helps more with ranking assets than with making broad market calls.',
+      title: uk ? 'Простими словами' : 'Plain-English read',
+      summary: uk
+        ? 'Календарний фон зараз змішаний. Деякі активи мають сприятливий місяць, але весь універсум не рухається з одним чітким сезонним нахилом.'
+        : 'The calendar backdrop is mixed right now. Some assets have a supportive month, but the whole universe is not moving with one clear seasonal bias.',
+      takeaway: uk
+        ? 'Тут сезонність варто використовувати як вторинний шар. Вона більше допомагає з ранжуванням активів, ніж з широкими ринковими прогнозами.'
+        : 'Here seasonality should be used as a secondary layer. It helps more with ranking assets than with making broad market calls.',
     }
-  }, [narrative.breadth, supportiveCount, headwindCount])
+  }, [narrative.breadth, supportiveCount, headwindCount, t])
 
   const chartExplanation = useMemo(() => {
     if (!strongest || !weakest) {
@@ -4115,9 +4134,9 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
                     </div>
                   )}
                   <div className="flex justify-between mt-1">
-                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Jan</span>
+                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tMonth('Jan')}</span>
                     <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{currentMonth}</span>
-                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Dec</span>
+                    <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tMonth('Dec')}</span>
                   </div>
                   {/* Insight */}
                   <div style={{
@@ -4159,7 +4178,7 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
               <div className="grid grid-cols-[128px_repeat(12,minmax(0,1fr))] gap-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">
                 <div>{t('ui.asset')}</div>
                 {SEASONAL_MONTHS.map((m) => (
-                  <div key={m} className="text-center">{m}</div>
+                  <div key={tMonth(m)} className="text-center">{tMonth(m)}</div>
                 ))}
               </div>
               <div className="mt-3 space-y-2">  
@@ -5028,9 +5047,9 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                 <>
                   <MiniSparkline values={sparkProfile} positive={profile.pct >= 55} />
                   <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                    <span>Jan</span>
-                    <span className="text-blue-400">{SEASONAL_MONTHS[new Date().getMonth()]}</span>
-                    <span>Dec</span>
+                    <span>{t('months.Jan')}</span>
+                    <span className="text-blue-400">{t(`months.${t('months.' + SEASONAL_MONTHS[new Date().getMonth()])}`)}</span>
+                    <span>{t('months.Dec')}</span>
                   </div>
                   <div className="mt-3 text-xs leading-5 text-zinc-400">
                     Average monthly COT positioning over the last 5 years.

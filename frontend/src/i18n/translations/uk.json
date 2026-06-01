@@ -402,7 +402,22 @@
     "howToReadThis": "Як це читати →",
     "openGuide": "Відкрити довідник: {{section}}",
     "plainEnglishRead": "Простими словами",
-    "howToReadThisTitle": "Як це читати"
+    "howToReadThisTitle": "Як це читати",
+    "topAligned": "Найбільш узгоджені",
+    "topOpposed": "Найбільш протилежні",
+    "sameCrossSector": "{{same}} в секторі · {{cross}} крос-сектор",
+    "tripleConfirmSetups": "Потрійно підтверджені сетапи",
+    "ranking": "Рейтинг",
+    "assetsCount": "{{n}} активів",
+    "monthMap12": "Карта 12 місяців",
+    "narrativeSummary": "Зведений наратив",
+    "tradingRelevance": "Торгова значущість",
+    "whatToWatch": "На що дивитись"
+  },
+    "months": {
+    "Jan": "Січ", "Feb": "Лют", "Mar": "Бер", "Apr": "Кві",
+    "May": "Тра", "Jun": "Чер", "Jul": "Лип", "Aug": "Сер",
+    "Sep": "Вер", "Oct": "Жов", "Nov": "Лис", "Dec": "Гру"
   }
 }
 
