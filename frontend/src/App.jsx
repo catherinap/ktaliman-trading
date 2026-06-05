@@ -2697,7 +2697,7 @@ function HistoricalDataView({ assets }) {
         {/* ── Chart 1: Net Position ────────────────────────────────────── */}
         <div className="px-4 pb-2">
           <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-slate-200">
-            Net Position — Thousands of Contracts
+            {t('ui.netPositionThousands')}
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
@@ -2721,9 +2721,9 @@ function HistoricalDataView({ assets }) {
               <Legend
                 wrapperStyle={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.15em", color: "#71717a" }}
               />
-              <Line type="monotone" dataKey="fundsNet"  name="Funds"  stroke="#34d399" strokeWidth={1.5} dot={false} connectNulls />
-              <Line type="monotone" dataKey="amNet"     name={amLabel === "Asset Manager" ? "AM" : "Producer"} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
-              <Line type="monotone" dataKey="dealerNet" name="Dealer" stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="fundsNet"  name={t('ui.funds')}  stroke="#34d399" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="amNet"     name={amLabel === "Asset Manager" ? t('ui.am') : t('ui.producer')} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="dealerNet" name={t('ui.dealer')} stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -2731,7 +2731,7 @@ function HistoricalDataView({ assets }) {
         {/* ── Chart 2: COT Index ───────────────────────────────────────── */}
         <div className="border-t border-zinc-900 px-4 pb-2 pt-4">
           <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-slate-200">
-            COT Index — Min-Max 156w (0 = 3y Low, 100 = 3y High)
+            {t('ui.cotIndexMinMax')}
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
@@ -2763,9 +2763,9 @@ function HistoricalDataView({ assets }) {
               <Legend
                 wrapperStyle={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.15em", color: "#71717a" }}
               />
-              <Line type="monotone" dataKey="fundsIdx"  name="Funds Index"  stroke="#34d399" strokeWidth={2} dot={false} connectNulls />
-              <Line type="monotone" dataKey="amIdx"     name={amLabel === "Asset Manager" ? "AM Index" : "Producer Index"} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
-              <Line type="monotone" dataKey="dealerIdx" name="Dealer Index" stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="fundsIdx" name={t('ui.fundsIndex')}  stroke="#34d399" strokeWidth={2} dot={false} connectNulls />
+              <Line type="monotone" dataKey="amIdx"     name={amLabel === "Asset Manager" ? t('ui.amIndex') : t('ui.producerIndex')} stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
+              <Line type="monotone" dataKey="dealerIdx" name={t('ui.dealerIndex')} stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -2773,7 +2773,7 @@ function HistoricalDataView({ assets }) {
         {/* ── Chart 3: Open Interest ───────────────────────────────────── */}
         <div className="border-t border-zinc-900 px-4 pb-4 pt-4">
           <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-slate-200">
-            Open Interest — Thousands of Contracts
+            {t('ui.openInterestThousands')}
           </div>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
@@ -2793,7 +2793,7 @@ function HistoricalDataView({ assets }) {
                 width={40}
               />
               <Tooltip content={<ChartTooltip unit="k" />} />
-              <Bar dataKey="oi" name="Open Interest" fill="#3f3f46" radius={[1, 1, 0, 0]} />
+              <Bar dataKey="oi" name={t('ui.openInterest')} fill="#3f3f46" radius={[1, 1, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -2810,11 +2810,11 @@ function HistoricalDataView({ assets }) {
       <section className="title-border">
         <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-            Historical COT Data
+            {t('ui.historicalCotData')}
           </span>
           {data && (
             <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-300">
-              {data.total_rows} weeks · {data.name} · {normalizeSector(data.sector)}
+              {t('ui.weeksAssetSector', { weeks: data.total_rows, name: data.name, sector: normalizeSector(data.sector) })}
             </span>
           )}
         </div>
@@ -2873,7 +2873,7 @@ function HistoricalDataView({ assets }) {
     </div>
 
           <div className="ml-auto text-[11px] uppercase tracking-[0.2em] text-zinc-300">
-            {filteredRows.length} rows
+            {t('ui.rowsCount', { n: filteredRows.length })}
           </div>
         </div>
 
@@ -2909,10 +2909,10 @@ function HistoricalDataView({ assets }) {
         <section className="title-border">
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-[12px] uppercase tracking-[0.25em] text-zinc-200">
-              Charts — {data?.name}
+              {t('ui.chartsOf', { name: data?.name })}
             </span>
             <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-300">
-              {chartData.length} weeks shown
+              {t('ui.weeksShown', { n: chartData.length })}
             </span>
           </div>
           {recharts ? renderCharts() : (
@@ -2928,7 +2928,7 @@ function HistoricalDataView({ assets }) {
         <section className="title-border">
           <div className="px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-              Data Table
+              {t('ui.dataTable')}
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -2936,7 +2936,7 @@ function HistoricalDataView({ assets }) {
               <thead className="sticky top-0 z-10 ">
                 <tr className="border-b border-zinc-800 text-[10px] uppercase tracking-[0.22em]">
                   <th rowSpan={2} className="sticky left-0 z-20  px-3 py-3 text-left font-medium text-slate-200 min-w-[105px]">
-                    Date
+                    {t('ui.date')}
                   </th>
                   <th colSpan={2} className="px-3 py-2 text-center font-medium text-slate-200 border-l border-zinc-800">{t('ui.openInterest')}</th>
                   <th colSpan={1} className="px-3 py-2 text-center font-medium text-violet-700 border-l border-zinc-800">{t('ui.momentum')}</th>
@@ -3817,11 +3817,11 @@ function SeasonalityView({ assets, openGuide, seasonalityData = [], aiLanguage =
     : breadthScore <= -30 ? '#f87171'
     : '#fbbf24'
   const breadthLabel = breadthScore == null ? '—'
-    : breadthScore >= 50  ? 'Strong Tailwind'
-    : breadthScore >= 20  ? 'Mild Tailwind'
-    : breadthScore <= -50 ? 'Strong Headwind'
-    : breadthScore <= -20 ? 'Mild Headwind'
-    : 'Mixed'
+    : breadthScore >= 50  ? t('ui.strongTailwind')
+    : breadthScore >= 20  ? t('ui.mildTailwind')
+    : breadthScore <= -50 ? t('ui.strongHeadwind')
+    : breadthScore <= -20 ? t('ui.mildHeadwind')
+    : t('ui.mixedSeasonal')
     
 
   const tripleConfirm = useMemo(() => {
@@ -3966,7 +3966,7 @@ const simpleGuide = useMemo(() => {
             <div className="text-xs text-zinc-500 mt-1 px-5">
                 <div className="flex items-baseline gap-3">
                 <div className="text-2xl font-bold" style={{ color: breadthColor }}>{breadthLabel}</div>
-                <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">{currentMonth}</div>
+                <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">{tMonth(currentMonth)}</div>
               </div>
                 {t('ui.supportiveHeadwindsNeutral', { sup: supportiveCount, head: headwindCount, neu: rows.length - supportiveCount - headwindCount })}
               </div>
@@ -4149,7 +4149,7 @@ const simpleGuide = useMemo(() => {
                   )}
                   <div className="flex justify-between mt-1">
                     <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tMonth('Jan')}</span>
-                    <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{currentMonth}</span>
+                    <span style={{ fontSize: '8px', color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{tMonth(currentMonth)}</span>
                     <span style={{ fontSize: '8px', color: '#668fd0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tMonth('Dec')}</span>
                   </div>
                   {/* Insight */}
@@ -4298,19 +4298,19 @@ const simpleGuide = useMemo(() => {
             <div className="flex gap-3">
               <div className="default-bg p-4">
                 <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
-                  Narrative Summary
+                  {t('panels.narrativeSummary')}
                 </div>
                 <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.summary}</div>
               </div>
               <div className="default-bg p-4">
                 <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
-                  Trading Relevance
+                  {t('panels.tradingRelevance')}
                 </div>
                 <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.tradingRelevance}</div>
               </div>
               <div className="default-bg p-4">
                 <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: '#e2e8f0', marginBottom: '8px' }}>
-                  What To Watch
+                  {t('panels.whatToWatch')}
                 </div>
                 <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>{narrative.whatToWatch}</div>
               </div>
@@ -5954,6 +5954,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 }
 
 function HistoryBootstrapButton() {
+  const { t } = useTranslation()
   const [state, setState] = React.useState('idle')
   const [msg, setMsg] = React.useState('')
   const [lastRun, setLastRun] = React.useState(null)
@@ -5999,7 +6000,7 @@ function HistoryBootstrapButton() {
             : 'border-blue-400 text-blue-300 hover:bg-blue-400/10'
         )}
       >
-        {state === 'running' ? '⟳  Running...' : 'Run History'}
+        {state === 'running' ? '⟳  ' + t('ui.running') : t('ui.historyBootstrap')}
       </button>
       {state === 'running' && (
         <div className="text-xs text-amber-400 tracking-[0.1em]">
@@ -6048,8 +6049,7 @@ const fmtUtc = (iso) => {
         <Panel title={t("panels.updateControl")}>
           <div className="space-y-4">
             <div className="text-sm leading-7 text-zinc-300">
-              Run the Python worker manually from the UI. This will download current CFTC data,
-              compute metrics and upsert records into <span className="text-zinc-100">cot_analytics</span>.
+              {t('ui.runWorkerDesc')} <span className="text-zinc-100">cot_analytics</span>.
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -6062,10 +6062,10 @@ const fmtUtc = (iso) => {
                     : 'border-blue-400 text-blue-300 hover:bg-blue-400/10'
                 )}
               >
-                {isRunning ? '⟳  Running...' : 'Run Worker'}
+                {isRunning ? '⟳  ' + t('ui.running') : t('ui.runWorker')}
               </button>
               <div className={cls('text-sm uppercase tracking-[0.2em]', statusTone)}>
-                {updateState?.status || 'idle'}
+                {updateState?.status || t('ui.idle')}
               </div>
             </div>
           </div>
@@ -6074,9 +6074,8 @@ const fmtUtc = (iso) => {
         <Panel title={t('ui.historyBootstrap')}>
           <div className="space-y-4">
             <div className="text-sm leading-7 text-zinc-300">
-              Downloads full COT history <span className="text-zinc-100">2016 → present</span> for all assets.
-              Run this after adding new assets to the ASSET_MAP in the worker.
-              Takes <span className="text-amber-300">10–30 minutes</span> — non-blocking.
+              {t('ui.runHistoryDesc')} <span className="text-zinc-100">{t('ui.presentLabel')}</span> {t('ui.runHistoryDesc2')}
+              {t('ui.takesMinutes')} <span className="text-amber-300">{t('ui.minutesRange')}</span> — {t('ui.nonBlocking')}.
             </div>
             <HistoryBootstrapButton />
           </div>
@@ -6084,7 +6083,7 @@ const fmtUtc = (iso) => {
         {/* Worker Log */}
         <Panel title={t('ui.workerLog')}>
           <pre className="max-h-[420px] min-h-[78px] overflow-auto whitespace-pre-wrap text-sm leading-6 text-zinc-300">
-            {updateState?.log || 'No log output yet.'}
+            {updateState?.log || t('ui.noLogOutput')}
           </pre>
         </Panel>
       </div>
@@ -6097,30 +6096,30 @@ const fmtUtc = (iso) => {
             {schedulerState ? (
               <>
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-200">Status</span>
+                  <span className="text-slate-200">{t('ui.statusLabel')}</span>
                   <span className={schedulerState.scheduler_running ? 'text-emerald-400' : 'text-rose-400'}>
-                    {schedulerState.scheduler_running ? 'Active' : 'Stopped'}
+                    {schedulerState.scheduler_running ? t('ui.scheduleActive') : t('ui.scheduleStopped')}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-200">Schedule</span>
-                  <span className="text-zinc-300">{schedulerState.schedule}</span>
+                  <span className="text-slate-200">{t('ui.scheduleLabel')}</span>
+                  <span className="text-zinc-300">{t('__lang__') === 'uk' ? 'Щоп\'ятниці о 18:30 UTC (20:30 CEST / час Данії)' : schedulerState.schedule}</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-200">Next run</span>
+                  <span className="text-slate-200">{t('ui.nextRun')}</span>
                   <span className="text-amber-300">{fmtUtc(schedulerState.next_run_utc)}</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-200">Last auto-run</span>
+                  <span className="text-slate-200">{t('ui.lastAutoRun')}</span>
                   <span>{fmtUtc(schedulerState.last_auto_run_utc)}</span>
                 </div>
                 <div className="mt-2 border border-zinc-900 bg-zinc-950 p-3 text-xs text-slate-200">
-                  CFTC publishes every Friday ~15:30 EST. Auto-run fires at 16:00 EST (21:00 UTC).
+                  {t('ui.cftcPublishesNote')}
                 </div>
               </>
             ) : (
               <div className="text-zinc-600">
-                Scheduler status unavailable. Restart backend to activate.
+                {t('ui.schedulerUnavailable')}
               </div>
             )}
           </div>
@@ -6130,19 +6129,19 @@ const fmtUtc = (iso) => {
         <Panel title={t('ui.runStatus')}>
           <div className="space-y-3 text-sm text-zinc-300">
             <div className="flex justify-between gap-4">
-              <span className="text-slate-200">Status</span>
-              <span className={statusTone}>{updateState?.status || 'idle'}</span>
+              <span className="text-slate-200">{t('ui.statusLabel')}</span>
+              <span className={statusTone}>{updateState?.status || t('ui.idle')}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-slate-200">Started</span>
+              <span className="text-slate-200">{t('ui.started')}</span>
               <span>{fmtUtc(updateState?.started_at)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-slate-200">Finished</span>
+              <span className="text-slate-200">{t('ui.finished')}</span>
               <span>{fmtUtc(updateState?.finished_at)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-slate-200">Return code</span>
+              <span className="text-slate-200">{t('ui.returnCode')}</span>
               <span>{updateState?.return_code ?? '—'}</span>
             </div>
           </div>
@@ -6151,7 +6150,7 @@ const fmtUtc = (iso) => {
         {/* Errors */}
         <Panel title={t('ui.errors')}>
           <div className="text-sm leading-7 text-zinc-300">
-            {updateState?.error || 'No errors reported.'}
+            {updateState?.error || t('ui.noErrorsReported')}
           </div>
         </Panel>
  
