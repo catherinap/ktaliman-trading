@@ -4522,7 +4522,13 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
   const tCrowding = (c) =>
     c === 'Extreme' ? t('ui.crowdingExtreme') :
     c === 'Elevated' ? t('ui.crowdingElevated') :
-    c === 'Moderate' ? t('ui.crowdingModerate') : c
+        c === 'Moderate' ? t('ui.crowdingModerate') : c
+  const tBias = (b) =>
+  b === 'Long Extreme'    ? t('ui.biasLongExtreme') :
+  b === 'Bullish Context' ? t('ui.biasBullishContext') :
+  b === 'Short Extreme'   ? t('ui.biasShortExtreme') :
+  b === 'Bearish Context' ? t('ui.biasBearishContext') :
+  b === 'Balanced'        ? t('ui.biasBalanced') : b
 
   const asset = assets.find((a) => a.symbol === selected) || assets[0];
 
@@ -4999,7 +5005,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
                   <GaugeArc value={profile.pct} />
                 </div>
                 <div className="mt-1 text-center text-sm font-medium text-zinc-200">
-                  {profile.setupBias}
+                  {tBias(profile.setupBias)}
                 </div>
                 <div className="text-center text-[10px] uppercase tracking-[0.18em] text-zinc-500 mt-0.5">
                   {regimeLabel(profile.pct, t)} · {signalLabel(profile.pct, t)}

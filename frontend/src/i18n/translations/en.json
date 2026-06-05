@@ -425,7 +425,13 @@
     "avgMonthlyCotDesc": "Average monthly COT positioning over the last 5 years. Aligned seasonal + COT direction strengthens the setup.",
     "signalColon": "Signal:",
     "flowColon": "Flow:",
-    "macroColon": "Macro:"
+    "macroColon": "Macro:",
+    "biasLongExtreme": "Long Extreme",
+    "biasBullishContext": "Bullish Context",
+    "biasShortExtreme": "Short Extreme",
+    "biasBearishContext": "Bearish Context",
+    "biasBalanced": "Balanced",
+    "seasonalityColon": "Seasonality:"
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",

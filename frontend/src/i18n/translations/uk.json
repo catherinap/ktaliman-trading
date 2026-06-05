@@ -436,7 +436,13 @@
     "avgMonthlyCotDesc": "Середнє місячне COT позиціонування за останні 5 років. Узгодженість сезонності та напрямку COT посилює сетап.",
     "signalColon": "Сигнал:",
     "flowColon": "Потік:",
-    "macroColon": "Макро:"
+    "macroColon": "Макро:",
+    "biasLongExtreme": "Лонг екстремум",
+    "biasBullishContext": "Бичачий контекст",
+    "biasShortExtreme": "Шорт екстремум",
+    "biasBearishContext": "Ведмежий контекст",
+    "biasBalanced": "Збалансовано",
+    "seasonalityColon": "Сезонність:"
   },
     "months": {
     "Jan": "Січ", "Feb": "Лют", "Mar": "Бер", "Apr": "Кві",
