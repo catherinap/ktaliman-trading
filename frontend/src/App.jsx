@@ -8189,6 +8189,7 @@ function renderNoteText(text) {
 }
 
 function ResearchNotesView({ aiLanguage = "en" }) {
+  const { t } = useTranslation()
   const [notes, setNotes]       = React.useState([])
   const [loading, setLoading]   = React.useState(true)
   const [typeFilter, setTypeFilter] = React.useState("all")
@@ -8250,15 +8251,15 @@ React.useEffect(() => {
   }
 
   const typeOptions = [
-    { value: 'all',         label: 'All Types' },
-    { value: 'macro',       label: 'Macro' },
-    { value: 'asset',       label: 'Asset' },
-    { value: 'correlation', label: 'Correlation' },
-    { value: 'signals',     label: 'Signals' },
-    { value: 'seasonality', label: 'Seasonality' },
+    { value: 'all',         label: t('ui.allTypes') },
+    { value: 'macro',       label: t('nav.macro') },
+    { value: 'asset',       label: t('ui.asset') },
+    { value: 'correlation', label: t('nav.correlation') },
+    { value: 'signals',     label: t('nav.signals') },
+    { value: 'seasonality', label: t('nav.seasonality') },
   ]
 
-  const typeBadge = (t) => {
+  const typeBadge = (noteType) => {
     const map = {
       macro:       { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',  label: 'Macro' },
       asset:       { color: '#4ade80', bg: 'rgba(74,222,128,0.1)',  label: 'Asset' },
@@ -8266,7 +8267,7 @@ React.useEffect(() => {
       signals:     { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  label: 'Signals' },
       seasonality: { color: '#34d399', bg: 'rgba(52,211,153,0.1)',  label: 'Seasonality' },
     }
-    return map[t] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: t }
+    return map[noteType] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: t }
   }
 
   const pinnedNotes = notes.filter(n => n.is_pinned)
