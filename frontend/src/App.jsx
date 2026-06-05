@@ -1895,7 +1895,8 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
   const [calImpact, setCalImpact] = React.useState("all")
   const [calCountry, setCalCountry] = React.useState("all")
   const [newsCategory,  setNewsCategory]  = React.useState("all")
-  const [newsSource,    setNewsSource]    = React.useState("all")
+  const [newsSource, setNewsSource] = React.useState("all")
+  const [newsDate,      setNewsDate]      = React.useState("all")
   const [newsImportance, setNewsImportance] = React.useState("all")
   const macro    = workspaceData?.macro_regime
   const calendar = workspaceData?.calendar || []
@@ -1942,6 +1943,21 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
     const engine = buildSignalEngine(assets, [], null, t)
     return engine.alerts.slice(0, 5)
   }, [assets])
+
+  const availableNewsDates = React.useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    const dates = [...new Set(
+      news.map(item => item.published_at?.slice(0, 10)).filter(Boolean)
+    )].sort().reverse()
+    return dates.map(d => ({
+      value: d,
+      label: d === today
+        ? t('ui.today')
+        : new Date(d + 'T12:00:00').toLocaleDateString('en-GB', {
+            weekday: 'short', day: '2-digit', month: 'short'
+          }),
+    }))
+  }, [news, t])
 
   // ── Large circular signal card ─────────────────────────────────────────────
   const SignalCircleCard = ({ signal }) => {
@@ -2158,7 +2174,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                   <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">{t('ui.alertFeed')}</span>
               </div>
             </div>
-            <div className="divide-y divide-zinc-900">
+            <div className="divide-y divide-zinc-900 overflow-y-auto" style={{ maxHeight: '210px' }}>
               {alertFeed.length === 0 ? (
                 <div className="px-4 py-4 text-sm text-zinc-600">{t('ui.noAlertsRight')}</div>
               ) : alertFeed.map((alert) => (
@@ -2404,7 +2420,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                     {value:"FOREX",        label: t('ui.forex')},
                     {value:"FINANCE",      label: t('ui.finance')},
                     {value:"COT",          label:"COT"},
-                    {value:"CRYPTO",       label: t('ui.allCategories')},
+                    {value:"CRYPTO",       label: t('ui.crypto')},
                   ]}
                 />
                 <CustomSelect
@@ -2436,6 +2452,16 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
                     {value:"low",    label: t('ui.low')},
                   ]}
                 />
+                <CustomSelect
+                  value={newsDate}
+                  onChange={setNewsDate}
+                  minWidth="0"
+                  placeholder={t('ui.newsDateAll')}
+                  options={[
+                    { value: "all", label: t('ui.newsDateAll') },
+                    ...availableNewsDates.map(d => ({ value: d.value, label: d.label }))
+                  ]}
+                />
               </div>
             </div>
             <div className="divide-y divide-zinc-900" style={{ maxHeight: '420px', overflowY: 'auto' }}>
@@ -2444,7 +2470,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               ) : [...news]
                   .filter(item => newsCategory === "all" || item.category === newsCategory)
                   .filter(item => newsSource === "all" || item.source === newsSource)
-                  .filter(item => newsImportance === "all" || item.importance === newsImportance)
+                  .filter(item => newsImportance === "all" || item.importance === newsImportance).filter(item => newsDate === "all" || (item.published_at || "").slice(0, 10) === newsDate)
                   .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""))
                   .map((item) => {
                     const url = item.url && item.url !== "#" ? item.url : null
@@ -2705,12 +2731,12 @@ function HistoricalDataView({ assets }) {
               <XAxis
                 dataKey="date"
                 tickFormatter={xTickFormatter}
-                tick={{ fill: "#52525b", fontSize: 10 }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
                 axisLine={{ stroke: "#27272a" }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: "#52525b", fontSize: 10 }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v) => `${v}k`}
@@ -2729,7 +2755,7 @@ function HistoricalDataView({ assets }) {
         </div>
 
         {/* ── Chart 2: COT Index ───────────────────────────────────────── */}
-        <div className="border-t border-zinc-900 px-4 pb-2 pt-4">
+        <div className="px-4 pb-2 pt-4">
           <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-slate-200">
             {t('ui.cotIndexMinMax')}
           </div>
@@ -2739,13 +2765,13 @@ function HistoricalDataView({ assets }) {
               <XAxis
                 dataKey="date"
                 tickFormatter={xTickFormatter}
-                tick={{ fill: "#52525b", fontSize: 10 }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
                 axisLine={{ stroke: "#27272a" }}
                 tickLine={false}
               />
               <YAxis
                 domain={[0, 100]}
-                tick={{ fill: "#52525b", fontSize: 10 }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 width={32}
@@ -2771,7 +2797,7 @@ function HistoricalDataView({ assets }) {
         </div>
 
         {/* ── Chart 3: Open Interest ───────────────────────────────────── */}
-        <div className="border-t border-zinc-900 px-4 pb-4 pt-4">
+        <div className="px-4 pb-4 pt-4">
           <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-slate-200">
             {t('ui.openInterestThousands')}
           </div>
@@ -2781,19 +2807,19 @@ function HistoricalDataView({ assets }) {
               <XAxis
                 dataKey="date"
                 tickFormatter={xTickFormatter}
-                tick={{ fill: "#52525b", fontSize: 10 }}
-                axisLine={{ stroke: "#27272a" }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
+                axisLine={{ stroke: "#616165" }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: "#52525b", fontSize: 10 }}
+                tick={{ fill: "#cdcdf0", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v) => `${v}k`}
                 width={40}
               />
               <Tooltip content={<ChartTooltip unit="k" />} />
-              <Bar dataKey="oi" name={t('ui.openInterest')} fill="#3f3f46" radius={[1, 1, 0, 0]} />
+              <Bar dataKey="oi" name={t('ui.openInterest')} fill="var(--accent-color)" radius={[1, 1, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -3282,6 +3308,11 @@ function MacroContextPanel({ aiLanguage = "en" }) {
 
 function MacroView({ assets, aiLanguage, openGuide }) {
   const { t } = useTranslation();
+  const tSleeve = (key) =>
+  key === 'growth'    ? t('ui.sleeveGrowth') :
+  key === 'inflation' ? t('ui.sleeveInflation') :
+  key === 'grains'    ? t('ui.sleeveGrains') :
+  key === 'policy'    ? t('ui.sleevePolicy') : key
 
   const sleeveData = useMemo(() => Object.entries(MACRO_SLEEVES).map(([key, config]) => {
     const members = findAssetsExact(assets, config.members)
@@ -3339,7 +3370,7 @@ const macroComposite = averagePercentile([
             {sleeveData.map((sleeve) => (
               <div key={sleeve.key} className="small-panel-color p-3 small-panel-color ">
                 <div className={cls('text-[10px] uppercase tracking-[0.24em] mb-1', sleeveColor(sleeve.key))}>
-                  {sleeve.title}
+                  {tSleeve(sleeve.key)}
                 </div>
                 <div className={cls('text-2xl font-semibold', macroTone(sleeve.score))}>
                   {formatPercentile(sleeve.score)}
@@ -3366,7 +3397,7 @@ const macroComposite = averagePercentile([
               <div key={sleeve.key} className="small-panel-color p-3">
                 <div className="flex items-center justify-between mb-3">
                   <div className={cls('text-[10px] uppercase tracking-[0.2em]', sleeveColor(sleeve.key))}>
-                    {sleeve.title}
+                    {tSleeve(sleeve.key)}
                   </div>
                   <div className={cls('text-sm font-semibold', macroTone(sleeve.score))}>
                     {formatPercentile(sleeve.score)}
@@ -3419,7 +3450,7 @@ const macroComposite = averagePercentile([
             crypto_assets:    assets.filter(a => a.sector === 'CRYPTO'),
           }}
           aiLanguage={aiLanguage}
-          title={aiLanguage === "uk" ? "AI Макро-аналіз" : "AI Macro Analysis"}
+          title={t('ui.aiMacroAnalysis')}
         />
 
         {/* 2. COMPOSITE SCORES + DISPERSION + PHASE */}
@@ -3579,7 +3610,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             })),
           }}
           aiLanguage={aiLanguage}
-          title={aiLanguage === "uk" ? "AI — Крос-активний аналіз" : "AI — Cross-Asset Analysis"}
+          title={t('ui.aiCrossAsset')}
         />
       </div>
 
@@ -4036,7 +4067,7 @@ const simpleGuide = useMemo(() => {
             bottom_assets: [...rows].reverse().slice(0, 4).map(r => ({ name: r.name, symbol: r.symbol, current: r.current, cot_index: r.cot_index ?? null })),
           }}
           aiLanguage={aiLanguage}
-          title={aiLanguage === "uk" ? "AI — Сезонний аналіз" : "AI — Seasonal Analysis"}
+          title={t('ui.aiSeasonal')}
         />
       </div>
 
@@ -4411,7 +4442,7 @@ function Summary({ assets, setActive, setSelected, openGuide }) {
               <thead className="sticky top-0 z-10 bg-zinc-950">
                 <tr className="border-b border-zinc-800 text-[11px] uppercase tracking-[0.22em] text-blue-50">
                   <th rowSpan={2} className="sticky left-0 z-20 bg-zinc-950 px-3 py-3 text-left font-medium">
-                    Symbol
+                    {t('ui.symbol')}
                   </th>
                   <th rowSpan={2} className="px-3 py-3 text-right font-medium">
                     OI
@@ -5104,7 +5135,7 @@ function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, season
               contrarian_confidence: profile.contrarianRead?.confidence || null,
             }}
             aiLanguage={aiLanguage}
-            title={aiLanguage === "uk" ? "AI-Аналіз активу" : "AI Asset Analysis"}
+            title={t('ui.aiAssetAnalysis')}
           />
                     
           {/* Confirmation Checklist — with box-shadow on dots */}
@@ -5556,7 +5587,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
       entryQualityScore: s.entryQualityScore, sector: s.sector,
     }))}}
     aiLanguage={aiLanguage}
-    title={aiLanguage === 'uk' ? 'AI — Аналіз сигналів' : 'AI — Signal Analysis'}
+    title={t('ui.aiSignalAnalysis')}
   />
     </div>
           
@@ -5625,7 +5656,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
         <div className="flex items-center gap-2">
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#f87171', boxShadow: '0 0 7px rgba(248,113,113,0.9)' }} />
           <span className="text-[10px] uppercase tracking-[0.2em] text-rose-400">
-            {crowded.length} {crowded.length === 1 ? 'asset' : 'assets'} at extreme
+            {t('ui.assetsAtExtreme', { n: crowded.length, label: crowded.length === 1 ? t('ui.assetSingular') : t('ui.assetPlural') })}
           </span>
         </div>
         }>
@@ -5675,7 +5706,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
   <Panel
   title={t('ui.rankedSignals')}
-  right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{filteredSignals.length} visible</span>}
+  right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{t('ui.visible', { n: filteredSignals.length })}</span>}
 >
   {/* Filters inline */}
   <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6 pb-4">
@@ -5700,7 +5731,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
           : 'border-zinc-900 small-panel-color text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
       )}
     >
-      {alertsOnly ? '⚡ Alerts On' : 'Alerts Only'}
+      {alertsOnly ? '⚡ ' + t('ui.alertsOn') : t('ui.alertsOnly')}
     </button>
   </div>
     <div className="space-y-3">
@@ -5777,7 +5808,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
 
   <div className="space-y-4">
     <Panel
-      title="Assets In Play"
+      title={t('ui.assetsInPlay')}
       right={<span className="text-xs uppercase tracking-[0.22em] text-blue-400">{t('ui.topSetupsWeek')}</span>}
     >
     <div className="space-y-3">
@@ -6334,7 +6365,7 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
         <section className="title-border">
           <div className="px-4 py-3">
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-              {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
+              {t('ui.watchlist')}
             </span>
           </div>
           <div className="p-4 space-y-4">
@@ -6359,11 +6390,11 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
             <span className="text-[11px] uppercase tracking-[0.25em] text-slate-200">
-            {aiLanguage === "uk" ? "Список спостереження" : "Watchlist"}
+            {t('ui.watchlist')}
             </span>
           </div>
           <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-600">
-            {watchedAssets.length} {aiLanguage === "uk" ? "активів" : "assets"}
+            {watchedAssets.length} {t('ui.assetsLower')}
           </span>
         </div>
         <div className="p-4">
@@ -6389,6 +6420,7 @@ function WatchlistView({ assets, setActive, setSelected, aiLanguage = "en", watc
  
 // ── Add asset row ─────────────────────────────────────────────────────────────
 function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState("")
  
   const handleAdd = () => {
@@ -6403,7 +6435,7 @@ function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
       <CustomSelect
           value={selected}
           onChange={setSelected}
-          placeholder={aiLanguage === "uk" ? "Обери актив..." : "Select asset..."}
+          placeholder={t('ui.selectAsset')}
           options={sortedAssets.map((a) => ({ value: a.symbol, label: `${a.name} (${a.symbol})` }))}
           minWidth="220px"
         />
@@ -6417,7 +6449,7 @@ function AddAssetRow({ sortedAssets, onAdd, aiLanguage }) {
             : "cursor-not-allowed border-zinc-800 text-zinc-600"
         )}
       >
-        {aiLanguage === "uk" ? "Додати" : "Add"}
+        {t('ui.add')}
       </button>
     </div>
   )
@@ -6449,7 +6481,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
         <button
           onClick={() => onRemove(asset.symbol)}
           className="shrink-0 default-bg px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:text-zinc-400 transition"
-          title={aiLanguage === "uk" ? "Видалити" : "Remove"}
+          title={t('ui.remove')}
         >
           ✕
         </button>
@@ -6509,7 +6541,7 @@ function WatchlistCard({ asset, onOpen, onRemove, aiLanguage }) {
         onClick={() => onOpen(asset.symbol)}
         className="w-full default-bg py-1.5 text-[10px] uppercase tracking-[0.22em] text-slate-200"
       >
-        {aiLanguage === "uk" ? "Відкрити аналіз →" : "Open in Explorer →"}
+        {t('ui.openInExplorer')}
       </button>
     </div>
   )
@@ -8257,7 +8289,7 @@ React.useEffect(() => {
   }
 
   const clearAll = async () => {
-    if (!window.confirm(aiLanguage === 'uk' ? 'Видалити всі нотатки?' : 'Clear all notes?')) return
+    if (!window.confirm(t('ui.clearAllConfirm'))) return
     await fetch(`/api/notes?type=${typeFilter}`, { method: 'DELETE' })
     load()
   }
@@ -8288,7 +8320,7 @@ React.useEffect(() => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <Panel title={aiLanguage === 'uk' ? 'Дослідницькі нотатки' : 'Research Notes'}
+      <Panel title={t('ui.researchNotes')}
         right={
           <div className="flex items-center gap-3">
             <CustomSelect
@@ -8300,15 +8332,15 @@ React.useEffect(() => {
             {notes.length > 0 && (
               <button onClick={clearAll}
                 className="border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-500 hover:border-rose-900 hover:text-rose-400 transition">
-                {aiLanguage === 'uk' ? 'Очистити всі' : 'Clear All'}
+                {t('ui.clearAll')}
               </button>
             )}
           </div>
         }
       >
         <div className="flex items-center gap-3 text-xs text-zinc-500">
-          <span>{notes.length} {aiLanguage === 'uk' ? 'нотаток' : 'notes'}</span>
-          {pinnedNotes.length > 0 && <span>· 📌 {pinnedNotes.length} {aiLanguage === 'uk' ? 'закріплено' : 'pinned'}</span>}
+          <span>{notes.length} {t('ui.notesLower')}</span>
+          {pinnedNotes.length > 0 && <span>· 📌 {pinnedNotes.length}{t('ui.pinnedLower')}</span>}
         </div>
       </Panel>
 
@@ -8326,9 +8358,7 @@ React.useEffect(() => {
         <div className="border border-zinc-900 small-panel-color p-10 text-center">
           <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '12px' }}>📝</div>
           <div className="text-sm text-zinc-500">
-            {aiLanguage === 'uk'
-              ? 'Нотаток ще немає. Генеруй AI аналіз і натискай "Зберегти в нотатки".'
-              : 'No notes yet. Generate an AI analysis and click "Save to Notes".'}
+            {t('ui.noNotesYet')}
           </div>
         </div>
       ) : (
@@ -8965,7 +8995,7 @@ setWorkspaceData({
         />
         <div className="flex-1 p-4 md:p-5">
           {loading
-            ? <Panel title={t('common.loading')}><div className="text-sm text-zinc-400">Loading live dashboard data...</div></Panel>
+            ? <Panel title={t('common.loading')}><div className="text-sm text-zinc-400">{t('ui.loadingDashboard')}</div></Panel>
             : error
             ? <Panel title={t("panels.errors")}><div className="text-sm text-rose-400">{error}</div></Panel>
             : view}
