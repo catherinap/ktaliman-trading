@@ -440,7 +440,9 @@
     "legend1325": "13–25",
     "legendNeutral": "26–60 Neutral",
     "legend6175": "61–75",
-    "legendOpposed": "76+ Opposed"
+    "legendOpposed": "76+ Opposed",
+    "supportiveHeadwindsNeutral": "{{sup}} supportive · {{head}} headwinds · {{neu}} neutral",
+    "noTripleConfirm": "No triple-confirm setups in {{month}}"
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",

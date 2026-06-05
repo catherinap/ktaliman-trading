@@ -451,7 +451,9 @@
     "legend1325": "13–25",
     "legendNeutral": "26–60 Нейтрально",
     "legend6175": "61–75",
-    "legendOpposed": "76+ Протилежні"
+    "legendOpposed": "76+ Протилежні",
+    "supportiveHeadwindsNeutral": "{{sup}} сприятливих · {{head}} зустрічних · {{neu}} нейтральних",
+    "noTripleConfirm": "Немає потрійно підтверджених сетапів у {{month}}"
   },
     "months": {
     "Jan": "Січ", "Feb": "Лют", "Mar": "Бер", "Apr": "Кві",

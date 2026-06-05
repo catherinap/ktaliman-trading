@@ -3921,21 +3921,34 @@ const simpleGuide = useMemo(() => {
     )
   }
 
-  const tripleConfirmInsight = (row, asset) => {
-  const pct = Number(asset?.funds_percentile_3y)
-  const cotDir = pct >= 65 ? 'long' : 'short'
-  const score = row.current
-  const month = currentMonth
-  const flow = asset?.flow_state || ''
+// ════════════════════════════════════════════════════════════════════════════
+// ДВОМОВНИЙ tripleConfirmInsight — заміни функцію (рядки ~3922-3937)
+// tMonth, t вже доступні в SeasonalityView
+// ════════════════════════════════════════════════════════════════════════════
 
-  if (score >= 80 && (pct >= 75 || pct <= 25)) {
-    return `${month} is one of the historically strongest months for ${row.name}. COT funds are firmly positioned ${cotDir} — seasonal and institutional pressure point in the same direction. High-conviction setup.`
+  const tripleConfirmInsight = (row, asset) => {
+    const uk = t('__lang__') === 'uk'
+    const pct = Number(asset?.funds_percentile_3y)
+    const cotDir = pct >= 65 ? (uk ? 'лонг' : 'long') : (uk ? 'шорт' : 'short')
+    const score = row.current
+    const month = tMonth(currentMonth)
+    const flowRaw = asset?.flow_state || ''
+    const flow = translateFlowState(flowRaw, t).toLowerCase()
+
+    if (score >= 80 && (pct >= 75 || pct <= 25)) {
+      return uk
+        ? `${month} — один з historically найсильніших місяців для ${row.name}. COT фонди впевнено позиціоновані в ${cotDir} — сезонний та інституційний тиск вказують в один бік. Сетап високої впевненості.`
+        : `${month} is one of the historically strongest months for ${row.name}. COT funds are firmly positioned ${cotDir} — seasonal and institutional pressure point in the same direction. High-conviction setup.`
+    }
+    if (score >= 65) {
+      return uk
+        ? `${month} зазвичай сприятливий період для ${row.name}. Фонди з нахилом у ${cotDir} та потоком «${flow}» — календар додає відчутний попутний вітер до наявного COT сетапу.`
+        : `${month} tends to be a favorable period for ${row.name}. With funds ${cotDir}-biased and ${flow} flow, the calendar adds a meaningful tailwind to the existing COT setup.`
+    }
+    return uk
+      ? `${month} дає помірну сезонну підтримку для ${row.name}. Фонди позиціоновані в ${cotDir} — сезонна перевага помірна, але напрямок підтверджено. Варто стежити за тригером входу.`
+      : `${month} provides mild seasonal support for ${row.name}. Funds are positioned ${cotDir} — the seasonal edge is moderate but directionally confirmed. Worth watching for an entry trigger.`
   }
-  if (score >= 65) {
-    return `${month} tends to be a favorable period for ${row.name}. With funds ${cotDir}-biased and ${flow.toLowerCase()} flow, the calendar adds a meaningful tailwind to the existing COT setup.`
-  }
-  return `${month} provides mild seasonal support for ${row.name}. Funds are positioned ${cotDir} — the seasonal edge is moderate but directionally confirmed. Worth watching for an entry trigger.`
-}
  
   return (
     <div className="space-y-4">
@@ -3955,7 +3968,7 @@ const simpleGuide = useMemo(() => {
                 <div className="text-2xl font-bold" style={{ color: breadthColor }}>{breadthLabel}</div>
                 <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">{currentMonth}</div>
               </div>
-                {supportiveCount} supportive · {headwindCount} headwinds · {rows.length - supportiveCount - headwindCount} neutral
+                {t('ui.supportiveHeadwindsNeutral', { sup: supportiveCount, head: headwindCount, neu: rows.length - supportiveCount - headwindCount })}
               </div>
             
           </div>
@@ -4032,7 +4045,7 @@ const simpleGuide = useMemo(() => {
         <div className="flex items-center gap-2 mb-4 pb-3">
           <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
           <span style={{ fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
-            Triple-Confirm Setups
+            {t('ui.tripleConfirmSetups')}
           </span>
         </div>
 
@@ -4042,7 +4055,7 @@ const simpleGuide = useMemo(() => {
             <div className="text-center py-4 mb-4">
               <div style={{ fontSize: '28px', opacity: 0.2, marginBottom: '8px' }}>◎</div>
               <div style={{ fontSize: '11px', color: '#475569', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                No triple-confirm setups in {currentMonth}
+                {t('ui.noTripleConfirm', { month: tMonth(currentMonth) })}
               </div>
               <div style={{ fontSize: '10px', color: '#374151', marginTop: '4px' }}>
                 Seasonal alone is not enough — wait for COT + flow alignment
@@ -4158,7 +4171,7 @@ const simpleGuide = useMemo(() => {
       </div>  
 
       <div className="grid gap-3 xl:grid-cols-[1.45fr_0.55fr]">
-        <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">12 month map</span>}>
+        <Panel title={t("panels.seasonalityHeatmap")} right={<span className="text-xs uppercase tracking-[0.22em] text-slate-200">{t('ui.monthMap12')}</span>}>
           <div className="mb-4 grid gap-3 md:grid-cols-3">
             <div className="small-panel-color p-3 text-sm text-zinc-300">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-200">{t('ui.howToReadGreen')}</div>
@@ -4232,8 +4245,8 @@ const simpleGuide = useMemo(() => {
             <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-100 mb-3 py-3 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--panels-border)' }}>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400"></div>
-                <span>{currentMonth} Ranking</span>
-                <span style={{ fontSize: '10px', color: '#7b9dcc', fontWeight: 400 }}>{rows.length} assets</span>
+                <span>{tMonth(currentMonth)} {t('ui.ranking')}</span>
+                <span style={{ fontSize: '10px', color: '#7b9dcc', fontWeight: 400 }}>{t('ui.assetsCount', { n: rows.length })}</span>
               </div>
             </div>
             <div className="px-2" style={{ maxHeight: '100%', overflowY: 'auto' }}>
