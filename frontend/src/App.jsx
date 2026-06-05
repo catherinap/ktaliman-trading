@@ -5746,7 +5746,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
               {t('ui.signalColon')} <span className="text-zinc-200">{signal.signalLabel}</span>
             </div>
             <div className="small-panel-color p-2 text-zinc-400">
-              {translateFlowState(signal.flowState, t)} <span className="text-zinc-200">{signal.flowState}</span>
+              {t('ui.flowColon')} <span className="text-zinc-200">{translateFlowState(signal.flowState, t)}</span>
             </div>
             <div className="small-panel-color p-2 text-zinc-400">
               {t('ui.macroColon')} <span className="text-zinc-200">{formatPercentile(signal.macroScore)}</span>
