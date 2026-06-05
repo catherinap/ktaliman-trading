@@ -280,8 +280,6 @@
     "amberOutline": "Бурштинова рамка",
     "score": "Оцінка:",
     "noAssetData": "Дані активу не завантажені.",
-    "defensive": "Захисний",
-    "constructive": "Конструктивний",
     "noPeerAssets": "Активів сектору немає.",
     "dir": "Напр",
     "toggleSidebar": "Згорнути панель",
@@ -442,7 +440,18 @@
     "biasShortExtreme": "Шорт екстремум",
     "biasBearishContext": "Ведмежий контекст",
     "biasBalanced": "Збалансовано",
-    "seasonalityColon": "Сезонність:"
+    "seasonalityColon": "Сезонність:",
+    "syncNow": "Синхронізувати",
+    "synced": "Синхронізовано",
+    "alignFragmented": "Фрагментований",
+    "alignMixed": "Змішаний",
+    "alignAligned": "Узгоджений",
+    "alignHighlySync": "Сильно синхронізований",
+    "legendAligned": "0–12 Узгоджені",
+    "legend1325": "13–25",
+    "legendNeutral": "26–60 Нейтрально",
+    "legend6175": "61–75",
+    "legendOpposed": "76+ Протилежні"
   },
     "months": {
     "Jan": "Січ", "Feb": "Лют", "Mar": "Бер", "Apr": "Кві",

@@ -407,8 +407,6 @@
     "seasonalContext": "seasonal context",
     "seasonalCurve": "Seasonal Curve",
     "positioningBias": "Positioning Bias",
-    "defensive": "Defensive",
-    "constructive": "Constructive",
     "exportPdf": "Export PDF",
     "confirmed": "Confirmed",
     "notMet": "Not met",
@@ -431,7 +429,18 @@
     "biasShortExtreme": "Short Extreme",
     "biasBearishContext": "Bearish Context",
     "biasBalanced": "Balanced",
-    "seasonalityColon": "Seasonality:"
+    "seasonalityColon": "Seasonality:",
+    "syncNow": "Sync Now",
+    "synced": "Synced",
+    "alignFragmented": "Fragmented",
+    "alignMixed": "Mixed",
+    "alignAligned": "Aligned",
+    "alignHighlySync": "Highly Synchronized",
+    "legendAligned": "0–12 Aligned",
+    "legend1325": "13–25",
+    "legendNeutral": "26–60 Neutral",
+    "legend6175": "61–75",
+    "legendOpposed": "76+ Opposed"
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",

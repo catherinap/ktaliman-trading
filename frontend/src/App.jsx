@@ -3477,10 +3477,10 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
   )
 
   const alignmentLabel = avgDistance == null ? '—'
-    : avgDistance >= 60 ? 'Fragmented'
-    : avgDistance >= 40 ? 'Mixed'
-    : avgDistance >= 20 ? 'Aligned'
-    : 'Highly Synchronized'
+    : avgDistance >= 60 ? t('ui.alignFragmented')
+    : avgDistance >= 40 ? t('ui.alignMixed')
+    : avgDistance >= 20 ? t('ui.alignAligned')
+    : t('ui.alignHighlySync')
 
   const alignmentColor = avgDistance == null ? '#94a3b8'
     : avgDistance >= 60 ? '#f87171'
@@ -3541,7 +3541,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             <div>
               <div className="text-[10px] uppercase tracking-[0.2em] mb-1">{t('ui.marketAlignment')}</div>
               <div className="text-[20px] font-semibold" style={{ color: alignmentColor }}>{alignmentLabel}</div>
-              <div className="text-[10px] text-zinc-400 mt-0.5">{sameSectorPairs} same · {crossSectorPairs} cross-sector</div>
+              <div className="text-[10px] text-zinc-400 mt-0.5">{t('ui.sameCrossSector', { same: sameSectorPairs, cross: crossSectorPairs })}</div>
             </div>
             <div className="flex-1">
               <div className="h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -3678,11 +3678,11 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             <div className="flex items-center gap-3 mt-3 pt-3 flex-wrap justify-center">
               <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-600">{t('ui.gap')}</span>
               {[
-                { label: '0–12 Aligned',   bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' },
-                { label: '13–25',          bg: 'rgba(74,222,128,0.10)',  text: '#86efac' },
-                { label: '26–60 Neutral',  bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
-                { label: '61–75',          bg: 'rgba(248,113,113,0.15)', text: '#f87171' },
-                { label: '76+ Opposed',    bg: 'rgba(248,113,113,0.25)', text: '#ef4444' },
+                { label: t('ui.legendAligned'), bg: 'rgba(74,222,128,0.25)',  text: '#4ade80' },
+                { label: t('ui.legend1325'),    bg: 'rgba(74,222,128,0.10)',  text: '#86efac' },
+                { label: t('ui.legendNeutral'), bg: 'rgba(148,163,184,0.06)', text: '#64748b' },
+                { label: t('ui.legend6175'),    bg: 'rgba(248,113,113,0.15)', text: '#f87171' },
+                { label: t('ui.legendOpposed'), bg: 'rgba(248,113,113,0.25)', text: '#ef4444' },
               ].map(({ label, bg, text }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div style={{ width: 10, height: 10, borderRadius: 2, background: bg, border: `1px solid ${text}40` }} />
@@ -3701,7 +3701,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             {/* Aligned */}
             <div className="small-panel-color p-3">
               <div className="text-[12px] uppercase tracking-[0.25em] text-emerald-400 mb-3">
-                ● Top Aligned
+                ● {t('ui.topAligned')}
               </div>
               <div className="space-y-1.5">
                 {alignedPairs.map((pair) => (
@@ -3735,7 +3735,7 @@ function CorrelationView({ assets, openGuide, aiLanguage = "en" }) {
             {/* Opposed */}
             <div className="small-panel-color p-3">
               <div className="text-[12px] uppercase tracking-[0.25em] text-rose-400 mb-3">
-                ● Top Opposed
+                ● {t('ui.topOpposed')}
               </div>
               <div className="space-y-1.5">
                 {opposedPairs.map((pair) => (
@@ -5511,11 +5511,11 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             onClick={async () => {
               const r = await fetch('/api/signals/persist', { method: 'POST' })
               const d = await r.json()
-              alert(d.ok ? `Synced: ${d.report_date}` : d.message)
+              alert(d.ok ? `${t('ui.synced')}: ${d.report_date}` : d.message)
             }}
             className="border border-blue-400 text-blue-300 hover:bg-blue-400/10 px-2 py-1 text-xs uppercase tracking-[0.22em] transition"
           >
-            Sync Now
+            {t('ui.syncNow')}
         </button>
       </div>
 
