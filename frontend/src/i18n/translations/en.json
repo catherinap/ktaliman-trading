@@ -484,8 +484,8 @@
     "finished": "Finished",
     "returnCode": "Return code",
     "scheduleActive": "Active",
-    "scheduleStopped": "Stopped",
-    "cftcPublishesNote": "CFTC publishes every Friday ~15:30 EST. Auto-run fires at 16:00 EST (21:00 UTC).",
+    "scheduleStopped": "Stopped", 
+    "cftcPublishesNote": "CFTC publishes every Friday ~15:30 EST. Auto-run fires at 21:35 CEST (19:35 UTC).",
     "schedulerUnavailable": "Scheduler status unavailable. Restart backend to activate.",
     "noLogOutput": "No log output yet.",
     "noErrorsReported": "No errors reported."

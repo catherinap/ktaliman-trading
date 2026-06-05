@@ -1,10 +1,5 @@
 """
 COT Auto-Update Scheduler
-
-CFTC publishes COT reports every Friday at ~15:30 EST (20:30 UTC).
-This scheduler runs the worker automatically at 21:00 UTC every Friday
-(30 min buffer to ensure data is published before we fetch).
-
 Also provides:
   - GET  /api/scheduler/status  — current schedule info + next run time
   - POST /api/scheduler/trigger — manual trigger (same as /api/update/run)
@@ -27,8 +22,8 @@ router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 _scheduler = BackgroundScheduler(timezone="UTC")
 _SCHEDULE = {
     "day_of_week": "fri",   # Friday
-    "hour":        18,      # 21:00 UTC = 16:00 EST / 17:00 EDT
-    "minute":      30,
+    "hour":        19,      # 21:35 UTC = 16:35 EST
+    "minute":      35,
 }
 
 SCHEDULE_STATE = {
@@ -101,7 +96,7 @@ def get_scheduler_status():
     return {
         "scheduler_running": _scheduler.running,
         "enabled":           SCHEDULE_STATE["enabled"],
-        "schedule": "Every Friday at 18:30 UTC (20:30 CEST / Denmark time)",
+        "schedule": "Every Friday at 19:35 UTC (21:35 CEST / Denmark time)",
         "next_run_utc":      next_run,
         "last_auto_run_utc": SCHEDULE_STATE["last_auto_run"],
         "worker_status":     worker_status,
