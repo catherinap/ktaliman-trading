@@ -1944,10 +1944,21 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
     return engine.alerts.slice(0, 5)
   }, [assets])
 
-  const availableNewsDates = React.useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
+  const localDateKey = (iso) => {
+    if (!iso) return ""
+    const d = new Date(iso)
+    if (isNaN(d)) return ""
+    // YYYY-MM-DD у локальному поясі браузера
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+ const availableNewsDates = React.useMemo(() => {
+    const today = localDateKey(new Date().toISOString())
     const dates = [...new Set(
-      news.map(item => item.published_at?.slice(0, 10)).filter(Boolean)
+      news.map(item => localDateKey(item.published_at)).filter(Boolean)
     )].sort().reverse()
     return dates.map(d => ({
       value: d,
@@ -2470,7 +2481,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               ) : [...news]
                   .filter(item => newsCategory === "all" || item.category === newsCategory)
                   .filter(item => newsSource === "all" || item.source === newsSource)
-                  .filter(item => newsImportance === "all" || item.importance === newsImportance).filter(item => newsDate === "all" || (item.published_at || "").slice(0, 10) === newsDate)
+                  .filter(item => newsImportance === "all" || item.importance === newsImportance).filter(item => newsDate === "all" || localDateKey(item.published_at) === newsDate)
                   .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""))
                   .map((item) => {
                     const url = item.url && item.url !== "#" ? item.url : null

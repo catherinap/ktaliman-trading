@@ -531,7 +531,18 @@
     "assetsAtExtreme": "{{n}} {{label}} на екстремумі",
     "assetSingular": "актив",
     "assetPlural": "активів",
-    "today": "Сьогодні"
+    "today": "Сьогодні",
+    "aiAnalysis": "AI-Аналіз",
+    "aiGenerate": "Згенерувати",
+    "aiAnalysing": "Аналізую...",
+    "aiRefresh": "Оновити",
+    "aiUpdateLanguage": "Оновити мову",
+    "aiIdlePrompt": "Натисни кнопку щоб отримати AI-інтерпретацію поточних даних.",
+    "aiError": "Помилка: ",
+    "aiSaved": "Збережено",
+    "aiSaveToNotes": "Зберегти в нотатки",
+    "aiClear": "Очистити",
+    "aiLanguageChangedNote": "Мову аналізу змінено. Натисни «Оновити мову» щоб отримати нову версію."
   },
     "months": {
     "Jan": "Січ", "Feb": "Лют", "Mar": "Бер", "Apr": "Кві",

@@ -17,7 +17,6 @@ function renderAIText(text) {
   });
 }
 
-// Unique cache key per panel
 function cacheKey(type, data) {
   const sym = data?.symbol || data?.type || "";
   return `ai_cache_${type}_${sym}`;
@@ -35,7 +34,6 @@ export default function AIAnalysisPanel({
   const { t } = useTranslation();
   const key = cacheKey(type, data);
 
-  // Restore from sessionStorage on mount
   const [state, setState] = useState(() => {
     try {
       const cached = sessionStorage.getItem(key);
@@ -86,7 +84,6 @@ export default function AIAnalysisPanel({
       setText(newText);
       setLastLanguage(aiLanguage);
       setState("done");
-      // Cache in sessionStorage
       try {
         sessionStorage.setItem(key, JSON.stringify({ text: newText, language: aiLanguage }));
       } catch {}
@@ -126,13 +123,12 @@ export default function AIAnalysisPanel({
   }, []);
 
   const languageChanged = state === "done" && lastLanguage !== null && lastLanguage !== aiLanguage;
-  const panelTitle = title || (aiLanguage === "uk" ? "AI-Аналіз" : "AI Analysis");
+  const panelTitle = title || t("ui.aiAnalysis");
 
   return (
     <section className="title-border"
       style={fillHeight ? { display: "flex", flexDirection: "column", flex: 1 } : {}}
     >
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full rounded-full-dot bg-blue-400" />
@@ -160,25 +156,22 @@ export default function AIAnalysisPanel({
           ].join(" ")}
         >
           {state === "loading"
-            ? aiLanguage === "uk" ? "Аналізую..." : "Analysing..."
+            ? t("ui.aiAnalysing")
             : languageChanged
-            ? aiLanguage === "uk" ? "Оновити мову" : "Update language"
+            ? t("ui.aiUpdateLanguage")
             : state === "done"
-            ? aiLanguage === "uk" ? "Оновити" : "Refresh"
-            : aiLanguage === "uk" ? "Згенерувати" : "Generate"}
+            ? t("ui.aiRefresh")
+            : t("ui.aiGenerate")}
         </button>
       </div>
 
-      {/* Body */}
       <div
         className={compact ? "px-4 py-3" : "px-4 py-4"}
         style={fillHeight ? { flex: 1 } : {}}
       >
         {state === "idle" && (
           <p className="text-sm text-zinc-600">
-            {aiLanguage === "uk"
-              ? "Натисни кнопку щоб отримати AI-інтерпретацію поточних даних."
-              : "Press the button to get an AI interpretation of current data."}
+            {t("ui.aiIdlePrompt")}
           </p>
         )}
         {state === "loading" && (
@@ -190,7 +183,7 @@ export default function AIAnalysisPanel({
         )}
         {state === "error" && (
           <div className="border border-rose-900/50 bg-rose-950/20 p-3 text-sm text-rose-400">
-            {aiLanguage === "uk" ? "Помилка: " : "Error: "}{error}
+            {t("ui.aiError")}{error}
           </div>
         )}
         {state === "done" && text && (
@@ -198,7 +191,6 @@ export default function AIAnalysisPanel({
             <div className="space-y-1 text-sm text-zinc-300">
               {renderAIText(text)}
             </div>
-            {/* Save to Notes button */}
             <div className="mt-4 pt-3 flex items-center gap-2">
               <button
                 onClick={saveToNotes}
@@ -212,12 +204,11 @@ export default function AIAnalysisPanel({
                 }}
               >
                 {saved
-                  ? <><Bookmark size={12} />{aiLanguage === "uk" ? "Збережено" : "Saved"}</>
-                  : <><BookmarkPlus size={12} />{aiLanguage === "uk" ? "Зберегти в нотатки" : "Save to Notes"}</>
+                  ? <><Bookmark size={12} />{t("ui.aiSaved")}</>
+                  : <><BookmarkPlus size={12} />{t("ui.aiSaveToNotes")}</>
                 }
               </button>
 
-              {/* Clear button — скидає текст але не видаляє з нотаток */}
               <button
                 onClick={() => {
                   setText('')
@@ -228,16 +219,14 @@ export default function AIAnalysisPanel({
                 className="flex items-center gap-2 border border-zinc-800 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-zinc-600 hover:border-zinc-600 hover:text-zinc-400 transition"
                 style={{ background: 'transparent', cursor: 'pointer' }}
               >
-                {aiLanguage === "uk" ? "Очистити" : "Clear"}
+                {t("ui.aiClear")}
               </button>
             </div>
           </>
         )}
         {languageChanged && state === "done" && (
           <div className="mt-3 border-t border-zinc-900 pt-3 text-[11px] text-zinc-600">
-            {aiLanguage === "uk"
-              ? "Мову аналізу змінено. Натисни «Оновити мову» щоб отримати нову версію."
-              : "Analysis language changed. Click 'Update language' to regenerate."}
+            {t("ui.aiLanguageChangedNote")}
           </div>
         )}
       </div>

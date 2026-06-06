@@ -520,7 +520,18 @@
     "assetsAtExtreme": "{{n}} {{label}} at extreme",
     "assetSingular": "asset",
     "assetPlural": "assets",
-    "today": "Today"
+    "today": "Today",
+    "aiAnalysis": "AI Analysis",
+    "aiGenerate": "Generate",
+    "aiAnalysing": "Analysing...",
+    "aiRefresh": "Refresh",
+    "aiUpdateLanguage": "Update language",
+    "aiIdlePrompt": "Press the button to get an AI interpretation of current data.",
+    "aiError": "Error: ",
+    "aiSaved": "Saved",
+    "aiSaveToNotes": "Save to Notes",
+    "aiClear": "Clear",
+    "aiLanguageChangedNote": "Analysis language changed. Click 'Update language' to regenerate."
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",
