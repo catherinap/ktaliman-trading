@@ -26,6 +26,7 @@ from app.routes.news import router as news_router
 from app.routes.calendar import router as calendar_router
 from app.routes.notes import router as notes_router
 from app.routes.settings import router as settings_router
+from app.routes.sentiment import router as sentiment_router
 from app.routes.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="Ktaliman Trading API")
@@ -56,6 +57,7 @@ app.include_router(news_router,           prefix="/api")
 app.include_router(calendar_router,       prefix="/api")
 app.include_router(notes_router, prefix="/api")
 app.include_router(settings_router, prefix="/api")
+app.include_router(sentiment_router, prefix="/api")
 
 
 @app.on_event("startup")

@@ -22,6 +22,7 @@ import LanguageSettings from "./components/LanguageSettings";
 import AIAnalysisPanel from "./components/AIAnalysisPanel";
 import CustomSelect from "./components/CustomSelect"
 import GuideButton from "./components/GuideButton"
+import SentimentPanel from "./components/SentimentPanel"
 
 
 
@@ -3438,8 +3439,8 @@ const macroComposite = averagePercentile([
         </Panel>
 
         {/* 2. MACRO CONTEXT — VIX / Yield Curve / DXY / S&P 500 */}
+        <SentimentPanel />
         <MacroContextPanel aiLanguage={aiLanguage} />
-
       </div>
 
       {/* ── RIGHT COLUMN ── */}

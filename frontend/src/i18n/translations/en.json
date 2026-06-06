@@ -548,7 +548,20 @@
     "runAlertCheck": "Run Alert Check Now",
     "checkingAlerts": "Checking...",
     "noAlertsBell": "No alerts yet.",
-    "alertsFireNote": "Alerts fire automatically after each weekly COT update."
+    "alertsFireNote": "Alerts fire automatically after each weekly COT update.",
+    "marketSentiment": "Market Sentiment",
+    "fearGreed": "Fear & Greed",
+    "velocityStagnation": "Velocity ↔ Stagnation",
+    "velocity": "Velocity",
+    "stagnation": "Stagnation",
+    "fgExtremeFear": "Extreme Fear",
+    "fgFear": "Fear",
+    "fgNeutral": "Neutral",
+    "fgGreed": "Greed",
+    "fgExtremeGreed": "Extreme Greed",
+    "velocityHighNote": "Positioning is changing fast — trends are forming and conviction is building across the market.",
+    "stagnationHighNote": "Positioning is frozen — the market is waiting for a catalyst. Often precedes a larger move.",
+    "velocityBalancedNote": "Positioning is shifting at a moderate pace — neither rushing nor stalled."
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",
