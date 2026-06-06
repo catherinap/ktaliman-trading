@@ -517,7 +517,15 @@ def get_unread_alerts(limit: int = 50):
         rows = conn.execute(text("""
             SELECT id, created_at, report_date, symbol, name, sector,
                    alert_type, direction, title, body, severity, is_read
-            FROM alerts ORDER BY created_at DESC LIMIT :limit
+            FROM alerts
+            ORDER BY
+                CASE severity
+                    WHEN 'high' THEN 1
+                    WHEN 'medium' THEN 2
+                    ELSE 3
+                END,
+                created_at DESC
+            LIMIT :limit
         """), {"limit": limit}).mappings().all()
         unread_count = conn.execute(
             text("SELECT COUNT(*) FROM alerts WHERE is_read = false")
@@ -545,6 +553,33 @@ def mark_alerts_read(ids: list[int] | None = None):
 @router.post("/alerts/run")
 def trigger_alert_check():
     return run_alert_check()
+
+@router.post("/alerts/clear-all")
+def clear_all_alerts():
+    """Delete ALL alerts. Use for a clean start."""
+    init_alerts_table()
+    with engine.begin() as conn:
+        result = conn.execute(text("DELETE FROM alerts"))
+        deleted = result.rowcount
+    return {"ok": True, "deleted": deleted}
+
+@router.post("/alerts/regenerate")
+def regenerate_alerts():
+    """Clear alerts for the latest report date and re-detect in current language."""
+    init_alerts_table()
+    with engine.connect() as conn:
+        report_date = conn.execute(
+            text("SELECT MAX(report_date) FROM cot_analytics")
+        ).scalar()
+    if not report_date:
+        return {"ok": False, "message": "No COT data"}
+    # wipe existing alerts for this report date so they regenerate in the new language
+    with engine.begin() as conn:
+        conn.execute(
+            text("DELETE FROM alerts WHERE report_date = :d"),
+            {"d": report_date},
+        )
+    return run_alert_check(report_date)
 
 
 class AlertSettings(BaseModel):

@@ -1794,7 +1794,7 @@ function AlertDrawer({ open, onClose }) {
         <div className="border-t border-zinc-900 px-4 py-3">
           <button
             onClick={() => {
-              fetch("/api/alerts/run", { method: "POST" })
+              fetch("/api/alerts/regenerate", { method: "POST" })
                 .then(() => load())
             }}
             className="w-full border border-zinc-800 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:border-zinc-700 hover:text-zinc-300 transition"
