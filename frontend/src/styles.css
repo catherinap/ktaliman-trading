@@ -436,11 +436,17 @@ th.sticky .left-0 {
 /* ---- Tablet & narrow desktop windows (≤ 1024px) ---- */
 @media (max-width: 1024px) {
 
-  /* Inline two/three-column grids collapse to a single column.
-     These target the inline gridTemplateColumns used across Workspace,
-     Macro, Explorer, Seasonality, Correlation, Signals. */
-  [style*="gridTemplateColumns"] {
+  /* React рендерить inline-стилі через дефіс (grid-template-columns),
+     а не camelCase — селектор має шукати саме дефісну форму. */
+  [style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Теплокарту COT лишаємо адаптивною: вона вже сама добре тече
+     через auto-fill, її не треба схлопувати в одну колонку. */
+  [style*="auto-fill"],
+  [style*="auto-fit"] {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)) !important;
   }
 
   /* Tailwind fixed multi-column grids → single column */
