@@ -2250,7 +2250,7 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
               {topSignals.length === 0 ? (
                 <div className="py-8 text-center text-sm text-zinc-600">{t('ui.noActiveSignals')}</div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", maxHeight: "100%" }}>
+                <div className="top-signals-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", maxHeight: "100%" }}>
                   {topSignals.map((signal) => <SignalCircleCard key={signal.id} signal={signal} />)}
                 </div>
               )}
@@ -5798,7 +5798,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-5">
+          <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs signal-tag-grid">
             <div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-slate-200">{t('ui.priority')}</div>
               <div className="mt-1 text-sm text-zinc-100">{formatPercentile(signal.priorityScore)}</div>
@@ -5821,7 +5821,7 @@ function SignalsView({ assets, setActive, setSelected, aiLanguage, openGuide,sea
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 md:grid-cols-4 text-xs">
+          <div className="mt-4 grid gap-3 md:grid-cols-5 signal-metric-grid">
             <div className="small-panel-color p-2 text-zinc-400">
               {t('ui.signalColon')} <span className="text-zinc-200">{signal.signalLabel}</span>
             </div>

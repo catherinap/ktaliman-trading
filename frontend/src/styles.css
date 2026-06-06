@@ -442,6 +442,10 @@ th.sticky .left-0 {
     grid-template-columns: 1fr !important;
   }
 
+    .top-signals-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
   /* Теплокарту COT лишаємо адаптивною: вона вже сама добре тече
      через auto-fill, її не треба схлопувати в одну колонку. */
   [style*="auto-fill"],
@@ -582,5 +586,25 @@ th.sticky .left-0 {
      keep the burger, page title, and alert bell. */
   .topbar-stats > span {
     display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+
+  /* Дрібні метрики тримаємо в кілька колонок, а не стовпчиком */
+  .signal-metric-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .signal-tag-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 380px) {
+
+  /* На зовсім вузьких екранах метрики — у 2 колонки */
+  .signal-metric-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
