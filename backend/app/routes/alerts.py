@@ -36,8 +36,13 @@ logger = logging.getLogger(__name__)
 
 
 def alert_language() -> str:
-    lang = os.getenv("ALERT_EMAIL_LANGUAGE", "en").lower()
-    return "uk" if lang == "uk" else "en"
+    # Read from UI-managed settings first; fall back to env var
+    try:
+        from app.routes.settings import get_email_language
+        return get_email_language()
+    except Exception:
+        lang = os.getenv("ALERT_EMAIL_LANGUAGE", "en").lower()
+        return "uk" if lang == "uk" else "en"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
