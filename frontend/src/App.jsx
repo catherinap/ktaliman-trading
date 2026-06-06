@@ -1545,12 +1545,31 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
   const { t } = useTranslation()
  
   return (
+    <>
+    {/* Mobile overlay — tap to close the sidebar (only when open on phone) */}
+    {!collapsed && (
+      <div
+        onClick={() => setCollapsed(true)}
+        className="mobile-overlay"
+      />
+    )}
     <aside className={cls(
       'fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-[#0a0e1a]','border-[#1e2d4a]',
       'transition-[width] duration-300 ease-in-out overflow-hidden',
       collapsed ? 'w-0' : 'w-60'
     )}>
  
+       {/* Mobile close button — visible only on phones */}
+      {!collapsed && (
+        <button
+          onClick={() => setCollapsed(true)}
+          className="sidebar-close-btn"
+          aria-label="Закрити меню"
+        >
+          ✕
+        </button>
+      )}
+
        {/* Logo — fixed at bottom */}
       <div className={cls(
         'shrink-0 border-b logo transition-all duration-300',
@@ -1599,7 +1618,10 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
           return (
             <button
               key={item.key}
-              onClick={() => setActive(item.key)}
+              onClick={() => {
+                setActive(item.key)
+                if (window.innerWidth <= 768) setCollapsed(true)
+              }}
               title={collapsed ? t(item.labelKey) : undefined}
               className={cls(
                 'flex w-full items-center border-l text-left text-xs uppercase tracking-[0.22em] transition-all duration-150',
@@ -1621,6 +1643,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         })}
       </nav>
     </aside>
+    </>
   )
 }
 
@@ -1849,7 +1872,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
       {/* Right: stats */}
       {/* Right: stats + alert bell */}
       <div className="flex items-center gap-4">
-        <div className="flex gap-6 text-xs uppercase tracking-[0.24em] text-slate-200">
+        <div className="flex gap-6 text-xs uppercase tracking-[0.24em] text-slate-200 topbar-stats">
           <span>{t('topbar.assets')} {status?.asset_count ?? '...'}</span>
           <span>{t('topbar.rows')} {status?.total_rows ?? '...'}</span>
           <span>{status?.latest_report_date ?? t('topbar.noData')}</span>
@@ -3136,7 +3159,7 @@ function MacroContextPanel({ aiLanguage = "en" }) {
       "Risk-On Expansion":          uk ? "Risk-On Експансія" : "Risk-On Expansion",
       "Late Cycle / Contraction":   uk ? "Пізній цикл / Стиснення" : "Late Cycle / Contraction",
       "Inversion Warning":          uk ? "Попередження про інверсію" : "Inversion Warning",
-      "Dollar Stress / EM Pressure": uk ? "Стрес долара / Тиск на EM" : "Dollar Stress / EM Pressure",
+      "Dollar Stress / EM Pressure": uk ? "Стрес долара / Тиск на EM ринки" : "Dollar Stress / EM Pressure",
       "Benign / Constructive":      uk ? "Сприятливий / Конструктивний" : "Benign / Constructive",
       "Mixed / Transition":         uk ? "Змішаний / Перехідний" : "Mixed / Transition",
     }
@@ -7074,7 +7097,7 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
       </div>
 
       {/* Content area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+      <div className="guide-content" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
         {/* Section summary */}
         <div style={{ marginBottom: '24px' }}>
           <p style={{ fontSize: '13px', color: 'rgba(148,163,184,0.7)', margin: 0, lineHeight: 1.7 }}>
@@ -7143,7 +7166,9 @@ function GuideView({ setActive, initialSection = null, uiLanguage = "en" }) {
 export default function App() {
   const [active, setActive] = useState('workspace')
   const [selected, setSelected] = useState(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    typeof window !== 'undefined' && window.innerWidth <= 768
+  )
   const [status, setStatus] = useState(null)
   const [assets, setAssets] = useState([])
   const [signals, setSignals] = useState([])
