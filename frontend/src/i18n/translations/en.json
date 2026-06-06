@@ -539,7 +539,16 @@
     "aiSaved": "Saved",
     "aiSaveToNotes": "Save to Notes",
     "aiClear": "Clear",
-    "aiLanguageChangedNote": "Analysis language changed. Click 'Update language' to regenerate."
+    "aiLanguageChangedNote": "Analysis language changed. Click 'Update language' to regenerate.",
+    "cotAlerts": "COT Alerts",
+    "markAllRead": "Mark all read",
+    "highPriority": "high priority",
+    "mediumPriority": "medium priority",
+    "lowPriority": "low priority",
+    "runAlertCheck": "Run Alert Check Now",
+    "checkingAlerts": "Checking...",
+    "noAlertsBell": "No alerts yet.",
+    "alertsFireNote": "Alerts fire automatically after each weekly COT update."
   },
     "months": {
     "Jan": "Jan", "Feb": "Feb", "Mar": "Mar", "Apr": "Apr",

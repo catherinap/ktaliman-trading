@@ -1717,14 +1717,14 @@ function AlertDrawer({ open, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b px-4 py-3" style={{borderColor: 'var(--panels-border)'}}>
           <span className="text-[11px] uppercase tracking-[0.25em]">
-            COT Alerts
+            {t('ui.cotAlerts')}
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={markAllRead}
               className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-zinc-400 transition"
             >
-              Mark all read
+              {t('ui.markAllRead')}
             </button>
             <button
               onClick={onClose}
@@ -1750,7 +1750,7 @@ function AlertDrawer({ open, onClose }) {
               <Bell size={28} className="text-zinc-700" />
               <div className="text-sm text-zinc-600">{t('ui.noAlertsYet')}</div>
               <div className="text-xs text-zinc-700">
-                Alerts fire automatically after each weekly COT update.
+                {t('ui.alertsFireNote')}
               </div>
             </div>
           )}
@@ -1762,7 +1762,7 @@ function AlertDrawer({ open, onClose }) {
                   key={alert.id}
                   className={cls(
                     "border-l-2 px-4 py-3 transition",
-                    !alert.is_read ? severityTone(alert.severity) : " border-zinc-900 text-zinc-600"
+                    !alert.is_read ? severityTone(alert.severity) : " text-zinc-600"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -1781,7 +1781,7 @@ function AlertDrawer({ open, onClose }) {
                     <span>·</span>
                     <span>{alert.report_date}</span>
                     {alert.severity === "high" && !alert.is_read && (
-                      <span className="text-rose-600">high priority</span>
+                      <span className="text-rose-600">{t('ui.highPriority')}</span>
                     )}
                   </div>
                 </div>
@@ -1799,7 +1799,7 @@ function AlertDrawer({ open, onClose }) {
             }}
             className="w-full border border-zinc-800 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-200 hover:border-zinc-700 hover:text-zinc-300 transition"
           >
-            Run Alert Check Now
+            {t('ui.runAlertCheck')}
           </button>
         </div>
       </div>
