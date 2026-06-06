@@ -7298,8 +7298,6 @@ useEffect(() => {
   fetch('/api/assets'),
   fetch('/api/workspace'),
   fetch('/api/seasonality'),
-  fetch('/api/calendar?limit=80'),
-  fetch('/api/news?limit=200'),
 ])
 
     if (!statusRes.ok || !assetsRes.ok || !workspaceRes.ok) {
@@ -7310,18 +7308,17 @@ const statusJson      = await statusRes.json()
 const assetsJson      = await assetsRes.json()
 const workspaceJson   = await workspaceRes.json()
 const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
-const calendarJson    = calendarRes.ok    ? await calendarRes.json()    : { items: [] }
-const newsJson        = newsRes?.ok       ? await newsRes.json()        : { items: [] }
+
 
 setStatus(statusJson)
 setAssets(assetsJson.items || [])
 setSeasonalityData(seasonalityJson.items || [])
 setWorkspaceData({
-  macro_regime: workspaceJson.macro_regime || null,
-  releases: workspaceJson.releases || [],
-  calendar: calendarJson.items?.length ? calendarJson.items : (workspaceJson.calendar || []),
-  news: newsJson.items?.length ? newsJson.items : (workspaceJson.news || []),
-})
+     macro_regime: workspaceJson.macro_regime || null,
+     releases: workspaceJson.releases || [],
+     calendar: workspaceJson.calendar || [],
+     news: workspaceJson.news || [],
+   })
 
     if ((assetsJson.items || []).length > 0) {
       setSelected((prev) => prev || assetsJson.items[0].symbol)
@@ -7336,14 +7333,12 @@ setWorkspaceData({
   useEffect(() => { localStorage.setItem("ktaliman-app-settings", JSON.stringify(appSettings));}, [appSettings]);
   useEffect(() => { loadAll() }, [])
   useEffect(() => {
+    if (active !== 'update') return
     fetchUpdateStatus()
     fetchSchedulerStatus()
-    const timer = setInterval(() => {
-      fetchUpdateStatus()
-      fetchSchedulerStatus()
-    }, 5000)
+    const timer = setInterval(() => { fetchUpdateStatus(); fetchSchedulerStatus() }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [active])  
   useEffect(() => {
   let ignore = false;
 
