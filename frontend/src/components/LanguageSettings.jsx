@@ -17,6 +17,41 @@ export default function LanguageSettings({
 }) {
   const { t } = useTranslation()
 
+  // ── Email alert language (variant C) — stored on backend ──
+  const [emailLang, setEmailLang] = React.useState("sync")
+
+  React.useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => { if (s?.email_language) setEmailLang(s.email_language) })
+      .catch(() => {})
+  }, [])
+
+  const handleEmailLangChange = (code) => {
+    setEmailLang(code)
+    fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_language: code }),
+    }).catch(() => {})
+  }
+
+  // When UI language changes, also persist it to backend so "sync" mode works
+  const handleUiChange = (code) => {
+    onChangeUiLanguage(code)
+    fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ui_language: code }),
+    }).catch(() => {})
+  }
+
+  const EMAIL_LANG_OPTIONS = [
+    { value: "sync", label: t("settings.emailLangSync") },
+    { value: "uk",   label: t("settings.emailLangUk") },
+    { value: "en",   label: t("settings.emailLangEn") },
+  ]
+
   return (
     <section className="space-y-4 padding-added">
       <div>
@@ -34,7 +69,7 @@ export default function LanguageSettings({
         </div>
         <CustomSelect
           value={uiLanguage}
-          onChange={onChangeUiLanguage}
+          onChange={handleUiChange}
           options={LANGUAGES}
           minWidth="100%"
         />
@@ -62,6 +97,19 @@ export default function LanguageSettings({
         />
         <span>{t("settings.language.sync")}</span>
       </label>
+
+      {/* ── Email alert language ── */}
+      <div className="space-y-2 pt-2">
+        <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+          {t("settings.emailLanguage")}
+        </div>
+        <CustomSelect
+          value={emailLang}
+          onChange={handleEmailLangChange}
+          options={EMAIL_LANG_OPTIONS}
+          minWidth="100%"
+        />
+      </div>
     </section>
   )
 }

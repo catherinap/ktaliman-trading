@@ -15,9 +15,17 @@
     "update": "Update Data",
     "settings": "Settings"
   },
-  "topbar": { "assets": "Assets", "rows": "Rows", "noData": "No Data" },
+  "topbar": { 
+    "assets": "Assets", 
+    "rows": "Rows", 
+    "noData": "No Data" 
+  },
   "settings": {
     "title": "Settings",
+    "emailLanguage": "Email alert language",
+    "emailLangUk": "Ukrainian",
+    "emailLangEn": "English",
+    "emailLangSync": "Sync with interface",
     "language": {
       "title": "Language",
       "subtitle": "Choose the interface language and the AI explanation language.",

@@ -22,6 +22,10 @@
   },
   "settings": {
     "title": "Налаштування",
+    "emailLanguage": "Мова email-сповіщень",
+    "emailLangUk": "Українська",
+    "emailLangEn": "English",
+    "emailLangSync": "Синхронізувати з інтерфейсом",
     "language": {
       "title": "Мова",
       "subtitle": "Оберіть мову інтерфейсу та мову AI-пояснень.",
