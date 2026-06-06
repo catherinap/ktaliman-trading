@@ -350,8 +350,7 @@ def _email_html(alerts: list[dict], lang: str) -> str:
         c = sev_color.get(a.get("severity"), "#94a3b8")
         return f"""
         <tr><td style="padding:0 0 10px 0;">
-          <table width="100%" style="border-collapse:collapse;background:#transparent;
-              border:1px solid #18181b;border-left:2px solid {c};border-radius:4px;">
+          <table width="100%" style="border-collapse:collapse;background:#transparent;border-left:2px solid {c};border-radius:4px;">
             <tr><td style="padding:14px 16px;">
               <div style="font-size:13px;color:#f1f5f9;font-weight:600;line-height:1.5;">{a['title']}</div>
               <div style="font-size:12px;color:#94a3b8;margin-top:6px;line-height:1.7;">{a.get('body','')}</div>
@@ -391,7 +390,7 @@ def _email_html(alerts: list[dict], lang: str) -> str:
     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.4em;color:#6085ff;">
       · Panchenko trading ·
     </div>
-    <div style="font-size:19px;font-weight:600;color:var(--accent-color);margin-top:10px;letter-spacing:-0.01em;">
+    <div style="font-size:19px;font-weight:600;color:#1637e0;margin-top:10px;letter-spacing:-0.01em;">
       {title_line}
     </div>
     <div style="font-size:11px;color:#52525b;margin-top:6px;letter-spacing:0.05em;">
