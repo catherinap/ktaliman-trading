@@ -51,7 +51,7 @@ function FearGreedGauge({ score, labelKey }) {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <svg viewBox="0 0 260 165" style={{ width: "100%", maxWidth: 280 }}>
         {zones.map((z, i) => (
-          <path key={i} d={arcPath(z.from, z.to)} fill="none"
+            <path key={i} d={arcPath(z.from, z.to)} fill="none"
             stroke={z.color} strokeWidth="14" strokeLinecap="round" opacity="0.85" />
         ))}
         {/* needle */}

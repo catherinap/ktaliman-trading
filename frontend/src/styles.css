@@ -396,6 +396,22 @@ th.sticky .left-0 {
     text-shadow: rgba(74, 222, 128, 0.6) 0px 0px 7px;
 }
 
+.parent {
+  position: relative;
+}
+
+.gradient-shadow {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  bottom: -0.5rem;
+  left: -0.5rem;
+  background: linear-gradient(to right, #ca8a04, #ea580c, #dc2626);
+  border-radius: 0.5rem;
+  opacity: 0.8;
+  filter: blur(20px);
+}
+
 /* ── Focus ──────────────────────────────────────────────────────────────── */
 *:focus-visible {
   outline: 2px solid rgba(59,130,246,0.5) !important;
