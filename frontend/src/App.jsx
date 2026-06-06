@@ -1942,11 +1942,18 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
   }))
   }, [calendar])
 
-  const topSignals = useMemo(() => {
-    if (!assets.length) return []
-    const engine = buildSignalEngine(assets, [], null, t)
-    return engine.signals.filter((s) => s.state === "active").slice(0, 6)
-  }, [assets, t])
+ const engine = useMemo(
+  () => (assets.length ? buildSignalEngine(assets, [], null, t) : null),
+  [assets, t]
+  )
+  const topSignals = useMemo(
+    () => engine ? engine.signals.filter(s => s.state === "active").slice(0, 6) : [],
+    [engine]
+  )
+  const alertFeed = useMemo(
+    () => engine ? engine.alerts.slice(0, 5) : [],
+    [engine]
+  )
 
   const sleeveScores = useMemo(() => {
     const result = {}
@@ -1962,12 +1969,6 @@ function Workspace({workspaceData, setActive, setSelected, assets = [], aiLangua
     { funds_percentile_3y: sleeveScores.inflation },
     { funds_percentile_3y: sleeveScores.policy },
   ])
-
-  const alertFeed = useMemo(() => {
-    if (!assets.length) return []
-    const engine = buildSignalEngine(assets, [], null, t)
-    return engine.alerts.slice(0, 5)
-  }, [assets])
 
   const localDateKey = (iso) => {
     if (!iso) return ""
