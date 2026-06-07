@@ -3314,9 +3314,7 @@ function SettingsView({
 export default function App() {
   const [active, setActive] = useState('workspace')
   const [selected, setSelected] = useState(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    typeof window !== 'undefined' && window.innerWidth <= 768
-  )
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(typeof window !== 'undefined' && window.innerWidth <= 768)
   const [status, setStatus] = useState(null)
   const [assets, setAssets] = useState([])
   const [signals, setSignals] = useState([])
@@ -3327,7 +3325,6 @@ export default function App() {
   const [schedulerState, setSchedulerState] = useState(null)
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false)
   const [guideSection, setGuideSection] = useState(null)
-
   const openGuide = (sectionKey = null) => {
     setGuideSection(sectionKey)
     setActive("guide")
@@ -3441,11 +3438,11 @@ useEffect(() => {
     setError('')
 
    const [statusRes, assetsRes, workspaceRes, seasonalityRes, calendarRes, newsRes] = await Promise.all([
-  fetch('/api/system/status'),
-  fetch('/api/assets'),
-  fetch('/api/workspace'),
-  fetch('/api/seasonality'),
-])
+    fetch('/api/system/status'),
+    fetch('/api/assets'),
+    fetch('/api/workspace'),
+    fetch('/api/seasonality'),
+   ])
 
     if (!statusRes.ok || !assetsRes.ok || !workspaceRes.ok) {
       throw new Error('Failed to load API data')
@@ -3455,7 +3452,6 @@ const statusJson      = await statusRes.json()
 const assetsJson      = await assetsRes.json()
 const workspaceJson   = await workspaceRes.json()
 const seasonalityJson = seasonalityRes.ok ? await seasonalityRes.json() : { items: [] }
-
 
 setStatus(statusJson)
 setAssets(assetsJson.items || [])
