@@ -6,6 +6,7 @@ News now fetched from the internal /api/news route (RSS aggregator).
 from fastapi import APIRouter
 from sqlalchemy import text
 from app.db import engine
+from app.cache import cached
 import requests
 
 router = APIRouter(prefix="/api/workspace", tags=["workspace"])
@@ -82,6 +83,10 @@ def fetch_calendar_external(limit: int = 10) -> list:
 
 @router.get("")
 def get_workspace():
+    return cached("workspace", 300, _compute_workspace)
+
+
+def _compute_workspace():
     with engine.connect() as conn:
         latest = conn.execute(
             text("SELECT MAX(report_date) AS latest_report_date FROM cot_analytics")

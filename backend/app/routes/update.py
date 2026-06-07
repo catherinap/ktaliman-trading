@@ -6,6 +6,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
+from app.cache import clear_cache
+
 router = APIRouter(prefix="/api/update", tags=["update"])
 
 JOB_STATE = {
@@ -54,6 +56,9 @@ def _run_worker():
             JOB_STATE["return_code"] = result.returncode
             JOB_STATE["log"] = combined_log[-12000:]
             JOB_STATE["error"] = "" if result.returncode == 0 else "Worker exited with error."
+
+        if result.returncode == 0:
+            clear_cache()  # свіжі дані — скидаємо кеш, щоб одразу підхопились
     except Exception as e:
         with LOCK:
             JOB_STATE["status"] = "error"

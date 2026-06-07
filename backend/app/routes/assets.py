@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import text
 from app.db import engine
+from app.cache import cached
 
 router = APIRouter()
 
@@ -47,6 +48,10 @@ FROM cot_analytics
 
 @router.get("/assets")
 def get_assets():
+    return cached("assets", 600, _compute_assets)
+
+
+def _compute_assets():
     with engine.connect() as conn:
         latest_date = conn.execute(
             text("SELECT MAX(report_date) FROM cot_analytics")

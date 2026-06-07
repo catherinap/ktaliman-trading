@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 from app.db import engine
+from app.cache import cached
 from datetime import datetime
 
 router = APIRouter()
@@ -8,6 +9,10 @@ router = APIRouter()
 
 @router.get("/seasonality")
 def get_seasonality():
+    return cached("seasonality", 3600, _compute_seasonality)
+
+
+def _compute_seasonality():
     """
     Computes real seasonal tendencies from historical COT data.
 
