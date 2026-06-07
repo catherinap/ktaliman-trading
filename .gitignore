@@ -1,7 +1,9 @@
 backend/.env.local
-frontend/node_modules/
+frontend/node_modules
 backend/backend_launcher.txt
 frontend/UIlauncher.txt
 readme.txt
 CLAUDE.md
 start.bat
+frontend/dist
+frontend/node_modules/CD
