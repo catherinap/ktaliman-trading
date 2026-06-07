@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -31,9 +32,14 @@ from app.routes.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="Ktaliman Trading API")
 
+# Дозволені домени беремо зі змінної оточення ALLOWED_ORIGINS (через кому).
+# Якщо змінної немає (локальна розробка) — за замовчуванням localhost:5173.
+_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
+ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

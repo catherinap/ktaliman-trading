@@ -2322,7 +2322,7 @@ setWorkspaceData({
    })
 
     if ((assetsJson.items || []).length > 0) {
-      setSelected((prev) => prev || assetsJson.items[0].symbol)
+      setSelected((prev) => prev || assetsJson.items.find((a) => a.symbol === 'EUR')?.symbol || assetsJson.items[0].symbol)
     }
   } catch (err) {
     setError(err.message || 'Unknown error')

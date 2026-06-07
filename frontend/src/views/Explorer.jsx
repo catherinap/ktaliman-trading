@@ -45,6 +45,15 @@ function renderNarrative(text) {
 
 export default function Explorer({ assets, selected, setSelected, aiLanguage, openGuide, seasonalityData = [] }) {
   const { t } = useTranslation();
+  // Порядок активів у панелі вибору: спочатку валюти, потім крипто, потім індекси, далі решта
+  const orderedAssets = useMemo(() => {
+    const ORDER = { Currencies: 0, Crypto: 1, Indices: 2 }
+    const rank = (a) => {
+      if (a.symbol === 'EUR') return -1   // EUR завжди найперший
+      return ORDER[normalizeSector(a.sector)] ?? 99
+    }
+    return [...assets].sort((a, b) => rank(a) - rank(b))
+  }, [assets])
   const tAccel = (a) =>
     a === 'accelerating' ? t('ui.accelerating') :
     a === 'decelerating' ? t('ui.decelerating') :
@@ -60,7 +69,9 @@ export default function Explorer({ assets, selected, setSelected, aiLanguage, op
   b === 'Bearish Context' ? t('ui.biasBearishContext') :
   b === 'Balanced'        ? t('ui.biasBalanced') : b
 
-  const asset = assets.find((a) => a.symbol === selected) || assets[0];
+  const asset = assets.find((a) => a.symbol === selected)
+    || assets.find((a) => a.symbol === 'EUR')
+    || assets[0];
 
   const sectorItems = useMemo(() => {
     if (!asset) return [];
@@ -423,7 +434,7 @@ export default function Explorer({ assets, selected, setSelected, aiLanguage, op
       >
         {/* Compact asset selector */}
         <div className="mb-3 -mx-1 flex flex-wrap gap-1">
-          {assets.map((a) => {
+          {orderedAssets.map((a) => {
             const isActive = a.symbol === asset.symbol
             const pct = Number(a.funds_percentile_3y)
             const dotColor = pct >= 65 ? '#4ade80' : pct <= 35 ? '#f87171' : '#94a3b8'
