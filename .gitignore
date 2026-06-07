@@ -8,3 +8,5 @@ start.bat
 frontend/dist
 frontend/node_modules/nanoid
 frontend/node_modules/postcss
+.env
+docker-compose.yml
