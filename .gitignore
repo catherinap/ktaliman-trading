@@ -10,3 +10,5 @@ frontend/node_modules/nanoid
 frontend/node_modules/postcss
 .env
 docker-compose.yml
+start-ktaliman.bat
+stop-ktaliman.bat
