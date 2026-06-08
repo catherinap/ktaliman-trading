@@ -1829,7 +1829,7 @@ function TopBar({ active, status, sidebarCollapsed, setSidebarCollapsed, onAlert
   const { t } = useTranslation()
  
   return (
-    <div className="sticky top-0 z-20 flex items-center justify-between border-b px-4 py-3 text-xs uppercase tracking-[0.24em]" style={{ background: 'var(--bg-surface)', borderColor: 'var(--panels-border)' }}>
+    <div className="sticky top-0 z-20 flex items-center justify-between border-b px-4 py-3 text-xs uppercase tracking-[0.24em]" style={{ background: 'rgba(8, 14, 30, 0.55)', borderColor: 'var(--panels-border)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
  
       {/* Left: burger + page title */}
       <div className="flex items-center gap-3">
