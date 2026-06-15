@@ -8,6 +8,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 import pandas as pd
+import numpy as np
 import requests
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -65,15 +66,11 @@ ASSET_MAP = {
     'NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE':                 {'symbol': 'NZD',      'name': 'New Zealand Dollar', 'sector': 'FX'},
     'U.S. DOLLAR INDEX - ICE FUTURES U.S.':                    {'symbol': 'USD',      'name': 'US Dollar Index',    'sector': 'FX'},
     'USD INDEX - ICE FUTURES U.S.':                            {'symbol': 'USD',      'name': 'US Dollar Index',    'sector': 'FX'},
-    'US DOLLAR INDEX - ICE FUTURES U.S.':                      {'symbol': 'USD',      'name': 'US Dollar Index',    'sector': 'FX'},
-    'E-MINI S&P 500 STOCK INDEX - CHICAGO MERCANTILE EXCHANGE':{'symbol': 'SPX',      'name': 'SP 500',             'sector': 'IDX'},
+    'S&P 500 STOCK INDEX - CHICAGO MERCANTILE EXCHANGE':{'symbol': 'SPX',      'name': 'SP 500',             'sector': 'IDX'},
     'E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE':            {'symbol': 'SPX',      'name': 'SP 500',             'sector': 'IDX'},
-    'S&P 500 Consolidated - CHICAGO MERCANTILE EXCHANGE':      {'symbol': 'SPX',      'name': 'SP 500',             'sector': 'IDX'},
-    'NASDAQ-100 STOCK INDEX (MINI) - CHICAGO MERCANTILE EXCHANGE': {'symbol': 'NDX', 'name': 'Nasdaq',             'sector': 'IDX'},
-    'NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE':   {'symbol': 'NDX',      'name': 'Nasdaq',             'sector': 'IDX'},
-    'DJIA x$5 - CHICAGO BOARD OF TRADE':                       {'symbol': 'DJIA',     'name': 'Dow Jones',          'sector': 'IDX'},
+    'NASDAQ-100 STOCK INDEX - CHICAGO MERCANTILE EXCHANGE': {'symbol': 'NDX', 'name': 'Nasdaq',             'sector': 'IDX'},
+    'NASDAQ MINI - CHICAGO MERCANTILE EXCHANGE':   {'symbol': 'NDX',      'name': 'Nasdaq',             'sector': 'IDX'},
     'DJIA x $5 - CHICAGO BOARD OF TRADE':                      {'symbol': 'DJIA',     'name': 'Dow Jones',          'sector': 'IDX'},
-    'DJIA Consolidated - CHICAGO BOARD OF TRADE':              {'symbol': 'DJIA',     'name': 'Dow Jones',          'sector': 'IDX'},
     'CBOE VOLATILITY INDEX - CBOE FUTURES EXCHANGE':           {'symbol': 'VIX',      'name': 'VIX',                'sector': 'IDX'},
     'VIX FUTURES - CBOE FUTURES EXCHANGE':                     {'symbol': 'VIX',      'name': 'VIX',                'sector': 'IDX'},
     'GOLD - COMMODITY EXCHANGE INC.':                          {'symbol': 'XAU',      'name': 'Gold',               'sector': 'METALS'},
@@ -83,30 +80,20 @@ ASSET_MAP = {
     'PLATINUM - NEW YORK MERCANTILE EXCHANGE':                  {'symbol': 'PLATINUM', 'name': 'Platinum',           'sector': 'METALS'},
     'PALLADIUM - NEW YORK MERCANTILE EXCHANGE':                 {'symbol': 'PALLADIUM','name': 'Palladium',          'sector': 'METALS'},
     'CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE': {'symbol': 'WTI', 'name': 'Crude Oil WTI', 'sector': 'COMMODITIES'},
-    'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE':           {'symbol': 'WTI', 'name': 'Crude Oil WTI', 'sector': 'COMMODITIES'},
+    'CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE': {'symbol': 'WTI', 'name': 'Crude Oil WTI', 'sector': 'COMMODITIES'},
     'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE':              {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
-    'HENRY HUB - NEW YORK MERCANTILE EXCHANGE':                 {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
-    'NATURAL GAS (HENRY HUB) - NEW YORK MERCANTILE EXCHANGE':   {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
     'NATURAL GAS - NEW YORK MERCANTILE EXCHANGE':               {'symbol': 'NATGAS',   'name': 'Natural Gas',        'sector': 'COMMODITIES'},
-    # ── New assets ──
     'CORN - CHICAGO BOARD OF TRADE':                            {'symbol': 'CORN',     'name': 'Corn',               'sector': 'GRAINS'},
-    'CORN FUTURES - CHICAGO BOARD OF TRADE':                    {'symbol': 'CORN',     'name': 'Corn',               'sector': 'GRAINS'},
     'SOYBEANS - CHICAGO BOARD OF TRADE':                        {'symbol': 'SOYBEANS', 'name': 'Soybeans',           'sector': 'GRAINS'},
-    'SOYBEAN - CHICAGO BOARD OF TRADE':                         {'symbol': 'SOYBEANS', 'name': 'Soybeans',           'sector': 'GRAINS'},
-    'SOYBEAN FUTURES - CHICAGO BOARD OF TRADE':                 {'symbol': 'SOYBEANS', 'name': 'Soybeans',           'sector': 'GRAINS'},
-    'RUSSELL 2000 MINI INDEX FUTURES - CHICAGO MERCANTILE EXCHANGE': {'symbol': 'RTY', 'name': 'Russell 2000',      'sector': 'IDX'},
+    'Russell 2000 Stock Index Future - Chicago Mercantile Exchange': {'symbol': 'RTY', 'name': 'Russell 2000',      'sector': 'IDX'},
     'RUSSELL E-MINI - CHICAGO MERCANTILE EXCHANGE': {'symbol': 'RTY', 'name': 'Russell 2000',      'sector': 'IDX'},
-    'RUSSELL 2000 STOCK INDEX - CHICAGO MERCANTILE EXCHANGE':   {'symbol': 'RTY',      'name': 'Russell 2000',       'sector': 'IDX'},
-    'E-MINI RUSSELL 2000 INDEX - CHICAGO MERCANTILE EXCHANGE':  {'symbol': 'RTY',      'name': 'Russell 2000',       'sector': 'IDX'},
-    'RUSSELL 2000 Consolidated - CHICAGO MERCANTILE EXCHANGE':  {'symbol': 'RTY',      'name': 'Russell 2000',       'sector': 'IDX'},
     'COFFEE C - ICE FUTURES U.S.':                             {'symbol': 'COFFEE',   'name': 'Coffee',             'sector': 'COMMODITIES'},
     'COCOA - ICE FUTURES U.S.':                                {'symbol': 'COCOA',    'name': 'Cocoa',              'sector': 'COMMODITIES'},
     'SUGAR NO. 11 - ICE FUTURES U.S.':                         {'symbol': 'SUGAR',    'name': 'Sugar',              'sector': 'COMMODITIES'},
-    'WHEAT-SRW - CHICAGO BOARD OF TRADE':                      {'symbol': 'WHEAT',    'name': 'Wheat',              'sector': 'COMMODITIES'},
+    'WHEAT - KANSAS CITY BOARD OF TRADE':                      {'symbol': 'WHEAT',    'name': 'Wheat',              'sector': 'COMMODITIES'},
     'WHEAT - CHICAGO BOARD OF TRADE':                          {'symbol': 'WHEAT',    'name': 'Wheat',              'sector': 'COMMODITIES'},
     'BITCOIN - CHICAGO MERCANTILE EXCHANGE':                   {'symbol': 'BTC',      'name': 'Bitcoin',            'sector': 'CRYPTO'},
     'ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE':        {'symbol': 'ETH',      'name': 'Ethereum',           'sector': 'CRYPTO'},
-    'ETHEREUM - CHICAGO MERCANTILE EXCHANGE':                  {'symbol': 'ETH',      'name': 'Ethereum',           'sector': 'CRYPTO'},
 }
 
 
@@ -271,7 +258,12 @@ def compute_percentiles(df: pd.DataFrame, column_name: str, index_col_name: str)
         .groupby('symbol', group_keys=False)[column_name]
         .transform(lambda s: compute_cot_index(s))
     )
-    df.loc[valid_mask, index_col_name] = results
+    # Куленепробивний спосіб: збираємо повну колонку як numpy-масив і присвоюємо
+    # її цілком. Уникаємо df.loc[маска, колонка] = Series — саме на цьому падає
+    # pandas 3.x (намагається запхати масив в одну комірку).
+    full = np.full(len(df), np.nan, dtype='float64')
+    full[valid_mask.to_numpy()] = results.to_numpy(dtype='float64')
+    df[index_col_name] = full
     return df
 
 
